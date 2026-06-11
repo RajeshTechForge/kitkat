@@ -30,7 +30,7 @@ from google.genai import Client
 from google.genai import errors as genai_errors
 from google.genai import types as genai_types
 
-from ..base import (
+from ..core.base import (
     FinishReason,
     LLMProvider,
     LLMRequest,

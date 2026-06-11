@@ -18,15 +18,16 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
-from .base import LLMProvider, LLMRequest, LLMResponse, ProviderType, StreamChunk
-from .providers import (
-    AnthropicConfig,
-    AnthropicProvider,
-    GeminiConfig,
-    GeminiProvider,
-    OpenAIConfig,
-    OpenAIProvider,
+from ..core.base import (
+    LLMProvider,
+    LLMRequest,
+    LLMResponse,
+    ProviderType,
+    StreamChunk,
 )
+from ..providers.anthropic import AnthropicConfig, AnthropicProvider
+from ..providers.gemini import GeminiConfig, GeminiProvider
+from ..providers.openai import OpenAIConfig, OpenAIProvider
 
 if TYPE_CHECKING:
     from types import TracebackType

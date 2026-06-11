@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from collections.abc import AsyncIterator
 
-from .base import (
+from ..core.base import (
     LLMProvider,
     LLMRequest,
     LLMResponse,
@@ -20,7 +20,7 @@ from .base import (
     ProviderType,
     StreamChunk,
 )
-from .exceptions import LLMProviderError
+from ..exceptions import LLMProviderError
 
 logger = logging.getLogger(__name__)
 

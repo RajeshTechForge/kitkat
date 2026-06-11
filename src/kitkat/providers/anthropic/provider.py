@@ -30,7 +30,7 @@ import tiktoken
 from anthropic import AsyncAnthropic
 from anthropic.types import Message as AnthropicMessage
 
-from ..base import (
+from ..core.base import (
     FinishReason,
     LLMProvider,
     LLMRequest,

@@ -44,7 +44,7 @@ from openai import (
 )
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 
-from ..base import (
+from ..core.base import (
     FinishReason,
     LLMProvider,
     LLMRequest,
