@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     )
 from ..core.enums import ProviderType
 from ..providers.anthropic.provider import AnthropicConfig, AnthropicProvider
-from ..providers.google.provider import GeminiConfig, GeminiProvider
+from ..providers.gemini.provider import GeminiConfig, GeminiProvider
 from ..providers.openai.provider import OpenAIConfig, OpenAIProvider
 
 logger = logging.getLogger(__name__)
