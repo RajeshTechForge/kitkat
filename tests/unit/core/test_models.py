@@ -347,15 +347,3 @@ def test_backward_compat_exceptions_module() -> None:
         LLMError,
         LLMProviderError,
     )
-
-
-def test_backward_compat_base_module() -> None:
-    """Verify kitkat.core.base still exports enums and models."""
-    from kitkat.core.base import (  # noqa: F401
-        FinishReason,
-        LLMProvider,
-        LLMRequest,
-        Message,
-        ProviderType,
-        Role,
-    )

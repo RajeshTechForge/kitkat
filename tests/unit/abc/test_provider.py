@@ -101,12 +101,6 @@ def test_canonical_abc_import() -> None:
     assert LP is LLMProvider
 
 
-def test_backward_compat_base_import() -> None:
-    """from kitkat.core.base import LLMProvider must still work."""
-    from kitkat.core.base import LLMProvider as LP  # noqa: F401
-
-    assert LP is LLMProvider
-
 
 # ---------------------------------------------------------------------------
 # Lifecycle helpers
