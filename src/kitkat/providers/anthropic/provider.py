@@ -34,16 +34,14 @@ if TYPE_CHECKING:
     from anthropic.types import Message as AnthropicMessage
 
 
-from ...core.base import (
-    FinishReason,
-    LLMProvider,
+from ...abc.provider import LLMProvider
+from ...core.enums import FinishReason, ProviderType, Role
+from ...core.models import (
     LLMRequest,
     LLMResponse,
     Message,
     ProviderCapabilities,
-    ProviderType,
     RetryPolicy,
-    Role,
     StreamChunk,
     ThinkingConfig,
     TokenUsage,

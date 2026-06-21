@@ -14,13 +14,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
-    from ..core.base import (
-        LLMProvider,
+    from ..abc.provider import LLMProvider
+    from ..core.enums import ProviderType
+    from ..core.models import (
         LLMRequest,
         LLMResponse,
         Message,
         ProviderCapabilities,
-        ProviderType,
         StreamChunk,
     )
 

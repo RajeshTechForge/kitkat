@@ -13,13 +13,11 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .base import (
-    FinishReason,
+from .enums import FinishReason, ProviderType, Role
+from .models import (
     LLMRequest,
     LLMResponse,
     Message,
-    ProviderType,
-    Role,
     StreamChunk,
     ThinkingConfig,
     TokenUsage,

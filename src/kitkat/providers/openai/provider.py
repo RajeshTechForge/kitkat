@@ -47,14 +47,13 @@ if TYPE_CHECKING:
 
     from openai.types.chat import ChatCompletion, ChatCompletionChunk
 
-from ...core.base import (
-    FinishReason,
-    LLMProvider,
+from ...abc.provider import LLMProvider
+from ...core.enums import FinishReason, ProviderType
+from ...core.models import (
     LLMRequest,
     LLMResponse,
     Message,
     ProviderCapabilities,
-    ProviderType,
     RetryPolicy,
     StreamChunk,
     ThinkingConfig,

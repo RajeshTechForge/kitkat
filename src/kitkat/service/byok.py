@@ -21,13 +21,13 @@ if TYPE_CHECKING:
     from collections.abc import AsyncIterator
     from types import TracebackType
 
-from ..core.base import (
-    LLMProvider,
-    LLMRequest,
-    LLMResponse,
-    ProviderType,
-    StreamChunk,
-)
+    from ..abc.provider import LLMProvider
+    from ..core.models import (
+        LLMRequest,
+        LLMResponse,
+        StreamChunk,
+    )
+from ..core.enums import ProviderType
 from ..providers.anthropic.provider import AnthropicConfig, AnthropicProvider
 from ..providers.google.provider import GeminiConfig, GeminiProvider
 from ..providers.openai.provider import OpenAIConfig, OpenAIProvider

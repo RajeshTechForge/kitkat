@@ -32,16 +32,14 @@ from google.genai import types as genai_types
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
-from ...core.base import (
-    FinishReason,
-    LLMProvider,
+from ...abc.provider import LLMProvider
+from ...core.enums import FinishReason, ProviderType, Role
+from ...core.models import (
     LLMRequest,
     LLMResponse,
     Message,
     ProviderCapabilities,
-    ProviderType,
     RetryPolicy,
-    Role,
     StreamChunk,
     ThinkingConfig,
     TokenUsage,
