@@ -25,7 +25,7 @@ class KitkatError(Exception):
         code: str = "KITKAT_ERROR",
         details: dict | None = None,
         status_code: int = 500,
-    ):
+    ) -> None:
         self.message = message
         self.code = code
         self.details: dict | None = details

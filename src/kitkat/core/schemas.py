@@ -7,8 +7,8 @@ boundaries and specific structural constraints.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import datetime
+from enum import StrEnum
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -55,7 +55,7 @@ class MessageSchema(BaseModel):
         return Message(role=Role(self.role), content=self.content)
 
     @classmethod
-    def from_domain(cls, msg: Message) -> "MessageSchema":
+    def from_domain(cls, msg: Message) -> MessageSchema:
         """Build from the internal domain dataclass.
 
         Args:
@@ -178,9 +178,7 @@ class ThinkingConfigSchema(BaseModel):
             enabled=self.enabled,
             effort=self.effort,
             provider_options=(
-                self.provider_options.model_dump(
-                    exclude={"provider"}, exclude_none=True
-                )
+                self.provider_options.model_dump(exclude={"provider"}, exclude_none=True)
                 if self.provider_options
                 else None
             ),
@@ -205,8 +203,7 @@ class LLMRequestSchema(BaseModel):
     model: str = Field(
         default="",
         description=(
-            "Target model identifier. "
-            "Empty string → each provider uses its configured default."
+            "Target model identifier. Empty string → each provider uses its configured default."
         ),
     )
     max_tokens: int = Field(
@@ -248,15 +245,14 @@ class LLMRequestSchema(BaseModel):
     )
 
     @model_validator(mode="after")
-    def system_message_at_most_one_and_first(self) -> "LLMRequestSchema":
+    def system_message_at_most_one_and_first(self) -> LLMRequestSchema:
         """Enforce that at most one system message is present and it is the first message.
 
         Raises:
-            ValueError: If multiple system messages are provided or if the system message is not at the first position.
+            ValueError: If multiple system messages are provided or if the system message
+            is not at the first position.
         """
-        system_positions = [
-            i for i, m in enumerate(self.messages) if m.role == Role.SYSTEM.value
-        ]
+        system_positions = [i for i, m in enumerate(self.messages) if m.role == Role.SYSTEM.value]
         if len(system_positions) > 1:
             raise ValueError(
                 f"At most one system message is allowed; "
@@ -296,7 +292,7 @@ class LLMRequestSchema(BaseModel):
         )
 
     @classmethod
-    def from_domain(cls, req: LLMRequest) -> "LLMRequestSchema":
+    def from_domain(cls, req: LLMRequest) -> LLMRequestSchema:
         """Build from the internal domain dataclass.
 
         Args:
@@ -364,7 +360,7 @@ class TokenUsageSchema(BaseModel):
     )
 
     @model_validator(mode="after")
-    def total_is_consistent(self) -> "TokenUsageSchema":
+    def total_is_consistent(self) -> TokenUsageSchema:
         """Auto-correct total_tokens when providers omit it or round differently.
 
         Returns:
@@ -389,7 +385,7 @@ class TokenUsageSchema(BaseModel):
         )
 
     @classmethod
-    def from_domain(cls, usage: TokenUsage) -> "TokenUsageSchema":
+    def from_domain(cls, usage: TokenUsage) -> TokenUsageSchema:
         """Build from the internal domain dataclass."""
         return cls(
             prompt_tokens=usage.prompt_tokens,
@@ -418,16 +414,10 @@ class LLMResponseSchema(BaseModel):
             "or thinking display is set to 'omitted'."
         ),
     )
-    finish_reason: FinishReason = Field(
-        ..., description="Why the model stopped generating."
-    )
+    finish_reason: FinishReason = Field(..., description="Why the model stopped generating.")
     usage: TokenUsageSchema = Field(..., description="Token consumption breakdown.")
-    model: str = Field(
-        ..., description="Exact model version that generated the response."
-    )
-    provider: ProviderType = Field(
-        ..., description="Which provider served the request."
-    )
+    model: str = Field(..., description="Exact model version that generated the response.")
+    provider: ProviderType = Field(..., description="Which provider served the request.")
     latency_ms: float = Field(
         ...,
         ge=0.0,
@@ -438,7 +428,7 @@ class LLMResponseSchema(BaseModel):
         description="True if this response was served from cache.",
     )
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(datetime.UTC),
         description="UTC timestamp when the response was produced.",
     )
 
@@ -453,7 +443,7 @@ class LLMResponseSchema(BaseModel):
         resp: LLMResponse,
         *,
         cached: bool = False,
-    ) -> "LLMResponseSchema":
+    ) -> LLMResponseSchema:
         """Convert from the internal domain LLMResponse dataclass.
 
         Args:
@@ -542,7 +532,7 @@ class StreamChunkSchema(BaseModel):
     )
 
     @classmethod
-    def from_domain(cls, chunk: StreamChunk) -> "StreamChunkSchema":
+    def from_domain(cls, chunk: StreamChunk) -> StreamChunkSchema:
         """Build from the internal StreamChunk dataclass.
 
         Args:
@@ -571,9 +561,7 @@ class StreamChunkSchema(BaseModel):
             finish_reason=FinishReason(self.finish_reason),
             usage=self.usage.to_domain(),
             model=self.model,
-            provider=ProviderType(self.provider)
-            if self.provider
-            else ProviderType.ANTHROPIC,
+            provider=ProviderType(self.provider) if self.provider else ProviderType.ANTHROPIC,
             latency_ms=self.latency_ms,
         )
 
@@ -583,7 +571,7 @@ class StreamChunkSchema(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-class StreamEventType(str, Enum):
+class StreamEventType(StrEnum):
     """Discriminator values for SSE frames sent by the streaming endpoint."""
 
     CHUNK = "chunk"
@@ -593,9 +581,7 @@ class StreamEventType(str, Enum):
 class StreamErrorPayload(BaseModel):
     """Error detail embedded inside a :class:'StreamErrorEvent' frame."""
 
-    code: str = Field(
-        ..., description="Machine-readable error code. (e.g. 'AUTH_ERROR')"
-    )
+    code: str = Field(..., description="Machine-readable error code. (e.g. 'AUTH_ERROR')")
     message: str = Field(..., description="Human-readable error description.")
     details: dict | None = Field(
         default=None,
@@ -640,15 +626,9 @@ class ProviderStatusSchema(BaseModel):
     circuit_state: str = Field(
         description="CLOSED (normal) | OPEN (failing) | HALF_OPEN (recovering).",
     )
-    total_requests: int = Field(
-        ge=0, description="Total requests routed here since startup."
-    )
-    failed_requests: int = Field(
-        ge=0, description="Total failed requests since startup."
-    )
-    avg_latency_ms: float = Field(
-        ge=0.0, description="Moving average latency in milliseconds."
-    )
+    total_requests: int = Field(ge=0, description="Total requests routed here since startup.")
+    failed_requests: int = Field(ge=0, description="Total failed requests since startup.")
+    avg_latency_ms: float = Field(ge=0.0, description="Moving average latency in milliseconds.")
     error_rate: float = Field(
         ge=0.0,
         le=1.0,
@@ -668,13 +648,11 @@ class RouterStatusSchema(BaseModel):
 
     strategy: str = Field(description="Active routing strategy name.")
     provider_count: int = Field(ge=0, description="Total providers in the pool.")
-    healthy_count: int = Field(
-        ge=0, description="Providers with a passing health check."
-    )
+    healthy_count: int = Field(ge=0, description="Providers with a passing health check.")
     providers: list[ProviderStatusSchema] = Field(description="Per-provider detail.")
     cache_enabled: bool = Field(description="Whether the LLM response cache is active.")
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(datetime.UTC),
         description="UTC timestamp when this snapshot was taken.",
     )
 
@@ -690,13 +668,9 @@ class CacheStatsSchema(BaseModel):
         le=1.0,
         description="hits / (hits + misses). 0.0 if no requests yet.",
     )
-    size: int = Field(
-        ge=0, description="Current number of entries (InMemoryCache only)."
-    )
+    size: int = Field(ge=0, description="Current number of entries (InMemoryCache only).")
     max_size: int = Field(
         ge=0,
         description="Configured entry-count cap (InMemoryCache only; 0 = Redis backend).",
     )
-    ttl_seconds: int = Field(
-        ge=0, description="Default TTL applied to new cache entries."
-    )
+    ttl_seconds: int = Field(ge=0, description="Default TTL applied to new cache entries.")

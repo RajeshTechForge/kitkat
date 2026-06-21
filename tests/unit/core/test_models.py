@@ -30,7 +30,6 @@ from kitkat.core import (
     TokenUsage,
 )
 
-
 # ---------------------------------------------------------------------------
 # Enum tests
 # ---------------------------------------------------------------------------
@@ -85,7 +84,9 @@ class TestMessage:
 
 class TestTokenUsage:
     def test_total_tokens_field(self) -> None:
-        u = TokenUsage(prompt_tokens=100, completion_tokens=50, thinking_tokens=20, total_tokens=170)
+        u = TokenUsage(
+            prompt_tokens=100, completion_tokens=50, thinking_tokens=20, total_tokens=170
+        )
         assert u.total_tokens == 170
 
     def test_empty_factory(self) -> None:
@@ -122,7 +123,9 @@ class TestRetryPolicy:
         assert policy.delay_for_attempt(10) == 10.0
 
     def test_delay_exponential_growth(self) -> None:
-        policy = RetryPolicy(base_delay_s=1.0, max_delay_s=100.0, exponential_base=2.0, jitter=False)
+        policy = RetryPolicy(
+            base_delay_s=1.0, max_delay_s=100.0, exponential_base=2.0, jitter=False
+        )
         assert policy.delay_for_attempt(0) == 1.0
         assert policy.delay_for_attempt(1) == 2.0
         assert policy.delay_for_attempt(2) == 4.0

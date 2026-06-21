@@ -6,10 +6,10 @@ library without restriction — they have no dependencies themselves.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 
-class Role(str, Enum):
+class Role(StrEnum):
     """Conversation participant roles."""
 
     SYSTEM = "system"
@@ -17,7 +17,7 @@ class Role(str, Enum):
     ASSISTANT = "assistant"
 
 
-class FinishReason(str, Enum):
+class FinishReason(StrEnum):
     """Provide specific reasons for the model stopping its generation."""
 
     STOP = "stop"  # Natural completion
@@ -28,7 +28,7 @@ class FinishReason(str, Enum):
     UNKNOWN = "unknown"  # Fallback for unmapped values
 
 
-class ProviderType(str, Enum):
+class ProviderType(StrEnum):
     """Canonical provider identifiers used throughout the routing layer."""
 
     ANTHROPIC = "anthropic"

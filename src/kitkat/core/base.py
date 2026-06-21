@@ -22,8 +22,10 @@ import asyncio
 import logging
 import time
 from abc import ABC, abstractmethod
-from collections.abc import AsyncIterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 from ..exceptions import (
     LLMProviderError,
@@ -31,10 +33,6 @@ from ..exceptions import (
     LLMTimeoutError,
     LLMTokenLimitError,
 )
-
-# ---------------------------------------------------------------------------
-# Re-export enums and models from the new split modules (backward compat)
-# ---------------------------------------------------------------------------
 from .enums import FinishReason, ProviderType, Role
 from .models import (
     LLMRequest,
@@ -133,12 +131,12 @@ class LLMProvider(ABC):
             LLMProviderInitError: If the underlying HTTP client cannot be created.
         """
 
-    async def __aenter__(self) -> "LLMProvider":
+    async def __aenter__(self) -> LLMProvider:
         """Initialize the provider asynchronously upon context entry."""
         await self.initialize()
         return self
 
-    async def __aexit__(self, *_: Any) -> None:
+    async def __aexit__(self) -> None:
         """Ensure provider shutdown on context manager exit."""
         await self.shutdown()
 

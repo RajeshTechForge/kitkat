@@ -15,8 +15,11 @@ registry operations remain responsibilities of the server-side
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+    from types import TracebackType
 
 from ..core.base import (
     LLMProvider,
@@ -25,12 +28,9 @@ from ..core.base import (
     ProviderType,
     StreamChunk,
 )
-from ..providers.anthropic import AnthropicConfig, AnthropicProvider
-from ..providers.gemini import GeminiConfig, GeminiProvider
-from ..providers.openai import OpenAIConfig, OpenAIProvider
-
-if TYPE_CHECKING:
-    from types import TracebackType
+from ..providers.anthropic.provider import AnthropicConfig, AnthropicProvider
+from ..providers.google.provider import GeminiConfig, GeminiProvider
+from ..providers.openai.provider import OpenAIConfig, OpenAIProvider
 
 logger = logging.getLogger(__name__)
 
@@ -71,15 +71,13 @@ class BYOKLLMService:
         self._provider_type = provider_type
         self._api_key = api_key
         self._model = model
-        self._provider: LLMProvider = self._build_provider(
-            provider_type, api_key, model
-        )
+        self._provider: LLMProvider = self._build_provider(provider_type, api_key, model)
 
     # ------------------------------------------------------------------
     # Async context manager
     # ------------------------------------------------------------------
 
-    async def __aenter__(self) -> "BYOKLLMService":
+    async def __aenter__(self) -> BYOKLLMService:
         """Initialize the provider HTTP client (no credential probe).
 
         Returns:
@@ -175,11 +173,7 @@ class BYOKLLMService:
     # ------------------------------------------------------------------
 
     def __repr__(self) -> str:
-        return (
-            f"<BYOKLLMService "
-            f"provider={self._provider_type.value!r} "
-            f"model={self._model!r}>"
-        )
+        return f"<BYOKLLMService provider={self._provider_type.value!r} model={self._model!r}>"
 
     # ------------------------------------------------------------------
     # Private helpers

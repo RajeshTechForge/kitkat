@@ -21,9 +21,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import tiktoken
 from openai import (
@@ -42,9 +41,13 @@ from openai import (
     RateLimitError,
     UnprocessableEntityError,
 )
-from openai.types.chat import ChatCompletion, ChatCompletionChunk
 
-from ..core.base import (
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+    from openai.types.chat import ChatCompletion, ChatCompletionChunk
+
+from ...core.base import (
     FinishReason,
     LLMProvider,
     LLMRequest,
@@ -57,7 +60,7 @@ from ..core.base import (
     ThinkingConfig,
     TokenUsage,
 )
-from ..exceptions import (
+from ...exceptions import (
     LLMAuthenticationError,
     LLMProviderError,
     LLMProviderInitError,
@@ -143,7 +146,7 @@ class OpenAIConfig:
             )
 
     @classmethod
-    def from_dict(cls, cfg: dict[str, Any]) -> "OpenAIConfig":
+    def from_dict(cls, cfg: dict[str, Any]) -> OpenAIConfig:
         """Build from the raw config slice.
 
         Accepts both the "[llm.providers.openai]" and any
@@ -212,7 +215,7 @@ class OpenAIProvider(LLMProvider):
         retryable_status_codes=frozenset({408, 429, 500, 502, 503, 504}),
     )
 
-    def __init__(self, config: "OpenAIConfig | dict[str, Any]") -> None:
+    def __init__(self, config: OpenAIConfig | dict[str, Any]) -> None:
         """Initialize the OpenAIProvider.
 
         Args:
@@ -351,9 +354,7 @@ class OpenAIProvider(LLMProvider):
         model = request.model or self._cfg.model
         messages = self._build_message_list(request.messages)
         thinking_kwargs = self._build_thinking_params(request.thinking)
-        timeout = (
-            request.timeout if request.timeout is not None else self._cfg.timeout_s
-        )
+        timeout = request.timeout if request.timeout is not None else self._cfg.timeout_s
         start = time.monotonic()
 
         logger.debug(
@@ -378,7 +379,7 @@ class OpenAIProvider(LLMProvider):
                 ),
                 timeout=timeout,
             )
-        except asyncio.TimeoutError as exc:
+        except TimeoutError as exc:
             elapsed = time.monotonic() - start
             raise LLMTimeoutError(
                 f"OpenAI request timed out after {elapsed:.1f}s (limit={timeout}s)",
@@ -414,9 +415,7 @@ class OpenAIProvider(LLMProvider):
         model = request.model or self._cfg.model
         messages = self._build_message_list(request.messages)
         thinking_kwargs = self._build_thinking_params(request.thinking)
-        timeout = (
-            request.timeout if request.timeout is not None else self._cfg.timeout_s
-        )
+        timeout = request.timeout if request.timeout is not None else self._cfg.timeout_s
         start = time.monotonic()
 
         logger.debug(
@@ -448,9 +447,7 @@ class OpenAIProvider(LLMProvider):
 
                         choice = chunk.choices[0]
                         delta_text = (
-                            choice.delta.content
-                            if choice.delta and choice.delta.content
-                            else ""
+                            choice.delta.content if choice.delta and choice.delta.content else ""
                         )
 
                         # Resolve finish_reason from the last chunk that carries it.
@@ -481,7 +478,7 @@ class OpenAIProvider(LLMProvider):
                         if delta_text:
                             yield StreamChunk(delta=delta_text)
 
-        except asyncio.TimeoutError as exc:
+        except TimeoutError as exc:
             elapsed = time.monotonic() - start
             raise LLMTimeoutError(
                 f"OpenAI stream timed out after {elapsed:.1f}s",
@@ -625,16 +622,12 @@ class OpenAIProvider(LLMProvider):
         """
         choice = raw.choices[0] if raw.choices else None
         content = (
-            choice.message.content
-            if choice and choice.message and choice.message.content
-            else ""
+            choice.message.content if choice and choice.message and choice.message.content else ""
         )
 
         finish_reason = FinishReason.UNKNOWN
         if choice and choice.finish_reason:
-            finish_reason = _FINISH_REASON_MAP.get(
-                choice.finish_reason, FinishReason.UNKNOWN
-            )
+            finish_reason = _FINISH_REASON_MAP.get(choice.finish_reason, FinishReason.UNKNOWN)
 
         usage = TokenUsage.empty()
         if raw.usage is not None:
@@ -752,7 +745,10 @@ class OpenAIProvider(LLMProvider):
                 },
             )
             return LLMProviderError(
-                "OpenAI resource conflict. This may indicate a concurrent modification or invalid state.",
+                (
+                    "OpenAI resource conflict. This may indicate a concurrent modification"
+                    " or invalid state."
+                ),
                 status_code=status_code,
                 provider="openai",
             )
@@ -784,7 +780,7 @@ class OpenAIProvider(LLMProvider):
                 },
             )
             return LLMRateLimitError(
-                "OpenAI request rate limit exceeded. Retry after the delay returned by the service.",
+                "OpenAI request rate limit exceeded. Retry after the delay.",
                 status_code=status_code,
                 retry_after_s=retry_after,
                 provider="openai",

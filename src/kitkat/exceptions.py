@@ -8,7 +8,6 @@
 
 from __future__ import annotations
 
-# Re-export the full hierarchy from the new canonical location.
 from .core.exceptions import (
     KitkatError,
     LLMAuthenticationError,

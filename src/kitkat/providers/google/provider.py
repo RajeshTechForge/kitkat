@@ -21,16 +21,18 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import tiktoken
 from google.genai import Client
 from google.genai import errors as genai_errors
 from google.genai import types as genai_types
 
-from ..core.base import (
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+from ...core.base import (
     FinishReason,
     LLMProvider,
     LLMRequest,
@@ -44,7 +46,7 @@ from ..core.base import (
     ThinkingConfig,
     TokenUsage,
 )
-from ..exceptions import (
+from ...exceptions import (
     LLMAuthenticationError,
     LLMContentFilterError,
     LLMProviderError,
@@ -111,10 +113,7 @@ class GeminiConfig:
             )
         if self.vertexai and (not self.project or not self.location):
             raise LLMProviderInitError(
-                (
-                    "GeminiConfig.project and GeminiConfig.location are required "
-                    "when vertexai=True."
-                ),
+                ("GeminiConfig.project and GeminiConfig.location are required when vertexai=True."),
                 provider="gemini",
             )
         if self.timeout_s <= 0:
@@ -124,7 +123,7 @@ class GeminiConfig:
             )
 
     @classmethod
-    def from_dict(cls, cfg: dict[str, Any]) -> "GeminiConfig":
+    def from_dict(cls, cfg: dict[str, Any]) -> GeminiConfig:
         """Build from the raw config slice.
 
         Args:
@@ -172,7 +171,7 @@ class GeminiProvider(LLMProvider):
         retryable_status_codes=frozenset({408, 429, 500, 502, 503, 504}),
     )
 
-    def __init__(self, config: "GeminiConfig | dict[str, Any]") -> None:
+    def __init__(self, config: GeminiConfig | dict[str, Any]) -> None:
         """Initialize the GeminiProvider.
 
         Args:
@@ -245,9 +244,7 @@ class GeminiProvider(LLMProvider):
                 exc.message,
             )
         except Exception as exc:
-            logger.warning(
-                "GeminiProvider credential probe failed (non-fatal): %s", exc
-            )
+            logger.warning("GeminiProvider credential probe failed (non-fatal): %s", exc)
 
         self._initialized = True
         logger.info("GeminiProvider initialised successfully.")
@@ -327,12 +324,8 @@ class GeminiProvider(LLMProvider):
 
         model = request.model or self._cfg.model
         system_instruction, contents = self._split_messages(request.messages)
-        gen_cfg = self._build_generation_config(
-            request, system_instruction, request.thinking
-        )
-        timeout = (
-            request.timeout if request.timeout is not None else self._cfg.timeout_s
-        )
+        gen_cfg = self._build_generation_config(request, system_instruction, request.thinking)
+        timeout = request.timeout if request.timeout is not None else self._cfg.timeout_s
         start = time.monotonic()
 
         logger.debug(
@@ -351,7 +344,7 @@ class GeminiProvider(LLMProvider):
                 ),
                 timeout=timeout,
             )
-        except asyncio.TimeoutError as exc:
+        except TimeoutError as exc:
             elapsed = time.monotonic() - start
             raise LLMTimeoutError(
                 f"Gemini request timed out after {elapsed:.1f}s (limit={timeout}s)",
@@ -394,12 +387,8 @@ class GeminiProvider(LLMProvider):
 
         model = request.model or self._cfg.model
         system_instruction, contents = self._split_messages(request.messages)
-        gen_cfg = self._build_generation_config(
-            request, system_instruction, request.thinking
-        )
-        timeout = (
-            request.timeout if request.timeout is not None else self._cfg.timeout_s
-        )
+        gen_cfg = self._build_generation_config(request, system_instruction, request.thinking)
+        timeout = request.timeout if request.timeout is not None else self._cfg.timeout_s
         start = time.monotonic()
 
         logger.debug(
@@ -415,9 +404,7 @@ class GeminiProvider(LLMProvider):
 
         try:
             async with asyncio.timeout(timeout):
-                async for (
-                    chunk
-                ) in await self._client.aio.models.generate_content_stream(
+                async for chunk in await self._client.aio.models.generate_content_stream(
                     model=model,
                     contents=contents,
                     config=gen_cfg,
@@ -426,14 +413,11 @@ class GeminiProvider(LLMProvider):
                     # Retains the last non-None value as authoritative final state.
                     if chunk.usage_metadata is not None:
                         thinking_toks = (
-                            getattr(chunk.usage_metadata, "thoughts_token_count", None)
-                            or 0
+                            getattr(chunk.usage_metadata, "thoughts_token_count", None) or 0
                         )
                         usage = TokenUsage(
                             prompt_tokens=chunk.usage_metadata.prompt_token_count or 0,
-                            completion_tokens=(
-                                chunk.usage_metadata.candidates_token_count or 0
-                            ),
+                            completion_tokens=(chunk.usage_metadata.candidates_token_count or 0),
                             thinking_tokens=thinking_toks,
                             total_tokens=chunk.usage_metadata.total_token_count or 0,
                         )
@@ -457,7 +441,7 @@ class GeminiProvider(LLMProvider):
                                 any_chunk_yielded = True
                                 yield StreamChunk(delta=part.text, is_thinking=False)
 
-        except asyncio.TimeoutError as exc:
+        except TimeoutError as exc:
             elapsed = time.monotonic() - start
             raise LLMTimeoutError(
                 f"Gemini stream timed out after {elapsed:.1f}s",
@@ -540,8 +524,7 @@ class GeminiProvider(LLMProvider):
                 self._encoder = tiktoken.get_encoding("cl100k_base")
             except Exception as exc:
                 logger.warning(
-                    "tiktoken BPE load failed (%s); "
-                    "falling back to character-based estimate.",
+                    "tiktoken BPE load failed (%s); falling back to character-based estimate.",
                     exc,
                 )
                 self._encoder = _TIKTOKEN_UNAVAILABLE
@@ -710,9 +693,7 @@ class GeminiProvider(LLMProvider):
 
         usage = TokenUsage.empty()
         if raw.usage_metadata is not None:
-            thinking_toks = (
-                getattr(raw.usage_metadata, "thoughts_token_count", None) or 0
-            )
+            thinking_toks = getattr(raw.usage_metadata, "thoughts_token_count", None) or 0
             usage = TokenUsage(
                 prompt_tokens=raw.usage_metadata.prompt_token_count or 0,
                 completion_tokens=raw.usage_metadata.candidates_token_count or 0,
@@ -720,9 +701,7 @@ class GeminiProvider(LLMProvider):
                 total_tokens=raw.usage_metadata.total_token_count or 0,
             )
 
-        model_version = getattr(raw, "model_version", None) or (
-            request.model or self._cfg.model
-        )
+        model_version = getattr(raw, "model_version", None) or (request.model or self._cfg.model)
 
         return LLMResponse(
             content=content,
@@ -751,9 +730,7 @@ class GeminiProvider(LLMProvider):
         message = exc.message
 
         if code in {401, 403}:
-            return LLMAuthenticationError(
-                "Gemini authentication failed.", provider="gemini"
-            )
+            return LLMAuthenticationError("Gemini authentication failed.", provider="gemini")
         if code == 429:
             return LLMRateLimitError("Gemini rate limit exceeded.", provider="gemini")
         if code == 400 and ("token" in message.lower() or "context" in message.lower()):

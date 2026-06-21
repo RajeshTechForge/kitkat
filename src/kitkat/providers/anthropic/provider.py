@@ -21,16 +21,20 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import anthropic
 import tiktoken
 from anthropic import AsyncAnthropic
-from anthropic.types import Message as AnthropicMessage
 
-from ..core.base import (
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+    from anthropic.types import Message as AnthropicMessage
+
+
+from ...core.base import (
     FinishReason,
     LLMProvider,
     LLMRequest,
@@ -44,7 +48,7 @@ from ..core.base import (
     ThinkingConfig,
     TokenUsage,
 )
-from ..exceptions import (
+from ...exceptions import (
     LLMAuthenticationError,
     LLMError,
     LLMProviderError,
@@ -107,7 +111,7 @@ class AnthropicConfig:
             )
 
     @classmethod
-    def from_dict(cls, cfg: dict[str, Any]) -> "AnthropicConfig":
+    def from_dict(cls, cfg: dict[str, Any]) -> AnthropicConfig:
         """Build from the raw config slice."""
 
         return cls(
@@ -148,7 +152,7 @@ class AnthropicProvider(LLMProvider):
         retryable_status_codes=frozenset({408, 429, 500, 502, 503, 504}),
     )
 
-    def __init__(self, config: "AnthropicConfig | dict[str, Any]") -> None:
+    def __init__(self, config: AnthropicConfig | dict[str, Any]) -> None:
         """Initialize the AnthropicProvider.
 
         Args:
@@ -278,9 +282,7 @@ class AnthropicProvider(LLMProvider):
         model = request.model or self._cfg.model
         system_prompt, messages = self._split_messages(request.messages)
         thinking_kwargs = self._build_thinking_params(request.thinking)
-        timeout = (
-            request.timeout if request.timeout is not None else self._cfg.timeout_s
-        )
+        timeout = request.timeout if request.timeout is not None else self._cfg.timeout_s
         start = time.monotonic()
 
         logger.debug(
@@ -298,9 +300,7 @@ class AnthropicProvider(LLMProvider):
                     max_tokens=request.max_tokens,
                     system=system_prompt if system_prompt else anthropic.NOT_GIVEN,
                     temperature=(
-                        request.temperature
-                        if not thinking_kwargs
-                        else anthropic.NOT_GIVEN
+                        request.temperature if not thinking_kwargs else anthropic.NOT_GIVEN
                     ),
                     top_p=(
                         request.top_p
@@ -313,7 +313,7 @@ class AnthropicProvider(LLMProvider):
                 ),
                 timeout=timeout,
             )
-        except asyncio.TimeoutError as exc:
+        except TimeoutError as exc:
             elapsed = time.monotonic() - start
             raise LLMTimeoutError(
                 f"Anthropic request timed out after {elapsed:.1f}s (limit={timeout}s)",
@@ -344,9 +344,7 @@ class AnthropicProvider(LLMProvider):
         model = request.model or self._cfg.model
         system_prompt, messages = self._split_messages(request.messages)
         thinking_kwargs = self._build_thinking_params(request.thinking)
-        timeout = (
-            request.timeout if request.timeout is not None else self._cfg.timeout_s
-        )
+        timeout = request.timeout if request.timeout is not None else self._cfg.timeout_s
         start = time.monotonic()
 
         logger.debug(
@@ -361,9 +359,7 @@ class AnthropicProvider(LLMProvider):
                 messages=messages,
                 max_tokens=request.max_tokens,
                 system=system_prompt if system_prompt else anthropic.NOT_GIVEN,
-                temperature=(
-                    request.temperature if not thinking_kwargs else anthropic.NOT_GIVEN
-                ),
+                temperature=(request.temperature if not thinking_kwargs else anthropic.NOT_GIVEN),
                 top_p=(
                     request.top_p
                     if request.top_p != 1.0 and not thinking_kwargs
@@ -409,15 +405,12 @@ class AnthropicProvider(LLMProvider):
         yield StreamChunk(
             delta="",
             is_final=True,
-            finish_reason=_STOP_REASON_MAP.get(
-                final_msg.stop_reason, FinishReason.UNKNOWN
-            ),
+            finish_reason=_STOP_REASON_MAP.get(final_msg.stop_reason, FinishReason.UNKNOWN),
             usage=TokenUsage(
                 prompt_tokens=final_msg.usage.input_tokens,
                 completion_tokens=final_msg.usage.output_tokens,
                 thinking_tokens=0,
-                total_tokens=final_msg.usage.input_tokens
-                + final_msg.usage.output_tokens,
+                total_tokens=final_msg.usage.input_tokens + final_msg.usage.output_tokens,
             ),
             model=final_msg.model,
             provider=ProviderType.ANTHROPIC,
@@ -497,9 +490,7 @@ class AnthropicProvider(LLMProvider):
                 system=system_prompt if system_prompt else anthropic.NOT_GIVEN,
             )
         except Exception as exc:
-            raise LLMProviderError(
-                "Anthropic count_tokens failed.", provider="anthropic"
-            ) from exc
+            raise LLMProviderError("Anthropic count_tokens failed.", provider="anthropic") from exc
         return result.input_tokens
 
     # ------------------------------------------------------------------
@@ -760,7 +751,9 @@ class AnthropicProvider(LLMProvider):
             )
 
             if isinstance(exc, anthropic._exceptions.OverloadedError):
-                emsg = "Anthropic's infrastructure is currently overloaded. Retry after a short delay."
+                emsg = (
+                    "Anthropic's infrastructure is currently overloaded. Retry after a short delay."
+                )
 
             elif isinstance(exc, anthropic._exceptions.ServiceUnavailableError):
                 emsg = "Anthropic's service is currently unavailable. Retry after a short delay."

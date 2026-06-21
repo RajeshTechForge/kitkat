@@ -9,17 +9,21 @@ provider layer.
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING
 
-from ..core.base import (
-    LLMProvider,
-    LLMRequest,
-    LLMResponse,
-    Message,
-    ProviderCapabilities,
-    ProviderType,
-    StreamChunk,
-)
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+    from ..core.base import (
+        LLMProvider,
+        LLMRequest,
+        LLMResponse,
+        Message,
+        ProviderCapabilities,
+        ProviderType,
+        StreamChunk,
+    )
+
 from ..exceptions import LLMProviderError
 
 logger = logging.getLogger(__name__)
@@ -43,9 +47,7 @@ class LLMService:
     # Registration & lifecycle
     # ------------------------------------------------------------------
 
-    def register_provider(
-        self, provider_type: ProviderType, provider: LLMProvider
-    ) -> None:
+    def register_provider(self, provider_type: ProviderType, provider: LLMProvider) -> None:
         """Register a provider instance under its canonical type key.
 
         Args:
@@ -56,9 +58,7 @@ class LLMService:
             ValueError: If *provider_type* is already registered.
         """
         if provider_type in self._providers:
-            raise ValueError(
-                f"A provider is already registered for {provider_type.value!r}."
-            )
+            raise ValueError(f"A provider is already registered for {provider_type.value!r}.")
         self._providers[provider_type] = provider
 
     async def initialize(self) -> None:
@@ -70,7 +70,7 @@ class LLMService:
         Raises:
             LLMProviderInitError: If any provider fails to initialize.
         """
-        for provider_type, provider in self._providers.items():
+        for _provider_type, provider in self._providers.items():
             await provider.initialize()
         logger.info("LLMService initialized %d provider(s).", len(self._providers))
 
@@ -102,9 +102,7 @@ class LLMService:
     # Inference
     # ------------------------------------------------------------------
 
-    async def complete(
-        self, request: LLMRequest, provider_type: ProviderType
-    ) -> LLMResponse:
+    async def complete(self, request: LLMRequest, provider_type: ProviderType) -> LLMResponse:
         """Execute a non-streaming completion on the given provider.
 
         The retry policy configured on the provider is applied automatically
@@ -205,9 +203,7 @@ class LLMService:
         provider = self._resolve(provider_type)
         return provider.count_tokens(text)
 
-    def count_prompt_tokens(
-        self, provider_type: ProviderType, messages: list[Message]
-    ) -> int:
+    def count_prompt_tokens(self, provider_type: ProviderType, messages: list[Message]) -> int:
         """Estimate the total token count for a sequence of messages.
 
         Concatenates all message contents with a single-space separator

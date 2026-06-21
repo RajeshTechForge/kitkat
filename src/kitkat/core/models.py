@@ -99,7 +99,7 @@ class TokenUsage:
     total_tokens: int = 0
 
     @classmethod
-    def empty(cls) -> "TokenUsage":
+    def empty(cls) -> TokenUsage:
         """Return a zero-valued usage object.
 
         Returns:
@@ -107,7 +107,7 @@ class TokenUsage:
         """
         return cls()
 
-    def __add__(self, other: "TokenUsage") -> "TokenUsage":
+    def __add__(self, other: TokenUsage) -> TokenUsage:
         """Aggregate usage from two calls.
 
         Args:
@@ -161,7 +161,7 @@ class StreamChunk:
     finish_reason: FinishReason = FinishReason.UNKNOWN
     usage: TokenUsage = field(default_factory=TokenUsage.empty)
     model: str = ""
-    provider: ProviderType = ProviderType.ANTHROPIC  # Overridden by concrete class
+    provider: ProviderType = ProviderType.ANTHROPIC
     latency_ms: float = 0.0
 
 
