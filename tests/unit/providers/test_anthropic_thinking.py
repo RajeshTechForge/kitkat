@@ -7,10 +7,8 @@ Anthropic SDK keyword argument dictionaries for both ``enabled`` and
 
 from __future__ import annotations
 
-import pytest
-
-from kitkat.providers.anthropic.provider import AnthropicProvider
 from kitkat.core.models import ThinkingConfig
+from kitkat.providers.anthropic.provider import AnthropicProvider
 
 
 class TestBuildThinkingParams:

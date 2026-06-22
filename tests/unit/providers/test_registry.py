@@ -9,13 +9,13 @@ from __future__ import annotations
 
 import pytest
 
+from kitkat.abc import LLMProvider
 from kitkat.providers._registry import (
     _REGISTRY,
     get_provider_class,
     list_providers,
     register_provider,
 )
-from kitkat.abc import LLMProvider
 
 
 class TestManualRegistration:

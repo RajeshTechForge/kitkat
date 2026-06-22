@@ -7,8 +7,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-import pytest
-
 from openai import (
     APIConnectionError,
     APITimeoutError,
@@ -22,7 +20,6 @@ from openai import (
     UnprocessableEntityError,
 )
 
-from kitkat.providers.openai.provider import OpenAIProvider
 from kitkat.core.exceptions import (
     LLMAuthenticationError,
     LLMError,
@@ -30,11 +27,12 @@ from kitkat.core.exceptions import (
     LLMRateLimitError,
     LLMTimeoutError,
 )
-
+from kitkat.providers.openai.provider import OpenAIProvider
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _status_exc(cls: type, status_code: int, message: str = "error") -> object:
     mock_response = MagicMock()

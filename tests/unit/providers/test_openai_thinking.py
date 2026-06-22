@@ -6,10 +6,8 @@ the ``reasoning_effort`` OpenAI SDK keyword argument.
 
 from __future__ import annotations
 
-import pytest
-
-from kitkat.providers.openai.provider import OpenAIProvider
 from kitkat.core.models import ThinkingConfig
+from kitkat.providers.openai.provider import OpenAIProvider
 
 
 class TestBuildThinkingParams:

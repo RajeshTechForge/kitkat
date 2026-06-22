@@ -7,13 +7,10 @@ where possible, or via MagicMock otherwise.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 import anthropic
 
-from kitkat.providers.anthropic.provider import AnthropicProvider
 from kitkat.core.exceptions import (
     LLMAuthenticationError,
     LLMError,
@@ -21,11 +18,12 @@ from kitkat.core.exceptions import (
     LLMRateLimitError,
     LLMTimeoutError,
 )
-
+from kitkat.providers.anthropic.provider import AnthropicProvider
 
 # ---------------------------------------------------------------------------
 # Helpers to build minimal SDK exceptions without real HTTP responses
 # ---------------------------------------------------------------------------
+
 
 def _api_status_exc(cls: type, status_code: int, message: str = "err") -> object:
     """Build an Anthropic APIStatusError subclass with a mocked response."""
