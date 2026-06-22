@@ -1,11 +1,11 @@
-# 🎉 Welcome to **Kitkat-AI**!
+# 🎉 Welcome to **Kitkat**!
 
 We're excited that you're interested in contributing to our project!  
 We want to ensure that every user and contributor feels welcome, included and supported to participate in Pinac Workspace community. This guide will help you get started and ensure your contributions can be efficiently integrated into the project.
 
 ## 1. Ways to Contribute
 
-You can contribute to **Kitkat-AI** in many ways:
+You can contribute to **Kitkat** in many ways:
 
 - Submitting bug reports or feature requests
 - Improving documentation
@@ -25,17 +25,17 @@ To help you find the most appropriate issues to work on, we use the following la
 - `question` - Further information is requested
 - `wontfix` - This will not be worked on
 
-Looking for a place to start? Try filtering for [good first issues](https://github.com/RajeshTechForge/pinac_workspace/labels/good%20first%20issue)!
+Looking for a place to start? Try filtering for [good first issues](https://github.com/RajeshTechForge/kitkat/labels/good%20first%20issue)!
 
 ## 2. Development Setup
 
 ### Fork and Clone
 
-1. Fork the [**kitkat-ai**](https://github.com/RajeshTechForge/kitkat-ai) repository
+1. Fork the [**kitkat**](https://github.com/RajeshTechForge/kitkat) repository
 2. Clone your fork:
    ```shell
-   git clone https://github.com/RajeshTechForge/kitkat-ai.git
-   cd kitkat-ai
+   git clone https://github.com/RajeshTechForge/kitkat.git
+   cd kitkat
    ```
 
 ### Create a Branch
@@ -64,8 +64,8 @@ git checkout -b feat/your-feature-name
    git push origin feature/your-feature-name
    ```
 3. Create a Pull Request:
-   - Go to the [**kitkat-ai** repository](https://github.com/RajeshTechForge/kitkat-ai)
-   - Click "Compare & Pull Request" and open a PR against dev branch
+   - Go to the [**kitkat** repository](https://github.com/RajeshTechForge/kitkat)
+   - Click "Compare & Pull Request" and open a PR against main branch
    - Fill in the PR template with details about your changes
 
 ## 5. Community Guidelines
