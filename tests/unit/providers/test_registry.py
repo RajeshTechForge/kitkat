@@ -54,7 +54,7 @@ class TestManualRegistration:
             async def shutdown(self) -> None: ...
             async def _init_client_only(self) -> None: ...
             async def complete(self, request: LLMRequest) -> LLMResponse: ...  # type: ignore[override,empty-body]
-            async def stream(self, request: LLMRequest):  # type: ignore[override]
+            async def stream(self, request: LLMRequest):  # type: ignore[override
                 return
                 yield  # make it an async generator
 
