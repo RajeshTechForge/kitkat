@@ -12,7 +12,10 @@
 
 <div align="center">
 
+[![PyPI version](https://img.shields.io/pypi/v/kitkat?color=3b82f6&logo=pypi&logoColor=white)](https://pypi.org/project/kitkat/)
+[![Python](https://img.shields.io/pypi/pyversions/kitkat?color=3b82f6&logo=python&logoColor=white)](https://pypi.org/project/kitkat/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6.svg)](./LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/RajeshTechForge/kitkat/ci.yml?label=CI&logo=github)](https://github.com/RajeshTechForge/kitkat/actions)
 [![Ruff](https://img.shields.io/badge/linting-ruff-3b82f6)](https://github.com/astral-sh/ruff)
 
 </div>
