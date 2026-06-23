@@ -1,13 +1,13 @@
 <div align="center">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset=".github/images/logo-dark.jpg">
-      <source media="(prefers-color-scheme: light)" srcset=".github/images/logo-light.jpg">
-      <img alt="Kitkat Logo" src=".github/images/logo-dark.jpg" width="50%">
+      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/RajeshTechForge/kitkat/blob/main/.github/images/logo-dark.png">
+      <source media="(prefers-color-scheme: light)" srcset="https://github.com/RajeshTechForge/kitkat/blob/main/.github/images/logo-light.png">
+      <img alt="Kitkat Logo" src="https://github.com/RajeshTechForge/kitkat/blob/main/.github/images/logo-dark.png" width="100%">
     </picture>
 </div>
 
 <div align="center">
-  <h3>A modern, minimal Python library for talking to LLMs — without the lock-in.</h3>
+  <h3>A modern & minimal Python library for talking to LLMs.</h3>
 </div>
 
 <div align="center">
@@ -15,7 +15,6 @@
 [![PyPI version](https://img.shields.io/pypi/v/kitkat?color=3b82f6&logo=pypi&logoColor=white)](https://pypi.org/project/kitkat/)
 [![Python](https://img.shields.io/pypi/pyversions/kitkat?color=3b82f6&logo=python&logoColor=white)](https://pypi.org/project/kitkat/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6.svg)](./LICENSE)
-[![CI](https://img.shields.io/github/actions/workflow/status/RajeshTechForge/kitkat/ci.yml?label=CI&logo=github)](https://github.com/RajeshTechForge/kitkat/actions)
 [![Ruff](https://img.shields.io/badge/linting-ruff-3b82f6)](https://github.com/astral-sh/ruff)
 
 </div>
@@ -117,11 +116,11 @@ config = GeminiConfig(api_key="AIza...")
 
 ## Providers
 
-| Provider | Extra | Default Model | Streaming | Thinking | Vertex AI |
-|---|---|---|---|---|---|
-| Anthropic Claude | `kitkat[anthropic]` | `claude-sonnet-4-6` | ✅ | ✅ | — |
-| OpenAI / NIM | `kitkat[openai]` | `gpt-4o-mini` | ✅ | ✅ | — |
-| Google Gemini | `kitkat[gemini]` | `gemini-3-flash-preview` | ✅ | ✅ | ✅ |
+| Provider | Extra | Streaming | Thinking | Vertex AI |
+|---|---|---|---|---|
+| Anthropic Claude | `kitkat[anthropic]` | ✅ | ✅ | — |
+| OpenAI / NIM | `kitkat[openai]` | ✅ | ✅ | — |
+| Google Gemini | `kitkat[gemini]` | ✅ | ✅ | ✅ |
 
 Each provider ships its own typed config dataclass:
 
@@ -317,50 +316,6 @@ Register it via `pyproject.toml` so it's auto-discovered:
 [project.entry-points."kitkat.providers"]
 my-llm = "mypkg.provider:MyProvider"
 ```
-
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────┐
-│              Your Application               │
-└─────────────────┬───────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────┐
-│           SERVICE LAYER (v0.2)              │
-│   LLMService (managed)  BYOKLLMService      │
-└─────────────────┬───────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────┐
-│           PROVIDER LAYER (v0.1)             │
-│  AnthropicProvider  OpenAIProvider          │
-│  GeminiProvider     + custom plugins        │
-└─────────────────┬───────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────┐
-│             CORE LAYER (v0.1)               │
-│  LLMRequest   LLMResponse   StreamChunk     │
-│  Message      TokenUsage    RetryPolicy     │
-│  Role         FinishReason  ProviderType    │
-│  Full exception hierarchy   LLMProvider ABC │
-└─────────────────────────────────────────────┘
-```
-
-
-## Roadmap
-
-The library follows [Semantic Versioning](https://semver.org/). The `v0.x` range is the freedom period — breaking changes may occur between minor versions. `v1.0.0` is a stability promise.
-
-| Version | Milestone |
-|---|---|
-| **v0.1.0** ✅ | Core models, exceptions, Anthropic + OpenAI + Gemini providers |
-| **v0.2.0** 🚧 | `LLMService` (managed key registry) + `BYOKLLMService` |
-| **v0.3.0** | PydanticAI agent adapters + `BaseAgentContext` |
-| **v0.4.0** | LangGraph stateful workflows |
-| **v0.5.0** | Observability — Logfire + Langfuse integration |
-| **v1.0.0** | Stable public API, full documentation, PyPI release |
-
-> Have a feature request? [Open an issue](https://github.com/RajeshTechForge/kitkat/issues/new/choose).
 
 
 ## Contributing
