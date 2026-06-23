@@ -5,12 +5,21 @@ build-backend = "hatchling.build"
 [project]
 name = "kitkat"
 version = "0.1.0"
-description = "A modern & minimal LLM-framework."
+description = "Your modern & minimal LLM-framework."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
-authors = [{ name = "Rajesh Mondal"}]
+authors = [{ name = "Rajesh Mondal", email = "rajeshtechforge@gmail.com"}]
 keywords = ["llm", "ai", "pydantic-ai", "byok"]
+classifiers     = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Typing :: Typed",
+]
+
+# ── Mandatory dependencies ---------------------
 dependencies = [
     "httpx>=0.28.1",
     "pydantic>=2.13.4",
@@ -19,7 +28,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# ── Provider extras: install only what you use ────────────────────────────
+# ── Provider extras ────────────────────────────
 anthropic     = ["anthropic>=0.111.0"]
 openai        = ["openai>=2.43.0"]
 gemini        = ["google-genai>=2.8.0"]
@@ -30,8 +39,8 @@ all-providers = [
 ]
 
 # ── Feature extras ────────────────────────────────────────────────────────
-agents        = ["pydantic-ai>=1.107.0"]          # PydanticAI agent layer
-workflows     = ["langgraph>=1.2.6"]            # LangGraph stateful workflows
+agents        = ["pydantic-ai>=1.107.0"]
+workflows     = ["langgraph>=1.2.6"]
 observability = ["logfire>=4.37.0", "langfuse>=4.9.1"]
 
 # ── Bundles ───────────────────────────────────────────────────────────────
@@ -54,12 +63,10 @@ dev = [
 
 [project.urls]
 Homepage      = "https://github.com/RajeshTechForge/kitkat"
-Documentation = "https://kitkat.readthedocs.io"
 Changelog     = "https://github.com/RajeshTechForge/kitkat/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/RajeshTechForge/kitkat/issues"
 
 # ── Entry points: built-in providers register here ────────────────────────
-# Third-party packages use the same mechanism to ship custom providers.
 [project.entry-points."kitkat.providers"]
 anthropic = "kitkat.providers.anthropic:AnthropicProvider"
 openai    = "kitkat.providers.openai:OpenAIProvider"
