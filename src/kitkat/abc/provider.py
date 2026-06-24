@@ -175,7 +175,7 @@ class LLMProvider(ABC):
         await self.initialize()
         return self
 
-    async def __aexit__(self) -> None:
+    async def __aexit__(self, *_: Any) -> None:
         """Ensure provider shutdown on context manager exit."""
         await self.shutdown()
 
