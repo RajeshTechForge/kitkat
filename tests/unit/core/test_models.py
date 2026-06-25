@@ -338,12 +338,3 @@ def test_canonical_import() -> None:
     from kitkat.core import LLMRequest, LLMResponse, Role  # noqa: F401
 
     assert Role.USER == "user"
-
-
-def test_backward_compat_exceptions_module() -> None:
-    """Verify kitkat.exceptions still works as a re-export shim."""
-    from kitkat.exceptions import (  # noqa: F401
-        LLMAuthenticationError,
-        LLMError,
-        LLMProviderError,
-    )
