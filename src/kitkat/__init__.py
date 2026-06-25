@@ -29,7 +29,7 @@ Provider extras must be installed separately::
     pip install kitkat[anthropic]   # Anthropic Claude
     pip install kitkat[openai]      # OpenAI + compatible endpoints
     pip install kitkat[gemini]      # Google Gemini / Vertex AI
-    pip install kitkat[all-providers]
+    pip install kitkat[all]
 """
 
 from __future__ import annotations
@@ -64,49 +64,6 @@ from .core.models import (
     TokenUsage,
 )
 
-# ── Service ───────────────────────────────────────────────────────────────
-from .service.byok import BYOKLLMService
-from .service.factory import create_llm_service
-from .service.managed import LLMService
-
-# ── Providers (lazy — importing eagerly would force all SDK installs) ─────
-
-_LAZY_PROVIDER_MAP: dict[str, tuple[str, str]] = {
-    "AnthropicProvider": ("kitkat.providers.anthropic", "anthropic"),
-    "AnthropicConfig": ("kitkat.providers.anthropic", "anthropic"),
-    "OpenAIProvider": ("kitkat.providers.openai", "openai"),
-    "OpenAIConfig": ("kitkat.providers.openai", "openai"),
-    "GeminiProvider": ("kitkat.providers.gemini", "gemini"),
-    "GeminiConfig": ("kitkat.providers.gemini", "gemini"),
-}
-
-
-def __getattr__(name: str) -> object:
-    """Lazy-load provider classes on first access.
-
-    Args:
-        name: The attribute name being looked up on the ``kitkat`` module.
-
-    Returns:
-        The requested class from the appropriate provider subpackage.
-
-    Raises:
-        ImportError: If the provider's SDK extra is not installed.
-        AttributeError: If *name* is not a known lazy export.
-    """
-    if name in _LAZY_PROVIDER_MAP:
-        import importlib
-
-        module_path, extra = _LAZY_PROVIDER_MAP[name]
-        try:
-            return getattr(importlib.import_module(module_path), name)
-        except ImportError:
-            raise ImportError(
-                f"'{name}' requires the '{extra}' extra. Install with: pip install kitkat[{extra}]"
-            ) from None
-    raise AttributeError(f"module 'kitkat' has no attribute {name!r}")
-
-
 __all__ = [
     "__version__",
     # Enums
@@ -133,15 +90,4 @@ __all__ = [
     "LLMContentFilterError",
     # ABC
     "LLMProvider",
-    # Service
-    "LLMService",
-    "BYOKLLMService",
-    "create_llm_service",
-    # Lazy provider re-exports
-    "AnthropicProvider",
-    "AnthropicConfig",
-    "OpenAIProvider",
-    "OpenAIConfig",
-    "GeminiProvider",
-    "GeminiConfig",
 ]

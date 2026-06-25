@@ -20,21 +20,7 @@
 </div>
 <br>
 
-Kitkat gives you a single, consistent interface to **Anthropic Claude**, **OpenAI GPT**, and **Google Gemini** — with streaming, BYOK (Bring Your Own Key), extended thinking, and typed responses that work identically across every provider.
-
-```python
-from kitkat.providers.openai import OpenAIProvider, OpenAIConfig
-from kitkat.core import LLMRequest, Message, Role
-
-config = OpenAIConfig(api_key="sk-...")
-request = LLMRequest(messages=[Message(role=Role.USER, content="What is the Kitkat bar?")])
-
-async with OpenAIProvider(config) as provider:
-    response = await provider.complete(request)
-    print(response.content)
-```
-
-Switch to Claude by changing two lines. Your request, response, and error handling stay exactly the same.
+Kitkat gives you a single, consistent interface to **Anthropic Claude**, **OpenAI GPT**, and **Google Gemini** — with streaming, BYOK (Bring Your Own Key), extended thinking, and typed responses that work identically across every provider. You can switch provider by changing two lines. Your request, response, and error handling stay exactly the same.
 
 
 ## Why Kitkat?
@@ -58,7 +44,7 @@ Kitkat uses an opt-in extras model. The core package is small and dependency-fre
 # Anthropic Claude only
 pip install kitkat[anthropic]
 
-# OpenAI (and OpenAI-compatible endpoints, e.g. NVIDIA NIM)
+# OpenAI (and OpenAI-compatible endpoints)
 pip install kitkat[openai]
 
 # Google Gemini (including Vertex AI)
@@ -66,13 +52,16 @@ pip install kitkat[gemini]
 
 # All three providers at once
 pip install kitkat[all-providers]
+
+# Everything
+pip install kitkat[all]
 ```
 
 **Requires Python 3.11+**
 
 > **Using `uv`?**
 > ```bash
-> uv add kitkat[anthropic]
+> uv add kitkat[all]
 > ```
 
 
@@ -82,8 +71,8 @@ pip install kitkat[all-providers]
 
 ```python
 import asyncio
+from kitkat import LLMRequest, Message, Role
 from kitkat.providers.anthropic import AnthropicProvider, AnthropicConfig
-from kitkat.core import LLMRequest, Message, Role
 
 async def main() -> None:
     config = AnthropicConfig(api_key="sk-ant-...")
@@ -106,8 +95,8 @@ asyncio.run(main())
 ### Switching to Gemini
 
 ```python
+from kitkat import LLMRequest, Message, Role
 from kitkat.providers.gemini import GeminiProvider, GeminiConfig
-from kitkat.core import LLMRequest, Message, Role
 
 config = GeminiConfig(api_key="AIza...")
 # Same request object, same response shape — nothing else changes.
@@ -119,7 +108,7 @@ config = GeminiConfig(api_key="AIza...")
 | Provider | Extra | Streaming | Thinking | Vertex AI |
 |---|---|---|---|---|
 | Anthropic Claude | `kitkat[anthropic]` | ✅ | ✅ | — |
-| OpenAI / NIM | `kitkat[openai]` | ✅ | ✅ | — |
+| OpenAI | `kitkat[openai]` | ✅ | ✅ | — |
 | Google Gemini | `kitkat[gemini]` | ✅ | ✅ | ✅ |
 
 Each provider ships its own typed config dataclass:
@@ -143,8 +132,8 @@ config = OpenAIConfig(
 All providers implement true async streaming. Every chunk is a typed `StreamChunk`; the final chunk carries aggregated usage and latency.
 
 ```python
+from kitkat import LLMRequest, Message, Role
 from kitkat.providers.anthropic import AnthropicProvider, AnthropicConfig
-from kitkat.core import LLMRequest, Message, Role
 
 async with AnthropicProvider(AnthropicConfig(api_key="...")) as provider:
     async for chunk in provider.stream(request):
@@ -159,7 +148,7 @@ async with AnthropicProvider(AnthropicConfig(api_key="...")) as provider:
 Enable chain-of-thought reasoning for providers that support it (Claude, Gemini, OpenAI o-series):
 
 ```python
-from kitkat.core import LLMRequest, Message, Role, ThinkingConfig
+from kitkat import LLMRequest, Message, Role, ThinkingConfig
 
 request = LLMRequest(
     messages=[Message(role=Role.USER, content="Solve this step by step: ...")],
@@ -176,8 +165,8 @@ print(response.content)           # the final answer
 The `BYOKLLMService` accepts a user-supplied API key per-request, creating a lightweight client without a pre-flight credential probe. This is designed for multi-tenant applications where each user provides their own key.
 
 ```python
-from kitkat.service.byok import BYOKLLMService
-from kitkat.core import LLMRequest, Message, Role, ProviderType
+from kitkat.service import BYOKLLMService
+from kitkat import LLMRequest, Message, Role, ProviderType
 
 service = BYOKLLMService()
 response = await service.complete(
@@ -201,7 +190,7 @@ print(n)  # e.g. 8
 Retry behaviour is configurable per-provider or per-call. Transient errors (429, 500–504) are retried with exponential back-off and optional jitter. Auth failures and token limit errors are never retried.
 
 ```python
-from kitkat.core import RetryPolicy
+from kitkat import RetryPolicy
 
 response = await provider.complete_with_retry(
     request,
@@ -220,7 +209,7 @@ response = await provider.complete_with_retry(
 All exceptions are typed subclasses of `LLMError`. Catch the base class for a broad handler or specific subclasses for fine-grained recovery:
 
 ```python
-from kitkat.core.exceptions import (
+from kitkat import (
     LLMAuthenticationError,
     LLMRateLimitError,
     LLMTimeoutError,
@@ -267,9 +256,8 @@ Implement `LLMProvider` to add any custom or private endpoint. The library disco
 
 ```python
 from collections.abc import AsyncIterator
-from kitkat.abc import LLMProvider
-from kitkat.core import (
-    FinishReason, LLMRequest, LLMResponse, Message,
+from kitkat import (
+    LLMProvider, FinishReason, LLMRequest, LLMResponse, Message,
     ProviderCapabilities, ProviderType, StreamChunk, TokenUsage,
 )
 

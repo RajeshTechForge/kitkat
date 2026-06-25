@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-25
+
+### Added
+- **Service Layer (`kitkat.service`)**: The core entry points for API integrations have been cleanly organized.
+  - `LLMService` (Managed Service) handles provider registry, routing, health checks, and lifecycle.
+  - `BYOKLLMService` provides a safe, short-lived async context manager for per-request user-supplied API keys (BYOK).
+  - `create_llm_service` factory function for simplified setup of multiple providers.
+- **Stable Public API Surface (`kitkat.__init__.py`)**: Exposes the entire framework via a single top-level import.
+
+### Changed
+- The legacy `kitkat.service.service` and `kitkat.exceptions` modules have been deprecated.
+
 ## [0.1.0] - 2026-06-23
 
 ### Added
