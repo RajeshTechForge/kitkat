@@ -35,6 +35,7 @@ dependencies = [
 anthropic     = ["anthropic>=0.76.0"]
 openai        = ["openai>=2.15"]
 gemini        = ["google-genai>=1.57.0"]
+redis         = ["redis>=7.1.1"]
 all-providers = [
     "kitkat[anthropic]",
     "kitkat[openai]",
@@ -49,6 +50,7 @@ all-providers = [
 # ── Bundles ───────────────────────────────────────────────────────────────
 all = [
     "kitkat[all-providers]",
+    "kitkat[redis]",
     # "kitkat[agents]",
     # "kitkat[workflows]",
     # "kitkat[observability]",
