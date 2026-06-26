@@ -2,8 +2,8 @@
 
 Quick start (managed path)::
 
-    from kitkat import LLMService, ProviderType, LLMRequest, Message, Role
-    from kitkat import create_llm_service
+    from kitkat.service import LLMService, create_llm_service
+    from kitkat import ProviderType, LLMRequest, Message, Role
     from kitkat.providers.anthropic import AnthropicProvider, AnthropicConfig
     import os
 
@@ -17,7 +17,8 @@ Quick start (managed path)::
 
 Quick start (BYOK path)::
 
-    from kitkat import BYOKLLMService, ProviderType, LLMRequest, Message, Role
+    from kitkat.service import BYOKLLMService
+    from kitkat import ProviderType, LLMRequest, Message, Role
 
     async with BYOKLLMService(ProviderType.OPENAI, user_api_key, model) as svc:
         response = await svc.complete(
@@ -29,6 +30,7 @@ Provider extras must be installed separately::
     pip install kitkat[anthropic]   # Anthropic Claude
     pip install kitkat[openai]      # OpenAI + compatible endpoints
     pip install kitkat[gemini]      # Google Gemini / Vertex AI
+    pip install kitkat[redis]       # Redis cache backend
     pip install kitkat[all]
 """
 
@@ -42,7 +44,7 @@ __version__ = version("kitkat")
 from .abc.provider import LLMProvider
 
 # ── Core ──────────────────────────────────────────────────────────────────
-from .core.enums import FinishReason, ProviderType, Role
+from .core.enums import CacheBackendType, FinishReason, ProviderType, Role, RoutingStrategy
 from .core.exceptions import (
     LLMAuthenticationError,
     LLMContentFilterError,
@@ -67,9 +69,11 @@ from .core.models import (
 __all__ = [
     "__version__",
     # Enums
+    "CacheBackendType",
     "FinishReason",
     "ProviderType",
     "Role",
+    "RoutingStrategy",
     # Models
     "LLMRequest",
     "LLMResponse",
