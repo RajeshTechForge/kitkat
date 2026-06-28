@@ -50,10 +50,13 @@ pip install kitkat[openai]
 # Google Gemini (including Vertex AI)
 pip install kitkat[gemini]
 
+# Redis cache backend (for multi-process / multi-instance deployments)
+pip install kitkat[redis]
+
 # All three providers at once
 pip install kitkat[all-providers]
 
-# Everything
+# Everything (all providers + Redis)
 pip install kitkat[all]
 ```
 
@@ -202,6 +205,152 @@ response = await provider.complete_with_retry(
     ),
 )
 ```
+
+### Multi-Provider Routing
+
+`LLMRouter` puts a pool of providers behind a single `complete()` / `stream()` call. When the primary provider is down, rate-limited, or slow, the router automatically falls back to the next one — without any changes to your calling code.
+
+**Strategies:** `FAILOVER` (priority order) · `ROUND_ROBIN` (cycle) · `LEAST_LATENCY` (auto-pick fastest) · `RANDOM`
+
+```python
+import asyncio
+import os
+from kitkat import LLMRequest, Message, Role, RoutingStrategy
+from kitkat.service.router import LLMRouter, RouterConfig
+from kitkat.providers.anthropic import AnthropicProvider, AnthropicConfig
+from kitkat.providers.openai import OpenAIProvider, OpenAIConfig
+
+async def main() -> None:
+    # LLMRouter.build() initialises providers concurrently and skips any
+    # that fail to start — so one bad API key doesn't block the whole pool.
+    router = await LLMRouter.build(
+        providers=[
+            AnthropicProvider(AnthropicConfig(api_key=os.environ["ANTHROPIC_API_KEY"])),
+            OpenAIProvider(OpenAIConfig(api_key=os.environ["OPENAI_API_KEY"])),
+        ],
+        config=RouterConfig(strategy=RoutingStrategy.FAILOVER),
+    )
+
+    request = LLMRequest(
+        messages=[Message(role=Role.USER, content="Summarise async/await in one paragraph.")],
+    )
+
+    async with router:
+        response = await router.complete(request)
+
+    print(f"Answered by : {response.provider}")
+    print(f"Latency     : {response.latency_ms:.0f}ms")
+    print(response.content)
+
+asyncio.run(main())
+```
+
+**Per-provider circuit breakers** open automatically after repeated failures, letting the router skip an unhealthy provider without probing it on every request. They close again after the provider recovers:
+
+```python
+from kitkat.service.router import RouterConfig, CircuitBreakerConfig
+
+config = RouterConfig(
+    strategy=RoutingStrategy.FAILOVER,
+    circuit_breaker=CircuitBreakerConfig(
+        failure_threshold=5,      # open after 5 consecutive failures
+        recovery_timeout_s=60.0,  # probe again after 60 s
+        success_threshold=2,      # close after 2 consecutive successes
+    ),
+)
+```
+
+You can inspect router health and manually reset a breaker at any time:
+
+```python
+# Full status snapshot (circuit states, latency, error rates)
+status = await router.status()
+
+# Manually reset a tripped breaker (returns True if the provider was found)
+reset = await router.reset_circuit_breaker(ProviderType.ANTHROPIC)
+```
+
+**Streaming** through the router works identically to single-provider streaming. If a provider fails before yielding the first token, the router transparently retries on the next one:
+
+```python
+async with router:
+    async for chunk in router.stream(request):
+        if not chunk.is_final:
+            print(chunk.delta, end="", flush=True)
+```
+
+### Response Caching
+
+`LLMCache` caches non-streaming responses so identical requests never hit the API twice. The cache key is a deterministic SHA-256 hash of the prompt, model, and generation parameters — `metadata` and `timeout` are intentionally excluded because they don't affect what the model generates.
+
+**Standalone cache** (in-memory, zero extra dependencies):
+
+```python
+from kitkat.service.cache import LLMCache, CacheConfig
+from kitkat import CacheBackendType
+
+cache = LLMCache(CacheConfig(
+    backend=CacheBackendType.MEMORY,
+    ttl_seconds=3_600,    # entries live for 1 hour
+    max_memory_size=500,  # LRU-evict after 500 entries
+))
+
+cached = await cache.get(request)
+if cached is None:
+    response = await provider.complete(request)
+    await cache.set(request, response)
+else:
+    response = cached
+```
+
+**Redis cache** (multi-process / multi-instance deployments, requires `pip install kitkat[redis]`):
+
+```python
+from kitkat.service.cache import LLMCache, CacheConfig
+from kitkat import CacheBackendType
+
+cache = LLMCache(CacheConfig(
+    backend=CacheBackendType.REDIS,
+    redis_url=os.environ["REDIS_URL"],
+    ttl_seconds=7_200,
+    key_prefix="myapp:llm:",  # isolate from other apps on the same Redis
+))
+```
+
+**Cache + router together** — the most common production setup. Pass a `CacheConfig` inside `RouterConfig` and the router handles get/set automatically:
+
+```python
+from kitkat.service.router import LLMRouter, RouterConfig
+from kitkat.service.cache import CacheConfig
+from kitkat import CacheBackendType, RoutingStrategy
+
+router = await LLMRouter.build(
+    providers=[anthropic_provider, openai_provider],
+    config=RouterConfig(
+        strategy=RoutingStrategy.FAILOVER,
+        enable_cache=True,
+        cache_on_truncated=False,  # don't cache MAX_TOKENS-truncated responses
+        cache=CacheConfig(
+            backend=CacheBackendType.MEMORY,
+            ttl_seconds=3_600,
+        ),
+    ),
+)
+```
+
+Or use the factory shorthand:
+
+```python
+from kitkat import create_llm_router, RoutingStrategy
+
+router = create_llm_router(
+    providers=[anthropic_provider, openai_provider],
+    strategy=RoutingStrategy.FAILOVER,
+    enable_cache=True,
+)
+```
+
+> **Note** — `CONTENT_FILTER` and `ERROR` responses are never cached regardless of configuration. A truncated response (`finish_reason=LENGTH`) is only cached when `cache_on_truncated=True`.
 
 
 ## Error Handling
