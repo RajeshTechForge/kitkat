@@ -1,3 +1,8 @@
+# Code Editor
+.vscode/
+.idea/
+.zed/
+
 # Python-generated files
 __pycache__/
 *.py[oc]
@@ -11,6 +16,17 @@ wheels/
 .coverage
 htmlcov/
 site/
+
+# AI Agents
+.claude/
+.opencode/
+.gemini/
+.codex/
+.copilot/
+
+CLAUDE.md
+GEMINI.md
+AGENTS.md
 
 # Virtual environments
 .venv
