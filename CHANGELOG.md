@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-25
+
+### Added
+- **Multi-Provider LLM Router (`kitkat.service.LLMRouter`)**: In-process multi-provider resilience and routing facade.
+  - **Routing Strategies (`RoutingStrategy`)**: Configurable provider selection strategies including `FAILOVER`, `ROUND_ROBIN`, `LEAST_LATENCY`, and `RANDOM`.
+  - **Circuit Breaker (`CircuitBreaker`)**: Asyncio-safe state machine (`CLOSED`, `OPEN`, `HALF_OPEN`) per provider slot to isolate failing endpoints and prevent thundering herds.
+  - **Resilience & Rate-Limit Tracking**: Tracks `Retry-After` windows to skip 429'd endpoints, while immediately bubbling non-retryable errors (`LLMTokenLimitError`, `LLMContentFilterError`, `LLMAuthenticationError`).
+  - **Mid-Stream Protection**: Ensures fallback occurs only before first token emission to avoid streaming payload corruption.
+  - **Management**: Provides async `reset_circuit_breaker()` and detailed pool `status()` reporting.
+- **Async Response Cache (`kitkat.service.LLMCache`)**: Deterministic caching system for non-streaming LLM completions.
+  - **Deterministic Hashing**: SHA-256 key generation based on semantic request attributes (`messages`, `model`, `max_tokens`, `temperature`, `top_p`, `stop_sequences`).
+  - **In-Memory Backend (`CacheBackendType.MEMORY`)**: Asyncio-safe LRU cache backed by `OrderedDict` with automatic TTL eviction.
+  - **Redis Backend (`CacheBackendType.REDIS`)**: Distributed caching via `redis.asyncio` with non-blocking `SCAN` key iteration, batched purging, and configurable `key_prefix`.
+  - **Fail-Safe Orchestrator**: Backend operational errors are safely caught to guarantee cache issues never interrupt LLM inference.
+  - **Selective Caching**: Skips storing truncated responses by default and ignores non-cacheable finish reasons (`CONTENT_FILTER`, `ERROR`).
+- **Factories & API Surface**:
+  - Added `create_llm_router()` convenience factory in `kitkat.service.factory`.
+  - Re-exported all router and cache entities (`LLMRouter`, `RouterConfig`, `RoutingStrategy`, `LLMCache`, `CacheConfig`, `CacheBackendType`, `create_llm_router`) at `kitkat` and `kitkat.service`.
+- **Package Extras**:
+  - Added `redis = ["redis>=5.0"]` optional dependency extra (`kitkat[redis]`).
+
 ## [0.2.0] - 2026-06-25
 
 ### Added
