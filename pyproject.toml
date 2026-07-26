@@ -43,7 +43,7 @@ all-providers = [
 ]
 
 # ── Feature extras ────────────────────────────────────────────────────────
-# agents        = ["pydantic-ai>=1.107.0"]
+agents        = ["pydantic-ai>=2.0"]
 # workflows     = ["langgraph>=1.2.6"]
 # observability = ["logfire>=4.37.0", "langfuse>=4.9.1"]
 
@@ -51,7 +51,7 @@ all-providers = [
 all = [
     "kitkat[all-providers]",
     "kitkat[redis]",
-    # "kitkat[agents]",
+    "kitkat[agents]",
     # "kitkat[workflows]",
     # "kitkat[observability]",
 ]
