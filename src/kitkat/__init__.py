@@ -25,12 +25,13 @@ Quick start (BYOK path)::
             LLMRequest(messages=[Message(role=Role.USER, content="Hello!")])
         )
 
-Provider extras must be installed separately::
+Provider and feature extras must be installed separately::
 
     pip install kitkat[anthropic]   # Anthropic Claude
     pip install kitkat[openai]      # OpenAI + compatible endpoints
     pip install kitkat[gemini]      # Google Gemini / Vertex AI
     pip install kitkat[redis]       # Redis cache backend
+    pip install kitkat[agents]      # PydanticAI agent adapters
     pip install kitkat[all]
 """
 
@@ -43,8 +44,19 @@ __version__ = version("kitkat")
 # ── ABC ───────────────────────────────────────────────────────────────────
 from .abc.provider import LLMProvider
 
+# ── Agent context (no pydantic-ai dep; always available) ─────────────────
+from .agents.context import BaseAgentContext
+
 # ── Core ──────────────────────────────────────────────────────────────────
-from .core.enums import CacheBackendType, FinishReason, ProviderType, Role, RoutingStrategy
+from .core.enums import (
+    CacheBackendType,
+    CircuitState,
+    FinishReason,
+    ProviderType,
+    Role,
+    RoutingStrategy,
+    RoutingTier,
+)
 from .core.exceptions import (
     LLMAuthenticationError,
     LLMContentFilterError,
@@ -70,10 +82,12 @@ __all__ = [
     "__version__",
     # Enums
     "CacheBackendType",
+    "CircuitState",
     "FinishReason",
     "ProviderType",
     "Role",
     "RoutingStrategy",
+    "RoutingTier",
     # Models
     "LLMRequest",
     "LLMResponse",
@@ -94,4 +108,6 @@ __all__ = [
     "LLMContentFilterError",
     # ABC
     "LLMProvider",
+    # Agent context (always available)
+    "BaseAgentContext",
 ]

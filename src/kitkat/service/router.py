@@ -36,7 +36,7 @@ import logging
 import random
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from ..core.enums import CircuitState, RoutingStrategy
@@ -597,7 +597,7 @@ class LLMRouter:
         )
         return {
             (i, p.PROVIDER_TYPE): (r is True)  # Handle exceptions from gather
-            for i, (p, r) in enumerate(zip(self._providers, results))
+            for i, (p, r) in enumerate(zip(self._providers, results, strict=True))
         }
 
     async def status(self) -> dict[str, Any]:

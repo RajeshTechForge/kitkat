@@ -73,3 +73,21 @@ class CacheBackendType(StrEnum):
 
     MEMORY = "memory"
     REDIS = "redis"
+
+
+class RoutingTier(StrEnum):
+    """Request routing tier used by :class:`~kitkat.agents.context.BaseAgentContext`.
+
+    Determines which service path handles an agent request.
+
+    Attributes:
+        MANAGED: Use :class:`~kitkat.service.managed.LLMService` with
+            server-side API keys.
+        BYOK: Use :class:`~kitkat.service.byok.BYOKLLMService` with a
+            per-request user-supplied API key.
+        ENTERPRISE: Managed path with a priority queue. Reserved for future use.
+    """
+
+    MANAGED = "managed"
+    BYOK = "byok"
+    ENTERPRISE = "enterprise"
