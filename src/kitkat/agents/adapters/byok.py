@@ -25,12 +25,10 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 try:
-    from pydantic_ai.messages import ModelMessage, TextPart
+    from pydantic_ai.messages import ModelMessage, ModelResponse, TextPart
     from pydantic_ai.models import (
         Model,
         ModelRequestParameters,
-        ModelResponse,
-        ModelSettings,
         StreamedResponse,
     )
 except ImportError as exc:
@@ -41,12 +39,13 @@ except ImportError as exc:
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
+    from pydantic_ai.settings import ModelSettings
+
     from ...service.byok import BYOKLLMService
 
 from .managed import KitkatStreamedResponse, _to_llm_request, _to_request_usage
 
 
-@dataclass
 class BYOKKitkatStreamedResponse(KitkatStreamedResponse):
     """Streaming response for the BYOK adapter.
 
@@ -84,12 +83,12 @@ class BYOKModelAdapter(Model):
     @property
     def system(self) -> str:
         """Human-readable system/provider identifier required by the Model protocol."""
-        return repr(self.byok_service)
+        return self.byok_service._provider_type
 
     @property
     def model_name(self) -> str:
         """Identifier constructed from the BYOK service's provider and model."""
-        return repr(self.byok_service)
+        return self.byok_service._model
 
     async def request(
         self,
@@ -146,7 +145,7 @@ class BYOKModelAdapter(Model):
         chunk_iter = self.byok_service.stream(req)
         yield BYOKKitkatStreamedResponse(
             model_request_parameters=model_request_parameters,
-            _kitkat_chunks=chunk_iter,
-            _kitkat_model_name=self.model_name,
-            _kitkat_provider_name=repr(self.byok_service),
+            chunks=chunk_iter,
+            model_name=self.model_name,
+            provider_name=self.system,
         )

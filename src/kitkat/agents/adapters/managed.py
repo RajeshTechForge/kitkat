@@ -23,8 +23,9 @@ Usage::
 from __future__ import annotations
 
 import dataclasses
+import json
 from contextlib import asynccontextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
@@ -32,22 +33,17 @@ try:
     from pydantic_ai.messages import (
         InstructionPart,
         ModelMessage,
-        SystemPromptPart,
-        TextPart,
-        UserPromptPart,
-    )
-    from pydantic_ai.messages import (
-        ModelResponse as PydanticModelResponse,
-    )
-    from pydantic_ai.models import (
-        Model,
-        ModelRequestParameters,
         ModelResponse,
         ModelResponseStreamEvent,
-        ModelSettings,
-        StreamedResponse,
+        SystemPromptPart,
+        TextPart,
+        ToolCallPart,
+        ToolReturnPart,
+        UserPromptPart,
     )
+    from pydantic_ai.models import Model, ModelRequestParameters, StreamedResponse
     from pydantic_ai.usage import RequestUsage
+
 except ImportError as exc:
     raise ImportError(
         "Agent adapters require the 'agents' extra. Install with: pip install kitkat[agents]"
@@ -56,12 +52,16 @@ except ImportError as exc:
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, AsyncIterator
 
+    from pydantic_ai.settings import ModelSettings
+
     from ...core.models import LLMRequest, Message, TokenUsage
     from ...service.managed import LLMService
 
 from ...core.enums import ProviderType, Role
 
 
+# TODO: This is a text-based fallback. The ideal long-term fix is to extend
+# LLMRequest / Message to carry structured tool-call content natively
 def _to_llm_request(
     messages: list[ModelMessage],
     settings: ModelSettings | None,
@@ -92,11 +92,26 @@ def _to_llm_request(
         for part in msg.parts:
             if isinstance(part, (SystemPromptPart, InstructionPart)):
                 domain_messages.append(Message(role=Role.SYSTEM, content=part.content))
-            elif isinstance(part, UserPromptPart) and isinstance(part.content, str):
-                domain_messages.append(Message(role=Role.USER, content=part.content))
+
+            elif isinstance(part, UserPromptPart):
+                content = part.content if isinstance(part.content, str) else str(part.content)
+                domain_messages.append(Message(role=Role.USER, content=content))
+
             elif isinstance(part, TextPart):
-                role = Role.ASSISTANT if isinstance(msg, PydanticModelResponse) else Role.USER
+                role = Role.ASSISTANT if isinstance(msg, ModelResponse) else Role.USER
                 domain_messages.append(Message(role=role, content=part.content))
+
+            elif isinstance(part, ToolCallPart):
+                tool_name = part.tool_name
+                args = part.args if isinstance(part.args, str) else json.dumps(part.args)
+                domain_messages.append(
+                    Message(role=Role.ASSISTANT, content=f"[tool_call:{tool_name}({args})]")
+                )
+            elif isinstance(part, ToolReturnPart):
+                result = part.content if isinstance(part.content, str) else json.dumps(part.content)
+                domain_messages.append(
+                    Message(role=Role.USER, content=f"[tool_result:{part.tool_name}] {result}")
+                )
 
     return LLMRequest(
         messages=domain_messages,
@@ -120,74 +135,51 @@ def _to_request_usage(usage: TokenUsage) -> RequestUsage:
     details: dict[str, int] = {}
     if usage.thinking_tokens:
         details["thinking_tokens"] = usage.thinking_tokens
-    ru = RequestUsage()
-    ru.input_tokens = usage.prompt_tokens
-    ru.output_tokens = usage.completion_tokens
-    if details:
-        ru.details = details
-    return ru
+    return RequestUsage(
+        input_tokens=usage.prompt_tokens,
+        output_tokens=usage.completion_tokens,
+        details=details or None,
+    )
 
 
-@dataclass
 class KitkatStreamedResponse(StreamedResponse):
-    """PydanticAI ``StreamedResponse`` backed by a kitkat provider stream.
+    """PydanticAI StreamedResponse backed by a kitkat provider stream."""
 
-    Bridges the kitkat :class:`~kitkat.core.models.StreamChunk` async iterator
-    into pydantic-ai's event protocol by implementing ``_get_event_iterator()``.
-    Text deltas are forwarded through
-    :meth:`~pydantic_ai.models.ModelResponsePartsManager.handle_text_delta`
-    so that downstream pydantic-ai machinery (result extraction, FinalResultEvent)
-    works correctly.
-
-    Usage is populated on the final chunk and written into ``self._usage`` so
-    the agent's ``RunResult.usage`` is accurate.
-
-    Args:
-        model_request_parameters: Passed to ``StreamedResponse.__init__`` for
-            tool-call promotion and result-event wiring.
-        _kitkat_chunks: Async iterator of :class:`~kitkat.core.models.StreamChunk`
-            objects from the kitkat provider.
-        _kitkat_model_name: Provider model identifier to surface via ``model_name``.
-        _kitkat_provider_name: Human-readable provider label (e.g., ``"anthropic"``).
-        _kitkat_provider_url: Optional provider API base URL; ``None`` is valid.
-        _kitkat_timestamp: Datetime stamp for the response; defaults to now (UTC).
-    """
-
-    _kitkat_chunks: AsyncIterator[Any]
-    _kitkat_model_name: str
-    _kitkat_provider_name: str
-    _kitkat_provider_url: str | None = None
-    _kitkat_timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    def __init__(
+        self,
+        *,
+        model_request_parameters: ModelRequestParameters,
+        chunks: AsyncIterator[Any],
+        model_name: str,
+        provider_name: str,
+        provider_url: str | None = None,
+        timestamp: datetime | None = None,
+    ) -> None:
+        super().__init__(model_request_parameters=model_request_parameters)
+        self._chunks = chunks
+        self._model_name = model_name
+        self._provider_name = provider_name
+        self._provider_url = provider_url
+        self._timestamp = timestamp or datetime.now(UTC)
 
     @property
     def model_name(self) -> str:
-        """Model identifier returned with the streamed response."""
-        return self._kitkat_model_name
+        return self._model_name
 
     @property
     def provider_name(self) -> str:
-        """Human-readable provider label (e.g. ``"anthropic"``)."""
-        return self._kitkat_provider_name
+        return self._provider_name
 
     @property
     def provider_url(self) -> str | None:
-        """Provider API base URL, or ``None`` if not applicable."""
-        return self._kitkat_provider_url
+        return self._provider_url
 
     @property
     def timestamp(self) -> datetime:
-        """UTC timestamp when the stream was initiated."""
-        return self._kitkat_timestamp
+        return self._timestamp
 
     async def _get_event_iterator(self) -> AsyncIterator[ModelResponseStreamEvent]:
-        """Translate kitkat stream chunks into pydantic-ai events.
-
-        For each non-empty text delta, ``_parts_manager.handle_text_delta()``
-        emits either a ``PartStartEvent`` (first delta) or a ``PartDeltaEvent``
-        (subsequent deltas).  On the final chunk, ``self._usage`` is populated
-        from the kitkat ``TokenUsage``.
-        """
-        async for chunk in self._kitkat_chunks:
+        async for chunk in self._chunks:
             if chunk.delta:
                 for event in self._parts_manager.handle_text_delta(
                     vendor_part_id=None,
@@ -201,7 +193,7 @@ class KitkatStreamedResponse(StreamedResponse):
                     self._usage.details = {"thinking_tokens": chunk.usage.thinking_tokens}
 
     async def close_stream(self) -> None:
-        """No-op: the kitkat async iterator has no underlying connection to close."""
+        pass
 
 
 @dataclass
@@ -309,7 +301,7 @@ class ManagedModelAdapter(Model):
         chunk_iter = self.service.stream(req, self.provider_type)
         yield KitkatStreamedResponse(
             model_request_parameters=model_request_parameters,
-            _kitkat_chunks=chunk_iter,
-            _kitkat_model_name=self.default_model or self.provider_type.value,
-            _kitkat_provider_name=self.provider_type.value,
+            chunks=chunk_iter,
+            model_name=self.default_model or self.provider_type.value,
+            provider_name=self.provider_type.value,
         )
