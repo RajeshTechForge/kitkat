@@ -153,6 +153,23 @@ class TestToLlmRequest:
         roles = [m.role for m in req.messages]
         assert roles == [Role.SYSTEM, Role.USER, Role.ASSISTANT, Role.USER]
 
+    def test_tool_call_and_return_parts_extracted(self) -> None:
+        from pydantic_ai.messages import ToolCallPart, ToolReturnPart
+
+        messages = [
+            PydanticModelResponse(
+                parts=[ToolCallPart(tool_name="get_weather", args={"city": "London"})],
+                model_name="m",
+            ),
+            ModelRequest(parts=[ToolReturnPart(tool_name="get_weather", content={"temp": "15C"})]),
+        ]
+        req = _to_llm_request(messages, None)
+        assert len(req.messages) == 2
+        assert req.messages[0].role == Role.ASSISTANT
+        assert "[tool_call:get_weather" in req.messages[0].content
+        assert req.messages[1].role == Role.USER
+        assert "[tool_result:get_weather]" in req.messages[1].content
+
     def test_settings_applied(self) -> None:
         settings: ModelSettings = {"max_tokens": 512, "temperature": 0.7}  # type: ignore[assignment]
         msgs = [ModelRequest(parts=[UserPromptPart(content="hi")])]
@@ -339,12 +356,14 @@ async def test_byok_adapter_request_delegates_to_byok_service() -> None:
 
 
 @pytest.mark.asyncio
-async def test_byok_adapter_model_name_uses_service_repr() -> None:
+async def test_byok_adapter_model_name_and_system() -> None:
     byok_service = MagicMock()
-    byok_service.__repr__ = MagicMock(return_value="BYOKLLMService(anthropic)")
+    byok_service._model = "gpt-4o"
+    byok_service._provider_type = "openai"
 
     adapter = BYOKModelAdapter(byok_service=byok_service)
-    assert adapter.model_name == "BYOKLLMService(anthropic)"
+    assert adapter.model_name == "gpt-4o"
+    assert adapter.system == "openai"
 
 
 # ---------------------------------------------------------------------------
@@ -360,10 +379,10 @@ def test_kitkat_streamed_response_properties() -> None:
     mrp = _make_model_request_parameters()
     stream = KitkatStreamedResponse(
         model_request_parameters=mrp,
-        _kitkat_chunks=_empty_iter(),
-        _kitkat_model_name="claude-3",
-        _kitkat_provider_name="anthropic",
-        _kitkat_provider_url="https://api.anthropic.com",
+        chunks=_empty_iter(),
+        model_name="claude-3",
+        provider_name="anthropic",
+        provider_url="https://api.anthropic.com",
     )
     assert stream.model_name == "claude-3"
     assert stream.provider_name == "anthropic"
