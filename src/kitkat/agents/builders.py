@@ -14,20 +14,23 @@ Usage::
     adapter = ManagedModelAdapter(service=llm_service, provider_type=ProviderType.ANTHROPIC)
     agent = build_chat_agent(model=adapter, context_type=UserContext)
     result = await agent.run("Hello!", deps=user_ctx)
+    print(result.data)
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 try:
-    from pydantic_ai import Agent
+    from pydantic_ai import Agent, RunContext
 except ImportError as exc:
     raise ImportError(
         "Agent builders require the 'agents' extra. Install with: pip install kitkat[agents]"
     ) from exc
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from pydantic import BaseModel
     from pydantic_ai.models import Model
 
@@ -42,6 +45,8 @@ def build_chat_agent(
     model: Model,
     context_type: type[ContextT] = BaseAgentContext,  # type: ignore[assignment]
     system_prompt: str = "",
+    output_type: type[str] = str,
+    output_retries: int = 1,
 ) -> Agent[ContextT, str]:
     """Build a chat agent that returns plain strings.
 
@@ -59,6 +64,10 @@ def build_chat_agent(
         system_prompt: Static system prompt.  When non-empty, used verbatim and
             the dynamic prompt is skipped.  When empty, a dynamic prompt is
             registered via ``@agent.system_prompt``.
+        output_type: The agent's output type. Defaults to ``str``. Override
+            only if a custom output type or validator is needed for a chat agent.
+        output_retries: Number of times pydantic-ai retries when model output
+            fails validation (v2.x).
 
     Returns:
         A configured ``Agent[context_type, str]`` ready for ``.run()``.
@@ -70,19 +79,20 @@ def build_chat_agent(
             context_type=UserContext,
         )
         result = await agent.run("Hello!", deps=user_ctx)
+        print(result.data)
 
     Example (BYOK path)::
 
         async with BYOKLLMService(ProviderType.OPENAI, key, model) as byok:
             agent = build_chat_agent(model=BYOKModelAdapter(byok))
             result = await agent.run("Hello!", deps=user_ctx)
+            print(result.data)
     """
-    from pydantic_ai import RunContext
-
     agent: Agent[ContextT, str] = Agent(
         model=model,
         deps_type=context_type,
-        output_type=str,
+        output_type=output_type,
+        retries=output_retries,
         system_prompt=system_prompt or "You are a helpful AI assistant.",
     )
 
@@ -99,50 +109,62 @@ def build_chat_agent(
 
 def build_structured_agent(
     model: Model,
-    result_type: type[BaseModel],
+    output_type: type[BaseModel],
     context_type: type[ContextT] = BaseAgentContext,  # type: ignore[assignment]
     system_prompt: str = "",
+    output_retries: int = 1,
+    validator: Callable[..., Any] | None = None,
 ) -> Agent[ContextT, BaseModel]:
     """Build an agent that returns a validated Pydantic model.
 
-    PydanticAI validates the LLM output against ``result_type`` automatically,
-    retrying up to the agent's ``max_retries`` when the model produces malformed
-    JSON.
+    PydanticAI validates the LLM output against ``output_type`` automatically,
+    retrying up to ``output_retries`` times when the model produces malformed
+    JSON. A custom ``validator`` function can be supplied for additional
+    validation logic beyond the Pydantic schema.
 
     Args:
         model: A :class:`~kitkat.agents.adapters.managed.ManagedModelAdapter` or
             :class:`~kitkat.agents.adapters.byok.BYOKModelAdapter` instance.
-        result_type: A :class:`~pydantic.BaseModel` subclass that the LLM output
+        output_type: A :class:`~pydantic.BaseModel` subclass that the LLM output
             will be validated against.
         context_type: The ``deps_type`` for the agent.  Defaults to
             :class:`~kitkat.agents.context.BaseAgentContext`.
         system_prompt: Optional static system prompt.  When empty, a default
             prompt instructing JSON output is used.
+        output_retries: Number of retries on validation failure (v2.x).
+        validator: Optional callable for custom post-validation logic.
+            Follows pydantic-ai v2.x ``output_validator`` protocol.
 
     Returns:
-        A configured ``Agent[context_type, result_type]`` ready for ``.run()``.
+        A configured ``Agent[context_type, output_type]`` ready for ``.run()``.
 
     Example::
 
         class ChatResponse(BaseModel):
             content: str
-            confidence: float
+            confidence: float = Field(ge=0.0, le=1.0)
 
         agent = build_structured_agent(
             model=adapter,
-            result_type=ChatResponse,
+            output_type=ChatResponse,
             context_type=UserContext,
         )
         result = await agent.run("Summarise this.", deps=user_ctx)
         response: ChatResponse = result.data
     """
-    return Agent(
+    agent: Agent[ContextT, BaseModel] = Agent(
         model=model,
         deps_type=context_type,
-        output_type=result_type,
+        output_type=output_type,
+        retries=output_retries,
         system_prompt=system_prompt
         or (
             "You are a helpful AI assistant. "
             "Always respond in valid JSON matching the requested schema."
         ),
     )
+
+    if validator is not None:
+        agent.output_validator(validator)
+
+    return agent
