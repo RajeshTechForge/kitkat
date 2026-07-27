@@ -1,20 +1,19 @@
-"""Unit tests for agent builder functions and ToolRegistry."""
+"""Unit tests for agent builder factory functions."""
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 from pydantic_ai import Agent
 from pydantic_ai.models.test import TestModel
 
+if TYPE_CHECKING:
+    from unittest.mock import MagicMock
+
 from kitkat.agents.builders import build_chat_agent, build_structured_agent
 from kitkat.agents.context import BaseAgentContext
-from kitkat.agents.tools.registry import ToolRegistry
-
-# ---------------------------------------------------------------------------
-# build_chat_agent
-# ---------------------------------------------------------------------------
 
 
 class TestBuildChatAgent:
@@ -22,7 +21,7 @@ class TestBuildChatAgent:
         agent = build_chat_agent(model=TestModel())
         assert isinstance(agent, Agent)
 
-    def test_result_type_is_str(self) -> None:
+    def test_output_type_is_str(self) -> None:
         agent = build_chat_agent(model=TestModel())
         assert agent.output_type is str
 
@@ -31,8 +30,6 @@ class TestBuildChatAgent:
         assert agent.deps_type is BaseAgentContext
 
     def test_custom_context_type_applied(self) -> None:
-        from dataclasses import dataclass
-
         @dataclass
         class MyContext(BaseAgentContext):
             extra: str = ""
@@ -43,15 +40,15 @@ class TestBuildChatAgent:
     def test_static_system_prompt_applied(self) -> None:
         agent = build_chat_agent(model=TestModel(), system_prompt="Be terse.")
         assert isinstance(agent, Agent)
+        assert any("Be terse." in str(p) for p in agent._system_prompts)
 
     def test_empty_prompt_uses_dynamic(self) -> None:
         agent = build_chat_agent(model=TestModel(), system_prompt="")
         assert isinstance(agent, Agent)
 
-
-# ---------------------------------------------------------------------------
-# build_structured_agent
-# ---------------------------------------------------------------------------
+    def test_output_retries_applied(self) -> None:
+        agent = build_chat_agent(model=TestModel(), output_retries=3)
+        assert isinstance(agent, Agent)
 
 
 class _SampleResult(BaseModel):
@@ -61,23 +58,21 @@ class _SampleResult(BaseModel):
 
 class TestBuildStructuredAgent:
     def test_returns_agent_instance(self) -> None:
-        agent = build_structured_agent(model=TestModel(), result_type=_SampleResult)
+        agent = build_structured_agent(model=TestModel(), output_type=_SampleResult)
         assert isinstance(agent, Agent)
 
-    def test_result_type_set_correctly(self) -> None:
-        agent = build_structured_agent(model=TestModel(), result_type=_SampleResult)
+    def test_output_type_set_correctly(self) -> None:
+        agent = build_structured_agent(model=TestModel(), output_type=_SampleResult)
         assert agent.output_type is _SampleResult
 
     def test_custom_context_type_applied(self) -> None:
-        from dataclasses import dataclass
-
         @dataclass
         class MyCtx(BaseAgentContext):
             token: str = ""
 
         agent = build_structured_agent(
             model=TestModel(),
-            result_type=_SampleResult,
+            output_type=_SampleResult,
             context_type=MyCtx,
         )
         assert agent.deps_type is MyCtx
@@ -85,80 +80,18 @@ class TestBuildStructuredAgent:
     def test_custom_system_prompt_applied(self) -> None:
         agent = build_structured_agent(
             model=TestModel(),
-            result_type=_SampleResult,
+            output_type=_SampleResult,
             system_prompt="Output valid JSON.",
         )
         assert isinstance(agent, Agent)
 
+    def test_custom_validator_registered(self) -> None:
+        def my_validator(value: _SampleResult, ctx: MagicMock) -> _SampleResult:
+            return value
 
-# ---------------------------------------------------------------------------
-# ToolRegistry
-# ---------------------------------------------------------------------------
-
-
-class TestToolRegistry:
-    def test_tool_decorator_adds_function(self) -> None:
-        registry = ToolRegistry()
-
-        @registry.tool
-        async def my_tool(ctx: BaseAgentContext, query: str) -> str:
-            return query
-
-        assert my_tool in registry.tools
-
-    def test_tool_decorator_returns_original_function(self) -> None:
-        registry = ToolRegistry()
-
-        async def my_tool(ctx: BaseAgentContext) -> str:
-            return "ok"
-
-        result = registry.tool(my_tool)
-        assert result is my_tool
-
-    def test_multiple_tools_registered_in_order(self) -> None:
-        registry = ToolRegistry()
-
-        @registry.tool
-        async def tool_a(ctx: BaseAgentContext) -> str:
-            return "a"
-
-        @registry.tool
-        async def tool_b(ctx: BaseAgentContext) -> str:
-            return "b"
-
-        assert registry.tools == [tool_a, tool_b]
-
-    def test_register_on_calls_agent_tool_for_each(self) -> None:
-        registry = ToolRegistry()
-
-        @registry.tool
-        async def tool_one(ctx: BaseAgentContext) -> str:
-            return "one"
-
-        @registry.tool
-        async def tool_two(ctx: BaseAgentContext) -> str:
-            return "two"
-
-        agent = MagicMock()
-        registry.register_on(agent)
-
-        assert agent.tool.call_count == 2
-        agent.tool.assert_any_call(tool_one)
-        agent.tool.assert_any_call(tool_two)
-
-    def test_empty_registry_register_on_noop(self) -> None:
-        registry = ToolRegistry()
-        agent = MagicMock()
-        registry.register_on(agent)
-        agent.tool.assert_not_called()
-
-    def test_tools_property_returns_copy(self) -> None:
-        registry = ToolRegistry()
-
-        @registry.tool
-        async def tool_a(ctx: BaseAgentContext) -> str:
-            return "a"
-
-        copy = registry.tools
-        copy.clear()
-        assert len(registry.tools) == 1
+        agent = build_structured_agent(
+            model=TestModel(),
+            output_type=_SampleResult,
+            validator=my_validator,
+        )
+        assert isinstance(agent, Agent)
