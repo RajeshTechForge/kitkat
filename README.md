@@ -1,12 +1,5 @@
 <div align="center">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/RajeshTechForge/kitkat/blob/main/.github/images/logo-dark.png">
-      <source media="(prefers-color-scheme: light)" srcset="https://github.com/RajeshTechForge/kitkat/blob/main/.github/images/logo-light.png">
-      <img alt="Kitkat Logo" src="https://github.com/RajeshTechForge/kitkat/blob/main/.github/images/logo-dark.png" width="100%">
-    </picture>
-</div>
-
-<div align="center">
+  <h1>KitKat</h1>
   <h3>A modern & minimal Python library for talking to LLMs.</h3>
 </div>
 
@@ -17,7 +10,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6.svg)](./LICENSE)
 [![Ruff](https://img.shields.io/badge/linting-ruff-3b82f6)](https://github.com/astral-sh/ruff)
 
+[Installation](#-installation) • [Quick Start](#-quick-start) • [Contributing](#-contributing)
+
 </div>
+
+---
+
 <br>
 
 Kitkat gives you a single, consistent interface to **Anthropic Claude**, **OpenAI GPT**, and **Google Gemini** — with streaming, BYOK (Bring Your Own Key), extended thinking, and typed responses that work identically across every provider. You can switch provider by changing two lines. Your request, response, and error handling stay exactly the same.
