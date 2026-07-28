@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-28
+
+### Added
+- **PydanticAI Model Adapters (`kitkat.agents`)**: Seamless integration between kitkat LLM services and PydanticAI 2.x agents.
+  - **Managed Model Adapter (`ManagedModelAdapter`)**: Implements PydanticAI's `Model` protocol backed by `LLMService` for managed server-side API key routing.
+  - **BYOK Model Adapter (`BYOKModelAdapter`)**: Implements PydanticAI's `Model` protocol backed by `BYOKLLMService` for per-request user-supplied API keys.
+  - **Async Stream Adapter (`KitkatStreamedResponse`, `BYOKKitkatStreamedResponse`)**: Subclasses PydanticAI `StreamedResponse` to bridge kitkat async stream chunks into PydanticAI event streams, accurately tracking input, output, and reasoning/thinking tokens.
+  - **Multi-Turn & Tool Message Translation**: Internal `_to_llm_request()` handles `SystemPromptPart`, `InstructionPart`, `UserPromptPart`, `TextPart`, `ToolCallPart`, and `ToolReturnPart` for multi-turn agent reasoning loops.
+- **Agent Context & Routing Tier (`kitkat.agents.BaseAgentContext`)**:
+  - **`BaseAgentContext`**: Minimal, stdlib-only context container (`user_id`, `routing_tier`, `locale`, `system_prompt_override`, `metadata`) used as the `deps_type` for agent runs with zero third-party dependencies.
+  - **`RoutingTier` Enum (`kitkat.core.enums.RoutingTier`)**: Added `MANAGED`, `BYOK`, and `ENTERPRISE` routing tiers to `kitkat.core.enums`.
+- **Agent Builders (`kitkat.agents.builders`)**:
+  - **`build_chat_agent()`**: Factory function creating `Agent[ContextT, str]` instances with automatic locale-aware system prompts (`User locale: {locale}`) and support for static prompt overrides, custom `output_type`, and `output_retries`.
+  - **`build_structured_agent()`**: Factory function creating `Agent[ContextT, BaseModel]` for schema-validated Pydantic outputs, JSON formatting instructions, `output_retries` handling, and custom post-validation hooks via `validator`.
+- **Tool Registry (`kitkat.agents.ToolRegistry`)**: Programmatic bulk tool registration system for PydanticAI agents.
+  - **Flexible Decorator Overloads**: Supports both bare decorators (`@registry.tool`) and metadata-rich decorators (`@registry.tool(name=..., description=..., prep=True)`).
+  - **Bulk Registration (`register_on`)**: Registers all collected tools onto a PydanticAI `Agent` instance with custom tool names, descriptions, and preparation flags.
+  - **Container Ergonomics**: Added `__len__`, `__contains__`, and copy-safe `tools` property for membership checks and inspection.
+- **Package Extra & Lazy Exports**:
+  - Added `agents = ["pydantic-ai>=2.0"]` optional dependency extra (`pip install kitkat[agents]`).
+  - Eagerly exports `BaseAgentContext` and `RoutingTier` at `kitkat` top level with zero third-party dependencies.
+  - Module-level lazy `__getattr__` exports for `ManagedModelAdapter`, `BYOKModelAdapter`, `KitkatStreamedResponse`, `build_chat_agent`, `build_structured_agent`, and `ToolRegistry` so importing `kitkat` does not pull in `pydantic_ai` unless requested.
+
 ## [0.3.0] - 2026-07-25
 
 ### Added
