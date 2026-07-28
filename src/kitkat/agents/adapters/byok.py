@@ -20,21 +20,20 @@ Usage::
 
 from __future__ import annotations
 
+from .._check import require_agents_extra
+
+require_agents_extra()
+
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-try:
-    from pydantic_ai.messages import ModelMessage, ModelResponse, TextPart
-    from pydantic_ai.models import (
-        Model,
-        ModelRequestParameters,
-        StreamedResponse,
-    )
-except ImportError as exc:
-    raise ImportError(
-        "Agent adapters require the 'agents' extra. Install with: pip install kitkat[agents]"
-    ) from exc
+from pydantic_ai.messages import ModelMessage, ModelResponse, TextPart
+from pydantic_ai.models import (
+    Model,
+    ModelRequestParameters,
+    StreamedResponse,
+)
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator

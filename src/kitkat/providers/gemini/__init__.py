@@ -20,16 +20,12 @@ Vertex AI is also supported — set ``vertexai=True`` and provide
 
 from __future__ import annotations
 
-try:
-    import google.genai as _genai_sdk  # noqa: F401
-except ImportError as _exc:
+import importlib.util
+
+if importlib.util.find_spec("google.genai") is None:
     raise ImportError(
-        "GeminiProvider requires the 'gemini' extra. "
-        "Install it with:\n\n"
-        "    pip install kitkat[gemini]\n"
-        "    # or\n"
-        "    uv add kitkat[gemini]"
-    ) from _exc
+        "GeminiProvider requires the 'gemini' extra. Install with: pip install kitkat[gemini]"
+    )
 
 from .provider import GeminiConfig, GeminiProvider
 

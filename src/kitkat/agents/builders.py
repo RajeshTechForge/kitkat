@@ -19,14 +19,13 @@ Usage::
 
 from __future__ import annotations
 
+from ._check import require_agents_extra
+
+require_agents_extra()
+
 from typing import TYPE_CHECKING, Any, TypeVar
 
-try:
-    from pydantic_ai import Agent, RunContext
-except ImportError as exc:
-    raise ImportError(
-        "Agent builders require the 'agents' extra. Install with: pip install kitkat[agents]"
-    ) from exc
+from pydantic_ai import Agent, RunContext
 
 if TYPE_CHECKING:
     from collections.abc import Callable

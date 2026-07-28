@@ -102,6 +102,7 @@ line-length    = 100
 
 [tool.ruff.lint]
 select = ["E","F","I","UP","B","SIM","TCH"]
+ignore = ["E402"]
 
 [tool.coverage.report]
 exclude_lines = ["if TYPE_CHECKING:","@overload","raise NotImplementedError"]

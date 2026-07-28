@@ -17,16 +17,13 @@ Usage::
 
 from __future__ import annotations
 
-try:
-    import anthropic as _anthropic_sdk  # noqa: F401
-except ImportError as _exc:
+import importlib.util
+
+if importlib.util.find_spec("anthropic") is None:
     raise ImportError(
-        "AnthropicProvider requires the 'anthropic' extra. "
-        "Install it with:\n\n"
-        "    pip install kitkat[anthropic]\n"
-        "    # or\n"
-        "    uv add kitkat[anthropic]"
-    ) from _exc
+        "AnthropicProvider requires the 'anthropic' extra. Install with: pip install "
+        "kitkat[anthropic]"
+    )
 
 from .provider import AnthropicConfig, AnthropicProvider
 

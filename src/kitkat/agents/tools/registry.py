@@ -34,14 +34,11 @@ Usage::
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, overload
+from .._check import require_agents_extra
 
-try:
-    import pydantic_ai as _  # noqa: F401
-except ImportError as exc:
-    raise ImportError(
-        "ToolRegistry requires the 'agents' extra. Install with: pip install kitkat[agents]"
-    ) from exc
+require_agents_extra()
+
+from typing import TYPE_CHECKING, Any, overload
 
 if TYPE_CHECKING:
     from collections.abc import Callable

@@ -21,16 +21,12 @@ implements the OpenAI Chat Completions API.  Pass ``base_url`` in
 
 from __future__ import annotations
 
-try:
-    import openai as _openai_sdk  # noqa: F401
-except ImportError as _exc:
+import importlib.util
+
+if importlib.util.find_spec("openai") is None:
     raise ImportError(
-        "OpenAIProvider requires the 'openai' extra. "
-        "Install it with:\n\n"
-        "    pip install kitkat[openai]\n"
-        "    # or\n"
-        "    uv add kitkat[openai]"
-    ) from _exc
+        "OpenAIProvider requires the 'openai' extra. Install with: pip install kitkat[openai]"
+    )
 
 from .provider import OpenAIConfig, OpenAIProvider
 
