@@ -12,22 +12,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 
-from kitkat.workflows.base import BaseWorkflow
-
-try:
-    from langgraph.graph import END, START, StateGraph
-except ImportError as exc:
-    raise ImportError(
-        "ResearchWorkflow requires the 'workflows' extra. "
-        "Install with: pip install kitkat[workflows]"
-    ) from exc
+from ..agents.context import BaseAgentContext  # noqa: TC001
+from .base import BaseWorkflow
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph
-
-    from kitkat.agents.context import BaseAgentContext
 
 
 class ResearchState(BaseModel):

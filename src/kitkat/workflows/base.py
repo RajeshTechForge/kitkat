@@ -5,13 +5,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
-try:
-    if TYPE_CHECKING:
-        from langgraph.graph.state import CompiledStateGraph
-except ImportError as exc:
-    raise ImportError(
-        "Workflows require the 'workflows' extra. Install with: pip install kitkat[workflows]"
-    ) from exc
+if TYPE_CHECKING:
+    from langgraph.graph.state import CompiledStateGraph
 
 S = TypeVar("S")
 
