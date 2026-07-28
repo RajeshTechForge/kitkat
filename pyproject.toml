@@ -12,14 +12,17 @@ requires-python = ">=3.11"
 authors = [{ name = "Rajesh Mondal", email = "rajeshtechforge@gmail.com"}]
 keywords = ["llm", "ai", "agent", "kitkat", "byok"]
 classifiers     = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
 ]
 
 # ── Mandatory dependencies ---------------------
@@ -44,7 +47,7 @@ all-providers = [
 
 # ── Feature extras ────────────────────────────────────────────────────────
 agents        = ["pydantic-ai>=2.0"]
-# workflows     = ["langgraph>=1.2.6"]
+workflows     = ["langgraph>=1.2.0"]
 # observability = ["logfire>=4.37.0", "langfuse>=4.9.1"]
 
 # ── Bundles ───────────────────────────────────────────────────────────────
@@ -52,7 +55,7 @@ all = [
     "kitkat[all-providers]",
     "kitkat[redis]",
     "kitkat[agents]",
-    # "kitkat[workflows]",
+    "kitkat[workflows]",
     # "kitkat[observability]",
 ]
 
