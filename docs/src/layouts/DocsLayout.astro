@@ -1,0 +1,185 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import DocsHeader from "../components/DocsHeader.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
+import DocsSidebar from "../components/DocsSidebar";
+
+interface Crumb {
+    label: string;
+    href?: string;
+}
+interface TocItem {
+    label: string;
+    href: string;
+    depth?: number;
+}
+interface Props {
+    title: string;
+    description?: string;
+    trail: Crumb[];
+    toc?: TocItem[];
+}
+const { title, description, trail, toc = [] } = Astro.props;
+const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
+---
+
+<BaseLayout title={`${title} · Kitkat Docs`} description={description}>
+    <div class="sticky top-0 z-30 bg-bg-primary">
+        <DocsHeader />
+        <Breadcrumbs trail={trail} />
+    </div>
+
+    <div
+        class="grid-frame grid-cols-1 lg:grid-cols-[260px_1fr_240px] items-start"
+    >
+        <aside
+            id="docs-sidebar"
+            class="pane pane-raised lg:top-31 lg:max-h-[calc(100vh-7.75rem)] lg:overflow-y-auto
+             fixed inset-y-0 left-0 z-40 w-72 max-w-[80vw] -translate-x-full transition-transform duration-200
+             lg:relative lg:translate-x-0 lg:w-auto lg:max-w-none"
+        >
+            <div
+                class="flex items-center justify-between px-5 py-3 border-b border-border lg:hidden"
+            >
+                <span class="eyebrow">Navigate</span>
+                <button
+                    id="docs-sidebar-close"
+                    class="text-text-tertiary hover:text-text-primary"
+                    aria-label="Close navigation"
+                >
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 14 14"
+                        stroke="currentColor"
+                        stroke-width="1.4"
+                    >
+                        <path d="M1 1L13 13M13 1L1 13"></path>
+                    </svg>
+                </button>
+            </div>
+            <DocsSidebar currentPath={currentPath} client:load />
+        </aside>
+
+        <main class="pane p-8 sm:p-12 lg:p-16 min-w-0">
+            <button
+                id="docs-sidebar-open"
+                class="btn btn-ghost lg:hidden inline-flex items-center gap-2 mb-8"
+            >
+                <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 14 14"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    fill="none"
+                >
+                    <path d="M1 3.5H13M1 7H13M1 10.5H13"></path>
+                </svg>
+                Navigate
+            </button>
+            <article class="docs-prose max-w-[68ch]">
+                <slot />
+            </article>
+        </main>
+
+        <aside
+            class="pane pane-raised p-6 hidden lg:block sticky top-31 self-start"
+        >
+            <span class="eyebrow">On this page</span>
+            {
+                toc.length > 0 ? (
+                    <ul class="mt-4 flex flex-col gap-2.5">
+                        {toc.map((item) => (
+                            <li class:list={[{ "pl-3": item.depth === 3 }]}>
+                                <a
+                                    href={item.href}
+                                    class="text-[13px] text-text-secondary hover:text-accent transition-colors"
+                                >
+                                    {item.label}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p class="mt-4 text-[12.5px] text-text-tertiary font-mono">
+                        no sections
+                    </p>
+                )
+            }
+        </aside>
+    </div>
+
+    <div class="fixed inset-0 z-30 bg-black/60 hidden" id="docs-sidebar-scrim">
+    </div>
+</BaseLayout>
+
+<style>
+    #docs-sidebar.mobile-open {
+        transform: translateX(0);
+    }
+</style>
+
+<script>
+    const sidebar = document.getElementById("docs-sidebar");
+    const scrim = document.getElementById("docs-sidebar-scrim");
+    const openBtn = document.getElementById("docs-sidebar-open");
+    const closeBtn = document.getElementById("docs-sidebar-close");
+
+    function setOpen(open: boolean) {
+        sidebar?.classList.toggle("mobile-open", open);
+        scrim?.classList.toggle("hidden", !open);
+    }
+
+    openBtn?.addEventListener("click", () => setOpen(true));
+    closeBtn?.addEventListener("click", () => setOpen(false));
+    scrim?.addEventListener("click", () => setOpen(false));
+
+    // Markdown-authored code fences render as plain <pre class="astro-code">
+    // via Shiki. Wrap each one with the same grid-frame tab bar + copy button
+    // used everywhere else, so authored content still gets the IDE look.
+    document
+        .querySelectorAll<HTMLPreElement>(".docs-prose pre.astro-code")
+        .forEach((pre) => {
+            if (pre.closest(".code-frame")) return;
+
+            const lang =
+                pre.dataset.language ||
+                pre.getAttribute("data-language") ||
+                "text";
+
+            const frame = document.createElement("div");
+            frame.className = "grid-frame grid-rows-[auto_1fr] code-frame";
+
+            const tabBar = document.createElement("div");
+            tabBar.className = "pane pane-raised flex items-stretch h-10";
+            tabBar.innerHTML = `
+      <div class="tab flex items-center gap-2 px-4 border-r border-border text-text-primary bg-bg-tertiary">
+        <span class="h-1.5 w-1.5 bg-accent"></span>${lang}
+      </div>
+      <div class="flex-1"></div>
+      <button type="button" class="copy-btn tab flex items-center gap-1.5 px-4 text-text-tertiary hover:text-accent transition-colors" aria-label="Copy code">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="5" y="5" width="9" height="9"></rect><path d="M3 11V2h9"></path></svg>
+        <span class="copy-label">copy</span>
+      </button>`;
+
+            const body = document.createElement("div");
+            body.className = "pane p-6 overflow-x-auto";
+
+            pre.parentElement?.insertBefore(frame, pre);
+            frame.append(tabBar, body);
+            body.append(pre);
+
+            tabBar
+                .querySelector(".copy-btn")
+                ?.addEventListener("click", async () => {
+                    await navigator.clipboard.writeText(pre.textContent ?? "");
+                    const label = tabBar.querySelector(".copy-label");
+                    if (label) {
+                        const original = label.textContent;
+                        label.textContent = "copied";
+                        setTimeout(() => (label.textContent = original), 1400);
+                    }
+                });
+        });
+</script>

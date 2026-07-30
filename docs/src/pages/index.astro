@@ -1,0 +1,67 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import Features from "../components/Features.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<BaseLayout
+    title="Kitkat — A modern n minimal Python library for talking to LLMs."
+>
+    <div class="sticky top-0 z-30 bg-bg-primary">
+        <Header active="home" />
+    </div>
+
+    <main>
+        <Hero />
+
+        <section class="grid-frame grid-cols-1">
+            <div class="pane px-8 py-3">
+                <span class="eyebrow">why kitkat ?</span>
+            </div>
+        </section>
+        <Features />
+
+        <section class="grid-frame grid-cols-1 md:grid-cols-[1fr_1fr]">
+            <div class="pane p-10 lg:p-16">
+                <h2 class="font-display text-3xl text-text-primary">
+                    Install it in one line.<br />Ship it in the same shape.
+                </h2>
+                <p class="mt-4 text-text-secondary max-w-md leading-relaxed">
+                    Kitkat core is small and dependency-free. Local scripts and
+                    production servers run the identical request objects.
+                    Nothing changes when you swap providers.
+                </p>
+                <a
+                    href="/docs/installation"
+                    class="btn btn-ghost inline-flex items-center gap-2 mt-8"
+                >
+                    Read the install guide
+                    <svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.3"
+                    >
+                        <path d="M2 6h8M6 2l4 4-4 4"></path>
+                    </svg>
+                </a>
+            </div>
+            <div
+                class="pane p-6 sm:p-10 lg:p-16 bg-bg-secondary flex items-center min-w-0"
+            >
+                <div class="w-full overflow-x-auto">
+                    <pre
+                        class="font-mono text-[13px] sm:text-[13.5px] leading-[1.9] text-text-secondary whitespace-pre-wrap sm:whitespace-pre break-all sm:break-normal"><code><span class="text-text-tertiary">$</span> pip install kitkat
+<span class="text-text-tertiary">$</span> python -c <span class="text-accent">"import kitkat; print(kitkat.__version__)"</span>
+0.4.0</code></pre>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <Footer />
+</BaseLayout>

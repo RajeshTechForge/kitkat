@@ -1,0 +1,54 @@
+---
+import CodeBlock from "./CodeBlock.astro";
+---
+
+<section class="grid-frame grid-cols-1 lg:grid-cols-2">
+  <div class="pane p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
+    <h1 class="font-display text-[2.5rem] sm:text-[3.25rem] mt-4 text-text-primary">
+    A <span class="text-accent">modern</span> n <span class="text-accent">minimal</span><br />Python library<br />for talking to LLMs.
+    </h1>
+    <p class="mt-6 text-text-secondary text-[15px] leading-relaxed max-w-md">
+        Kitkat gives you a single, consistent interface to all providers with streaming, BYOK, extended thinking,
+        and typed responses that work identically across every provider. You can switch provider by changing two lines.
+        Your request, response, and error handling stay exactly the same.
+    </p>
+    <div class="grid-frame grid-cols-2 mt-9 max-w-sm">
+      <a href="/docs/installation" class="pane btn btn-accent flex items-center justify-center border-0">
+        Get Started
+      </a>
+      <a href="/docs" class="pane btn btn-ghost flex items-center justify-center">
+        View Docs
+      </a>
+    </div>
+    <div class="grid-frame grid-cols-3 mt-10 max-w-sm">
+      <div class="pane px-4 py-3">
+        <div class="font-display text-lg text-text-primary">0</div>
+        <div class="eyebrow mt-1">dependencies</div>
+      </div>
+      <div class="pane px-4 py-3">
+        <div class="font-display text-lg text-text-primary">3.11+</div>
+        <div class="eyebrow mt-1">python</div>
+      </div>
+      <div class="pane px-4 py-3">
+        <div class="font-display text-lg text-text-primary">MIT</div>
+        <div class="eyebrow mt-1">license</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane p-6 sm:p-10 lg:p-14 flex items-center bg-bg-secondary">
+    <CodeBlock filename="example.py" class="w-full">
+      <span class="text-text-tertiary"># pip install kitkat[anthropic]</span>{"\n"}
+      <span class="text-accent">from</span> kitkat <span class="text-accent">import</span> LLMRequest, Message, Role{"\n"}
+      <span class="text-accent">from</span> kitkat.providers.anthropic <span class="text-accent">import</span> AnthropicProvider, AnthropicConfig{"\n\n"}
+      config = AnthropicConfig(api_key=<span class="text-text-secondary">"sk-ant-..."</span>){"\n"}
+      request = LLMRequest({"\n"}
+      {"    "}messages=[Message(role=Role.USER, content=<span class="text-text-secondary">"Explain async/await."</span>)],{"\n"}
+      {"    "}max_tokens=512,{"\n"}
+      ){"\n\n"}
+      <span class="text-accent">async with</span> AnthropicProvider(config) <span class="text-accent">as</span> provider:{"\n"}
+      {"    "}response = <span class="text-accent">await</span> provider.complete(request){"\n"}
+      {"    "}<span class="text-accent">print</span>(response.content)  <span class="text-text-tertiary"># typed, streamed, testable</span>
+    </CodeBlock>
+  </div>
+</section>

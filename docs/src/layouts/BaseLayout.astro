@@ -1,0 +1,29 @@
+---
+import "../styles/global.css";
+
+interface Props {
+    title: string;
+    description?: string;
+}
+const {
+    title,
+    description = "Kitkat — A modern n minimal Python library for talking to LLMs.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <meta name="theme-color" content="#12100e" />
+    </head>
+    <body>
+        <div class="mx-auto max-w-350 px-0">
+            <slot />
+        </div>
+    </body>
+</html>

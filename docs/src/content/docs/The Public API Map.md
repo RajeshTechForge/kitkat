@@ -1,4 +1,7 @@
-# The Public API Map
+---
+title: The Public API Map
+description: Defines the canonical public surface of the Kitkat library.
+---
 
 This document defines the canonical public surface of the Kitkat library. Every symbol
 that users can import is listed here by namespace. Anything not listed here is **internal**

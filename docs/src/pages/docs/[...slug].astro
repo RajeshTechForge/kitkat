@@ -1,0 +1,30 @@
+---
+import { getCollection, render } from "astro:content";
+import DocsLayout from "../../layouts/DocsLayout.astro";
+
+export async function getStaticPaths() {
+    const entries = await getCollection("docs");
+    return entries.map((entry) => ({
+        params: { slug: entry.id === "index" ? undefined : entry.id },
+        props: { entry },
+    }));
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+
+// Only h2/h3 make useful "on this page" anchors; h1 is the page title itself.
+const toc = headings
+    .filter((h) => h.depth === 2 || h.depth === 3)
+    .map((h) => ({ label: h.text, href: `#${h.slug}`, depth: h.depth }));
+---
+
+<DocsLayout
+    title={entry.data.title}
+    description={entry.data.description}
+    trail={[{ label: "Docs", href: "/docs" }, { label: entry.data.title }]}
+    toc={toc}
+>
+    <h1>{entry.data.title}</h1>
+    <Content />
+</DocsLayout>

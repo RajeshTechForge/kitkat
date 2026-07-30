@@ -1,0 +1,61 @@
+---
+interface Props {
+    filename: string;
+    lang?: string;
+    class?: string;
+}
+const { filename, lang = "python", class: className = "" } = Astro.props;
+const id = `code-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<div class={`grid-frame grid-rows-[auto_1fr] ${className}`}>
+    <div class="pane pane-raised flex items-stretch h-10">
+        <div
+            class="tab flex items-center gap-2 px-4 border-r border-border text-text-primary bg-bg-tertiary"
+        >
+            <span class="h-1.5 w-1.5 bg-accent"></span>
+            {filename}
+        </div>
+        <div class="flex-1"></div>
+        <button
+            data-copy-target={id}
+            class="copy-btn tab flex items-center gap-1.5 px-4 text-text-tertiary hover:text-accent transition-colors"
+            aria-label="Copy code"
+        >
+            <svg
+                width="12"
+                height="12"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+            >
+                <rect x="5" y="5" width="9" height="9"></rect>
+                <path d="M3 11V2h9"></path>
+            </svg>
+            <span class="copy-label">copy</span>
+        </button>
+    </div>
+    <div class="pane p-6 overflow-x-auto">
+        <pre
+            id={id}
+            class="font-mono text-[13px] leading-[1.75]"><code><slot /></code></pre>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll<HTMLButtonElement>(".copy-btn").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            const targetId = btn.getAttribute("data-copy-target");
+            const el = targetId ? document.getElementById(targetId) : null;
+            if (!el) return;
+            await navigator.clipboard.writeText(el.textContent ?? "");
+            const label = btn.querySelector(".copy-label");
+            if (label) {
+                const original = label.textContent;
+                label.textContent = "copied";
+                setTimeout(() => (label.textContent = original), 1400);
+            }
+        });
+    });
+</script>
