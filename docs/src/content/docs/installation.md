@@ -1,6 +1,8 @@
 ---
 title: Installation
-description: Requirements and install steps for Quarry.
+description: Requirements and install steps for Kitkat.
+category: Getting Started
+order: 2
 ---
 
 Kitkat uses an opt-in extras model. The core package is small and dependency-free; provider SDKs are installed only when you ask for them.

@@ -7,7 +7,7 @@ const docs = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
-    // Controls sidebar/footer ordering if you add more pages later.
+    category: z.string().default("Overview"),
     order: z.number().default(0),
   }),
 });

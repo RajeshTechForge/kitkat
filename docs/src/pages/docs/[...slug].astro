@@ -1,6 +1,11 @@
 ---
 import { getCollection, render } from "astro:content";
 import DocsLayout from "../../layouts/DocsLayout.astro";
+import {
+    getNavGroups,
+    getSearchItems,
+    getDocPagination,
+} from "../../utils/docs";
 
 export async function getStaticPaths() {
     const entries = await getCollection("docs");
@@ -13,7 +18,10 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
 
-// Only h2/h3 make useful "on this page" anchors; h1 is the page title itself.
+const navGroups = await getNavGroups();
+const searchItems = await getSearchItems();
+const pagination = await getDocPagination(entry.id);
+
 const toc = headings
     .filter((h) => h.depth === 2 || h.depth === 3)
     .map((h) => ({ label: h.text, href: `#${h.slug}`, depth: h.depth }));
@@ -24,6 +32,9 @@ const toc = headings
     description={entry.data.description}
     trail={[{ label: "Docs", href: "/docs" }, { label: entry.data.title }]}
     toc={toc}
+    navGroups={navGroups}
+    searchItems={searchItems}
+    pagination={pagination}
 >
     <h1>{entry.data.title}</h1>
     <Content />

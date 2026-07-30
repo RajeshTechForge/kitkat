@@ -1,9 +1,15 @@
 ---
 import CommandPalette from "./CommandPalette";
+import type { SearchItem } from "../utils/docs";
+
+interface Props {
+    searchItems?: SearchItem[];
+}
+const { searchItems = [] } = Astro.props;
 ---
 
 <header class="grid-frame grid-cols-[auto_1fr_auto_auto] h-14">
-    <a href="/" class="pane flex items-center gap-2.5 px-5">
+    <a href="/" class="pane flex items-center gap-2.5 px-3 sm:px-5">
         <svg width="16" height="16" viewBox="0 0 18 18" class="shrink-0">
             <rect x="0" y="0" width="8" height="8" fill="#f06b50"></rect>
             <rect x="10" y="0" width="8" height="8" fill="#5c5650"></rect>
@@ -16,8 +22,8 @@ import CommandPalette from "./CommandPalette";
         <span class="eyebrow ml-1 hidden sm:inline">/ docs</span>
     </a>
 
-    <div class="pane">
-        <CommandPalette client:load />
+    <div class="pane min-w-0">
+        <CommandPalette items={searchItems} client:load />
     </div>
 
     <a

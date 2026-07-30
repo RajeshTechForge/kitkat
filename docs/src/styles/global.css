@@ -11,76 +11,81 @@
    THEME TOKENS — Warm Graphite (Charcoal + Coral)
    --------------------------------------------------------- */
 @theme {
-  --color-bg-primary: #12100e;
-  --color-bg-secondary: #1a1714;
-  --color-bg-tertiary: #24201c;
-  --color-text-primary: #f2ede8;
-  --color-text-secondary: #968d83;
-  --color-text-tertiary: #5c5650;
-  --color-accent: #f06b50;
-  --color-accent-glow: rgba(240, 107, 80, 0.15);
-  --color-border: #262220;
-  --color-success: #4ade80;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
+    --color-bg-primary: #12100e;
+    --color-bg-secondary: #1a1714;
+    --color-bg-tertiary: #24201c;
+    --color-text-primary: #f2ede8;
+    --color-text-secondary: #968d83;
+    --color-text-tertiary: #5c5650;
+    --color-accent: #f06b50;
+    --color-accent-glow: rgba(240, 107, 80, 0.15);
+    --color-border: #262220;
+    --color-success: #4ade80;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
 
-  --font-display: "Space Grotesk", "Inter", sans-serif;
-  --font-body: "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+    --font-display: "Space Grotesk", "Inter", sans-serif;
+    --font-body: "Inter", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  /* near-zero radius scale — utilitarian, not soft */
-  --radius-frame: 0px;
-  --radius-tight: 2px;
+    /* near-zero radius scale — utilitarian, not soft */
+    --radius-frame: 0px;
+    --radius-tight: 2px;
 
-  --breakpoint-xs: 480px;
+    --breakpoint-xs: 480px;
 }
 
 /* ---------------------------------------------------------
    BASE LAYER
    --------------------------------------------------------- */
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
+    * {
+        border-color: var(--color-border);
+    }
 
-  html {
-    background: var(--color-bg-primary);
-    color-scheme: dark;
-  }
+    html {
+        background: var(--color-bg-primary);
+        color-scheme: dark;
+    }
 
-  body {
-    background: var(--color-bg-primary);
-    color: var(--color-text-primary);
-    font-family: var(--font-body);
-    font-size: 15px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
+    body {
+        background: var(--color-bg-primary);
+        color: var(--color-text-primary);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+    }
 
-  h1, h2, h3, h4 {
-    font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.05;
-  }
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+    }
 
-  ::selection {
-    background: var(--color-accent);
-    color: var(--color-bg-primary);
-  }
+    ::selection {
+        background: var(--color-accent);
+        color: var(--color-bg-primary);
+    }
 
-  :focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-  }
+    :focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
 
-  a {
-    color: inherit;
-  }
+    a {
+        color: inherit;
+    }
 
-  code, kbd, samp {
-    font-family: var(--font-mono);
-  }
+    code,
+    kbd,
+    samp {
+        font-family: var(--font-mono);
+    }
 }
 
 /* ---------------------------------------------------------
@@ -90,229 +95,275 @@
    tessellate with a single shared 1px seam, never a double line.
    --------------------------------------------------------- */
 @layer components {
-  .grid-frame {
-    display: grid;
-    gap: 1px;
-    background: var(--color-border);
-    border: 1px solid var(--color-border);
-  }
+    .grid-frame {
+        display: grid;
+        gap: 1px;
+        background: var(--color-border);
+        border: 1px solid var(--color-border);
+    }
 
-  .pane {
-    background: var(--color-bg-primary);
-    min-width: 0;
-    min-height: 0;
-  }
+    .pane {
+        background: var(--color-bg-primary);
+        min-width: 0;
+        min-height: 0;
+    }
 
-  .pane-raised {
-    background: var(--color-bg-secondary);
-  }
+    .pane-raised {
+        background: var(--color-bg-secondary);
+    }
 
-  .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--color-text-tertiary);
-  }
+    .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--color-text-tertiary);
+    }
 
-  .tab {
-    font-family: var(--font-mono);
-    font-size: 12.5px;
-    letter-spacing: 0.02em;
-  }
+    /* Scrollbar hiding utility for clean sidebars */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
 
-  .btn {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    letter-spacing: 0.01em;
-    padding: 0.6rem 1.1rem;
-    border: 1px solid var(--color-border);
-    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
-  }
+    /* Ultra-thin custom scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: var(--color-border);
+        border-radius: 2px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: var(--color-text-tertiary);
+    }
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-border) transparent;
+    }
 
-  .btn-accent {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-    color: #16110d;
-    font-weight: 500;
-  }
+    .tab {
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        letter-spacing: 0.02em;
+    }
 
-  .btn-accent:hover {
-    background: #ff7c5f;
-    border-color: #ff7c5f;
-  }
+    .btn {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        letter-spacing: 0.01em;
+        padding: 0.6rem 1.1rem;
+        border: 1px solid var(--color-border);
+        transition:
+            background-color 120ms ease,
+            border-color 120ms ease,
+            color 120ms ease;
+    }
 
-  .btn-ghost {
-    background: transparent;
-    color: var(--color-text-primary);
-  }
+    .btn-accent {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+        color: #16110d;
+        font-weight: 500;
+    }
 
-  .btn-ghost:hover {
-    background: var(--color-bg-tertiary);
-    border-color: var(--color-text-tertiary);
-  }
+    .btn-accent:hover {
+        background: #ff7c5f;
+        border-color: #ff7c5f;
+    }
 
-  .kbd {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 0.1rem 0.4rem;
-    border: 1px solid var(--color-border);
-    color: var(--color-text-secondary);
-    background: var(--color-bg-tertiary);
-  }
+    .btn-ghost {
+        background: transparent;
+        color: var(--color-text-primary);
+    }
 
-  /* ---------------------------------------------------------
+    .btn-ghost:hover {
+        background: var(--color-bg-tertiary);
+        border-color: var(--color-text-tertiary);
+    }
+
+    .kbd {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        padding: 0.1rem 0.4rem;
+        border: 1px solid var(--color-border);
+        color: var(--color-text-secondary);
+        background: var(--color-bg-tertiary);
+    }
+
+    /* ---------------------------------------------------------
      DOCS PROSE — strict left-aligned typography for content
      --------------------------------------------------------- */
-  .docs-prose {
-    text-align: left;
-  }
+    .docs-prose {
+        text-align: left;
+    }
 
-  .docs-prose > * + * {
-    margin-top: 1.25rem;
-  }
+    .docs-prose > * + * {
+        margin-top: 1.25rem;
+    }
 
-  .docs-prose h1 {
-    font-size: 2rem;
-    color: var(--color-text-primary);
-  }
+    .docs-prose h1 {
+        font-size: 2rem;
+        color: var(--color-text-primary);
+    }
 
-  .docs-prose h2 {
-    font-size: 1.4rem;
-    color: var(--color-text-primary);
-    margin-top: 2.5rem !important;
-    padding-top: 1.75rem;
-    border-top: 1px solid var(--color-border);
-  }
+    .docs-prose h2 {
+        font-size: 1.4rem;
+        color: var(--color-text-primary);
+        margin-top: 2.5rem !important;
+        padding-top: 1.75rem;
+        border-top: 1px solid var(--color-border);
+    }
 
-  .docs-prose h3 {
-    font-size: 1.05rem;
-    color: var(--color-text-primary);
-    margin-top: 2rem !important;
-  }
+    .docs-prose h3 {
+        font-size: 1.05rem;
+        color: var(--color-text-primary);
+        margin-top: 2rem !important;
+    }
 
-  .docs-prose p,
-  .docs-prose li {
-    color: var(--color-text-secondary);
-    line-height: 1.75;
-    font-size: 14.5px;
-  }
+    .docs-prose p,
+    .docs-prose li {
+        color: var(--color-text-secondary);
+        line-height: 1.75;
+        font-size: 14.5px;
+    }
 
-  .docs-prose ul,
-  .docs-prose ol {
-    padding-left: 1.25rem;
-  }
+    .docs-prose ul,
+    .docs-prose ol {
+        padding-left: 1.25rem;
+    }
 
-  .docs-prose ul {
-    list-style: none;
-  }
+    .docs-prose ul {
+        list-style: none;
+    }
 
-  .docs-prose ul > li {
-    position: relative;
-    padding-left: 1.1rem;
-  }
+    .docs-prose ul > li {
+        position: relative;
+        padding-left: 1.1rem;
+    }
 
-  .docs-prose ul > li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.6em;
-    width: 6px;
-    height: 6px;
-    background: var(--color-accent);
-  }
+    .docs-prose ul > li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.6em;
+        width: 6px;
+        height: 6px;
+        background: var(--color-accent);
+    }
 
-  .docs-prose ol {
-    list-style: decimal;
-  }
+    .docs-prose ol {
+        list-style: decimal;
+    }
 
-  .docs-prose ol > li::marker {
-    font-family: var(--font-mono);
-    color: var(--color-text-tertiary);
-  }
+    .docs-prose ol > li::marker {
+        font-family: var(--font-mono);
+        color: var(--color-text-tertiary);
+    }
 
-  .docs-prose a {
-    color: var(--color-accent);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-color: var(--color-border);
-  }
+    .docs-prose a {
+        color: var(--color-accent);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-color: var(--color-border);
+    }
 
-  .docs-prose a:hover {
-    text-decoration-color: var(--color-accent);
-  }
+    .docs-prose a:hover {
+        text-decoration-color: var(--color-accent);
+    }
 
-  .docs-prose code:not(pre code) {
-    font-family: var(--font-mono);
-    font-size: 0.85em;
-    background: var(--color-bg-tertiary);
-    border: 1px solid var(--color-border);
-    padding: 0.1rem 0.35rem;
-    color: var(--color-accent);
-  }
+    .docs-prose code:not(pre code) {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        background: var(--color-bg-tertiary);
+        border: 1px solid var(--color-border);
+        padding: 0.1rem 0.35rem;
+        color: var(--color-accent);
+    }
 
-  .docs-prose table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13.5px;
-  }
+    .docs-prose table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+        margin: 1.25rem 0;
+    }
 
-  .docs-prose th,
-  .docs-prose td {
-    border: 1px solid var(--color-border);
-    padding: 0.6rem 0.9rem;
-    text-align: left;
-  }
+    .docs-prose th,
+    .docs-prose td {
+        border: 1px solid var(--color-border);
+        padding: 0.6rem 0.9rem;
+        text-align: left;
+    }
 
-  .docs-prose th {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-text-tertiary);
-    background: var(--color-bg-secondary);
-  }
+    .docs-prose th {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-text-tertiary);
+        background: var(--color-bg-secondary);
+    }
 
-  .docs-prose td {
-    color: var(--color-text-secondary);
-  }
+    .docs-prose td {
+        color: var(--color-text-secondary);
+    }
 
-  /* ---------------------------------------------------------
+    .docs-prose blockquote {
+        border-left: 3px solid var(--color-accent);
+        background: var(--color-bg-secondary);
+        padding: 0.85rem 1.2rem;
+        margin: 1.5rem 0;
+        color: var(--color-text-secondary);
+    }
+
+    .docs-prose blockquote p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--color-text-secondary);
+    }
+
+    /* ---------------------------------------------------------
      SHIKI (css-variables theme) — mapped onto Warm Graphite,
      so markdown-authored code fences match the hand-built panes.
      --------------------------------------------------------- */
-  :root {
-    --astro-code-foreground: var(--color-text-primary);
-    --astro-code-background: var(--color-bg-secondary);
-    --astro-code-token-constant: var(--color-text-primary);
-    --astro-code-token-string: var(--color-text-secondary);
-    --astro-code-token-comment: var(--color-text-tertiary);
-    --astro-code-token-keyword: var(--color-accent);
-    --astro-code-token-parameter: var(--color-text-primary);
-    --astro-code-token-function: var(--color-text-primary);
-    --astro-code-token-string-expression: var(--color-text-secondary);
-    --astro-code-token-punctuation: var(--color-text-tertiary);
-    --astro-code-token-link: var(--color-accent);
-  }
+    :root {
+        --astro-code-foreground: var(--color-text-primary);
+        --astro-code-background: var(--color-bg-secondary);
+        --astro-code-token-constant: var(--color-text-primary);
+        --astro-code-token-string: var(--color-text-secondary);
+        --astro-code-token-comment: var(--color-text-tertiary);
+        --astro-code-token-keyword: var(--color-accent);
+        --astro-code-token-parameter: var(--color-text-primary);
+        --astro-code-token-function: var(--color-text-primary);
+        --astro-code-token-string-expression: var(--color-text-secondary);
+        --astro-code-token-punctuation: var(--color-text-tertiary);
+        --astro-code-token-link: var(--color-accent);
+    }
 
-  .docs-prose pre.astro-code {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: 13px;
-    line-height: 1.75;
-    background: transparent !important;
-  }
+    .docs-prose pre.astro-code {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.75;
+        background: transparent !important;
+    }
 
-  /* Once wrapped by the docs-layout script, the .pane already carries the
+    /* Once wrapped by the docs-layout script, the .pane already carries the
      background — avoid a doubled background from Shiki's inline style. */
-  .code-frame pre.astro-code {
-    background: transparent !important;
-  }
+    .code-frame pre.astro-code {
+        background: transparent !important;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
-  }
+    * {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+    }
 }

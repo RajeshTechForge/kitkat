@@ -1,6 +1,8 @@
 ---
 title: Introduction
 description: What KitKat is and a 60-second example.
+category: Getting Started
+order: 1
 ---
 
 Kitkat gives you a single, consistent interface to all providers with streaming, BYOK (Bring Your Own Key), extended thinking, and typed responses that work identically across every provider. You can switch provider by changing two lines. Your request, response, and error handling stay exactly the same.

@@ -5,35 +5,13 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
+import type { SearchItem } from "../utils/docs";
 
-interface Entry {
-  section: string;
-  label: string;
-  href: string;
+interface Props {
+  items?: SearchItem[];
 }
 
-const INDEX: Entry[] = [
-  { section: "Docs", label: "Introduction", href: "/docs" },
-  { section: "Docs", label: "Installation", href: "/docs/installation" },
-  { section: "Docs", label: "Core Concepts", href: "/docs/core-concepts" },
-  {
-    section: "Docs",
-    label: "API Reference — pipeline()",
-    href: "/docs/api-reference",
-  },
-  { section: "Docs", label: "Examples & Tutorials", href: "/docs/examples" },
-  { section: "Docs", label: "Contributing", href: "/docs/contributing" },
-  { section: "Docs", label: "Changelog", href: "/docs/changelog" },
-  { section: "Site", label: "Homepage", href: "/" },
-  { section: "Site", label: "Features", href: "/#features" },
-  {
-    section: "Site",
-    label: "GitHub Repository",
-    href: "https://github.com/RajeshTechForge/kitkat",
-  },
-];
-
-export default function CommandPalette() {
+export default function CommandPalette({ items = [] }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -41,16 +19,17 @@ export default function CommandPalette() {
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return INDEX;
-    return INDEX.filter(
+    if (!q) return items;
+    return items.filter(
       (e) =>
-        e.label.toLowerCase().includes(q) ||
-        e.section.toLowerCase().includes(q),
+        e.title.toLowerCase().includes(q) ||
+        e.category.toLowerCase().includes(q) ||
+        (e.snippet && e.snippet.toLowerCase().includes(q)),
     );
-  }, [query]);
+  }, [query, items]);
 
   useEffect(() => {
-    function onKey(e: KeyboardEvent) {
+    function onKey(e: window.KeyboardEvent) {
       const isMod = e.metaKey || e.ctrlKey;
       if (isMod && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -110,21 +89,26 @@ export default function CommandPalette() {
           <circle cx="7" cy="7" r="5.25" />
           <path d="M11 11L15 15" />
         </svg>
-        <span className="flex-1 hidden sm:inline">Search docs…</span>
+        <span className="flex-1 hidden sm:inline text-[13px]">
+          Search docs…
+        </span>
         <span className="kbd hidden sm:inline">⌘K</span>
       </button>
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center pt-[12vh] px-4"
-          style={{ background: "rgba(10, 9, 8, 0.7)" }}
+          className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] sm:pt-[12vh] px-4"
+          style={{
+            background: "rgba(10, 9, 8, 0.75)",
+            backdropFilter: "blur(2px)",
+          }}
           onClick={() => setOpen(false)}
         >
           <div
-            className="grid-frame grid-rows-[auto_1fr] w-full max-w-xl max-h-[60vh] shadow-2xl"
+            className="grid-frame grid-rows-[auto_1fr] w-full max-w-xl max-h-[70vh] shadow-2xl bg-bg-primary border border-border rounded-none"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="pane pane-raised flex items-center gap-3 px-4 h-12">
+            <div className="pane pane-raised flex items-center gap-3 px-4 h-12 border-b border-border">
               <svg
                 width="14"
                 height="14"
@@ -141,34 +125,51 @@ export default function CommandPalette() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder="Search introduction, installation, api…"
+                placeholder="Search documentation, API, concepts…"
                 className="flex-1 bg-transparent outline-none font-mono text-[13.5px] text-text-primary placeholder:text-text-tertiary"
               />
               <span className="kbd">esc</span>
             </div>
-            <div className="pane overflow-y-auto">
+
+            <div className="pane overflow-y-auto max-h-[calc(70vh-3rem)]">
               {results.length === 0 && (
-                <p className="px-4 py-6 text-text-tertiary text-[13px] font-mono">
-                  No results for "{query}"
+                <p className="px-5 py-8 text-text-tertiary text-[13px] font-mono text-center">
+                  No docs found for "{query}"
                 </p>
               )}
               {results.map((r, i) => (
                 <button
-                  key={r.href + r.label}
+                  key={r.id + i}
                   onClick={() => navigate(r.href)}
                   onMouseEnter={() => setActiveIndex(i)}
-                  className={`w-full text-left px-4 py-3 flex items-center justify-between border-b border-border last:border-b-0 transition-colors ${
+                  className={`w-full text-left px-5 py-3 flex items-start justify-between border-b border-border last:border-b-0 transition-colors ${
                     i === activeIndex ? "bg-bg-tertiary" : "bg-bg-primary"
                   }`}
                 >
-                  <span className="flex items-center gap-3">
-                    <span className="eyebrow w-14 shrink-0">{r.section}</span>
-                    <span className="text-[13.5px] text-text-primary">
-                      {r.label}
+                  <div className="flex flex-col gap-0.5 min-w-0 pr-4">
+                    <div className="flex items-center gap-2">
+                      <span className="eyebrow text-[10px] text-text-tertiary shrink-0">
+                        {r.category}
+                      </span>
+                      {r.type === "heading" && (
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-bg-tertiary text-text-tertiary border border-border">
+                          Section
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[13.5px] font-medium text-text-primary truncate">
+                      {r.title}
                     </span>
-                  </span>
+                    {r.snippet && (
+                      <span className="text-[12px] text-text-tertiary truncate font-mono">
+                        {r.snippet}
+                      </span>
+                    )}
+                  </div>
                   {i === activeIndex && (
-                    <span className="text-accent text-[11px] font-mono">↵</span>
+                    <span className="text-accent text-[11px] font-mono shrink-0 self-center">
+                      ↵
+                    </span>
                   )}
                 </button>
               ))}

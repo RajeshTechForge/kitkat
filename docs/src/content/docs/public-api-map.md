@@ -1,6 +1,8 @@
 ---
 title: The Public API Map
 description: Defines the canonical public surface of the Kitkat library.
+category: Reference
+order: 3
 ---
 
 This document defines the canonical public surface of the Kitkat library. Every symbol
@@ -206,14 +208,14 @@ __all__ = [
 The namespace structure mirrors the library's vertical architecture but presents
 it **horizontally to the user based on frequency of use**:
 
-| User type              | Primary namespace(s)                  | Optional extras                     |
-|------------------------|---------------------------------------|-------------------------------------|
-| Managed-service user   | `kitkat` (root)                       | None                                |
-| BYOK-service user      | `kitkat`, `kitkat.agents`             | `kitkat[agents]`                    |
-| Orchestrator           | `kitkat`, `kitkat.service`            | None                                |
-| Agent builder          | `kitkat.agents`                       | `kitkat[agents]`                    |
-| Workflow builder       | `kitkat.workflows`                    | `kitkat[workflows]`                 |
-| Custom-provider author | `kitkat.abc`, `kitkat.providers`      | varies by provider extra            |
+| User type              | Primary namespace(s)             | Optional extras          |
+| ---------------------- | -------------------------------- | ------------------------ |
+| Managed-service user   | `kitkat` (root)                  | None                     |
+| BYOK-service user      | `kitkat`, `kitkat.agents`        | `kitkat[agents]`         |
+| Orchestrator           | `kitkat`, `kitkat.service`       | None                     |
+| Agent builder          | `kitkat.agents`                  | `kitkat[agents]`         |
+| Workflow builder       | `kitkat.workflows`               | `kitkat[workflows]`      |
+| Custom-provider author | `kitkat.abc`, `kitkat.providers` | varies by provider extra |
 
 This protects users from dependency hell, keeps the main API flat and discoverable,
 and tucks heavy, domain-specific features (agents, LangGraph workflows) into their
