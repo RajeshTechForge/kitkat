@@ -17,8 +17,10 @@ const resources = [
 ];
 ---
 
-<header class="grid-frame grid-cols-[auto_1fr_auto_auto_auto_auto_auto] h-14">
-    <a href="/" class="pane flex items-center gap-2.5 px-5">
+<header
+    class="grid-frame grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_auto_auto_auto_auto_auto] h-14"
+>
+    <a href="/" class="pane flex items-center gap-2.5 px-4 sm:px-5">
         <img
             src="/logo.svg"
             alt="KitKat logo"
@@ -81,7 +83,7 @@ const resources = [
 
     <a
         href="https://github.com/RajeshTechForge/kitkat"
-        class="pane btn btn-accent flex items-center justify-center gap-2 px-5 border-0"
+        class="pane btn btn-accent hidden md:flex items-center justify-center gap-2 px-5 border-0"
     >
         <img
             src="/github.svg"
@@ -90,7 +92,150 @@ const resources = [
             height="14"
             class="shrink-0"
         />
-        <span class="hidden sm:inline">Star on GitHub</span>
-        <span class="sm:hidden">GitHub</span>
+        Star on GitHub
     </a>
+
+    {/* Mobile hamburger — no right border/gap needed */}
+
+    <button
+        id="header-mobile-open"
+        class="pane md:hidden flex items-center justify-center w-14 text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
+        aria-label="Open menu"
+    >
+        <svg
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            stroke="currentColor"
+            stroke-width="1.5"
+            fill="none"
+        >
+            <path d="M2 4.5H16M2 9H16M2 13.5H16"></path>
+        </svg>
+    </button>
 </header>
+
+{/* Mobile menu drawer */}
+<div
+    id="header-mobile-drawer"
+    class="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] bg-bg-primary border-l border-border translate-x-full transition-transform duration-200 flex flex-col md:hidden"
+>
+    {/* Drawer header */}
+    <div
+        class="flex items-center justify-between px-5 py-3 border-b border-border"
+    >
+        <a href="/" class="flex items-center gap-2.5">
+            <img
+                src="/logo.svg"
+                alt="KitKat logo"
+                width="16"
+                height="16"
+                class="shrink-0"
+            />
+            <span class="font-display font-bold text-[14px] tracking-wide"
+                >KitKat</span
+            >
+        </a>
+        <button
+            id="header-mobile-close"
+            class="text-text-tertiary hover:text-text-primary p-1 transition-colors"
+            aria-label="Close menu"
+        >
+            <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                stroke="currentColor"
+                stroke-width="1.4"
+            >
+                <path d="M1 1L13 13M13 1L1 13"></path>
+            </svg>
+        </button>
+    </div>
+
+    {/* Nav links */}
+    <nav class="flex flex-col py-2">
+        {
+            navLinks.map((link) => (
+                <a
+                    href={link.href}
+                    class:list={[
+                        "px-5 py-3.5 text-[14px] border-l-2 border-l-transparent hover:border-l-accent text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors font-mono",
+                        {
+                            "border-l-accent text-text-primary bg-bg-secondary":
+                                active === "docs" && link.label === "Docs",
+                        },
+                    ]}
+                >
+                    {link.label}
+                </a>
+            ))
+        }
+    </nav>
+
+    {/* Resources section */}
+    <div class="border-t border-border">
+        <p class="eyebrow text-[10px] px-5 pt-4 pb-2">Resources</p>
+        {
+            resources.map((r) => (
+                <a
+                    href={r.href}
+                    class="block px-5 py-3 text-[13.5px] font-mono text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
+                >
+                    {r.label}
+                </a>
+            ))
+        }
+    </div>
+
+    {/* GitHub CTA */}
+    <div class="mt-auto p-5 border-t border-border">
+        <a
+            href="https://github.com/RajeshTechForge/kitkat"
+            class="btn btn-accent flex items-center justify-center gap-2 w-full"
+        >
+            <img
+                src="/github.svg"
+                alt="GitHub"
+                width="14"
+                height="14"
+                class="shrink-0"
+            />
+            Star on GitHub
+        </a>
+    </div>
+</div>
+
+{/* Scrim */}
+<div
+    id="header-mobile-scrim"
+    class="fixed inset-0 z-40 bg-black/60 hidden md:hidden"
+>
+</div>
+
+<script>
+    const drawer = document.getElementById("header-mobile-drawer");
+    const scrim = document.getElementById("header-mobile-scrim");
+    const openBtn = document.getElementById("header-mobile-open");
+    const closeBtn = document.getElementById("header-mobile-close");
+
+    function setOpen(open: boolean) {
+        if (open) {
+            drawer?.classList.remove("translate-x-full");
+            drawer?.classList.add("translate-x-0");
+        } else {
+            drawer?.classList.remove("translate-x-0");
+            drawer?.classList.add("translate-x-full");
+        }
+        scrim?.classList.toggle("hidden", !open);
+        document.body.style.overflow = open ? "hidden" : "";
+    }
+
+    openBtn?.addEventListener("click", () => setOpen(true));
+    closeBtn?.addEventListener("click", () => setOpen(false));
+    scrim?.addEventListener("click", () => setOpen(false));
+
+    drawer?.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => setOpen(false));
+    });
+</script>

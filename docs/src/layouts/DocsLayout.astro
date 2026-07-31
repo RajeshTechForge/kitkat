@@ -50,7 +50,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
         <aside
             id="docs-sidebar"
             class="pane pane-raised
-             fixed inset-y-0 left-0 z-40 w-72 max-w-[80vw] -translate-x-full transition-transform duration-200 bg-bg-primary border-r border-border
+             fixed inset-y-0 left-0 z-50 w-72 max-w-[80vw] -translate-x-full transition-transform duration-200 bg-bg-primary border-r border-border
              lg:sticky lg:top-23 lg:self-start lg:translate-x-0 lg:w-auto lg:max-w-none lg:max-h-[calc(100vh-5.75rem)] lg:overflow-y-auto lg:border-r-0 lg:z-10 no-scrollbar"
         >
             <div
@@ -173,17 +173,11 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
 
     {/* Mobile drawer background scrim */}
     <div
-        class="fixed inset-0 z-30 bg-black/60 hidden transition-opacity duration-200"
+        class="fixed inset-0 z-40 bg-black/60 hidden transition-opacity duration-200"
         id="docs-sidebar-scrim"
     >
     </div>
 </BaseLayout>
-
-<style>
-    #docs-sidebar.mobile-open {
-        transform: translateX(0);
-    }
-</style>
 
 <script>
     const sidebar = document.getElementById("docs-sidebar");
@@ -192,7 +186,13 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
     const closeBtn = document.getElementById("docs-sidebar-close");
 
     function setOpen(open: boolean) {
-        sidebar?.classList.toggle("mobile-open", open);
+        if (open) {
+            sidebar?.classList.remove("-translate-x-full");
+            sidebar?.classList.add("translate-x-0");
+        } else {
+            sidebar?.classList.remove("translate-x-0");
+            sidebar?.classList.add("-translate-x-full");
+        }
         scrim?.classList.toggle("hidden", !open);
         document.body.style.overflow = open ? "hidden" : "";
     }
@@ -200,6 +200,10 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
     openBtn?.addEventListener("click", () => setOpen(true));
     closeBtn?.addEventListener("click", () => setOpen(false));
     scrim?.addEventListener("click", () => setOpen(false));
+
+    sidebar?.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => setOpen(false));
+    });
 
     // ScrollSpy for TOC links
     const tocLinks =

@@ -8,7 +8,9 @@ interface Props {
 const { searchItems = [] } = Astro.props;
 ---
 
-<header class="grid-frame grid-cols-[auto_1fr_auto_auto] h-14">
+<header
+    class="grid-frame grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto_auto] h-14"
+>
     <a href="/" class="pane flex items-center gap-2.5 px-3 sm:px-5">
         <svg width="16" height="16" viewBox="0 0 18 18" class="shrink-0">
             <rect x="0" y="0" width="8" height="8" fill="#f06b50"></rect>
@@ -35,7 +37,7 @@ const { searchItems = [] } = Astro.props;
 
     <a
         href="https://github.com/RajeshTechForge/kitkat"
-        class="pane tab flex items-center gap-2 px-5 text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
+        class="pane tab hidden sm:flex items-center gap-2 px-5 text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
     >
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
             <path
@@ -44,4 +46,128 @@ const { searchItems = [] } = Astro.props;
         </svg>
         <span class="hidden md:inline">GitHub</span>
     </a>
+
+    {/* Mobile hamburger — visible only below sm */}
+    <button
+        id="docs-header-mobile-open"
+        class="pane sm:hidden flex items-center justify-center w-14 text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
+        aria-label="Open menu"
+    >
+        <svg
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            stroke="currentColor"
+            stroke-width="1.5"
+            fill="none"
+        >
+            <path d="M2 4.5H16M2 9H16M2 13.5H16"></path>
+        </svg>
+    </button>
 </header>
+
+{/* Mobile menu drawer for docs pages */}
+<div
+    id="docs-header-mobile-drawer"
+    class="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] bg-bg-primary border-l border-border translate-x-full transition-transform duration-200 flex flex-col sm:hidden"
+>
+    <div
+        class="flex items-center justify-between px-5 py-3 border-b border-border"
+    >
+        <a href="/" class="flex items-center gap-2.5">
+            <svg width="14" height="14" viewBox="0 0 18 18" class="shrink-0">
+                <rect x="0" y="0" width="8" height="8" fill="#f06b50"></rect>
+                <rect x="10" y="0" width="8" height="8" fill="#5c5650"></rect>
+                <rect x="0" y="10" width="8" height="8" fill="#5c5650"></rect>
+                <rect x="10" y="10" width="8" height="8" fill="#f2ede8"></rect>
+            </svg>
+            <span class="font-display font-bold text-[14px] tracking-tight"
+                >Kitkat</span
+            >
+            <span class="eyebrow ml-1">/ docs</span>
+        </a>
+        <button
+            id="docs-header-mobile-close"
+            class="text-text-tertiary hover:text-text-primary p-1 transition-colors"
+            aria-label="Close menu"
+        >
+            <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                stroke="currentColor"
+                stroke-width="1.4"
+            >
+                <path d="M1 1L13 13M13 1L1 13"></path>
+            </svg>
+        </button>
+    </div>
+
+    <nav class="flex flex-col py-2">
+        <a
+            href="/docs"
+            class="px-5 py-3.5 text-[14px] border-l-2 border-l-accent text-text-primary bg-bg-secondary font-mono"
+        >
+            Docs
+        </a>
+        <a
+            href="/"
+            class="px-5 py-3.5 text-[14px] border-l-2 border-l-transparent hover:border-l-accent text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors font-mono"
+        >
+            Homepage
+        </a>
+    </nav>
+
+    <div class="mt-auto p-5 border-t border-border">
+        <a
+            href="https://github.com/RajeshTechForge/kitkat"
+            class="btn btn-accent flex items-center justify-center gap-2 w-full font-mono text-[13px]"
+        >
+            <svg
+                width="14"
+                height="14"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                class="shrink-0"
+            >
+                <path
+                    d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38l-.01-1.49c-2.01.44-2.51-.87-2.67-1.15-.16-.28-.85-1.15-1.45-1.4-.5-.27-1.19-.93-.02-.95.54-.02 1.15.36 1.36.83.79 1.34 2.06.96 2.57.73.08-.58.31-.96.57-1.19-1.99-.22-4.08-.99-4.08-4.42 0-.98.35-1.78.92-2.4-.09-.22-.4-1.13.09-2.36 0 0 .75-.24 2.47.91.71-.2 1.48-.3 2.24-.3.76 0 1.53.1 2.24.3 1.72-1.16 2.47-.91 2.47-.91.49 1.23.18 2.14.09 2.36.57.63.92 1.42.92 2.4 0 3.44-2.1 4.2-4.1 4.42.32.28.6.82.6 1.65l-.01 2.45c0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+                ></path>
+            </svg>
+            GitHub
+        </a>
+    </div>
+</div>
+
+<div
+    id="docs-header-mobile-scrim"
+    class="fixed inset-0 z-40 bg-black/60 hidden sm:hidden"
+>
+</div>
+
+<script>
+    const drawer = document.getElementById("docs-header-mobile-drawer");
+    const scrim = document.getElementById("docs-header-mobile-scrim");
+    const openBtn = document.getElementById("docs-header-mobile-open");
+    const closeBtn = document.getElementById("docs-header-mobile-close");
+
+    function setOpen(open: boolean) {
+        if (open) {
+            drawer?.classList.remove("translate-x-full");
+            drawer?.classList.add("translate-x-0");
+        } else {
+            drawer?.classList.remove("translate-x-0");
+            drawer?.classList.add("translate-x-full");
+        }
+        scrim?.classList.toggle("hidden", !open);
+        document.body.style.overflow = open ? "hidden" : "";
+    }
+
+    openBtn?.addEventListener("click", () => setOpen(true));
+    closeBtn?.addEventListener("click", () => setOpen(false));
+    scrim?.addEventListener("click", () => setOpen(false));
+
+    drawer?.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => setOpen(false));
+    });
+</script>
