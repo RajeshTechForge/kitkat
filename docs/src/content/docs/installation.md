@@ -30,7 +30,7 @@ pip install kitkat[redis]
 # All three providers at once
 pip install kitkat[all-providers]
 
-# Everything (all providers + Redis)
+# Everything
 pip install kitkat[all]
 ```
 
