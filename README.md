@@ -18,7 +18,7 @@
 
 <br>
 
-Kitkat gives you a single, consistent interface to **Anthropic Claude**, **OpenAI GPT**, and **Google Gemini** — with streaming, BYOK (Bring Your Own Key), extended thinking, and typed responses that work identically across every provider. You can switch provider by changing two lines. Your request, response, and error handling stay exactly the same.
+Kitkat gives you a single, consistent interface to all providers with streaming, BYOK (Bring Your Own Key), extended thinking, and typed responses that work identically across every provider. You can switch provider by changing two lines. Your request, response, and error handling stay exactly the same.
 
 
 ## Why Kitkat?
@@ -106,11 +106,11 @@ config = GeminiConfig(api_key="AIza...")
 
 ## Providers
 
-| Provider | Extra | Streaming | Thinking | Vertex AI |
+| Provider | Extra | Streaming | Thinking |
 |---|---|---|---|---|
-| Anthropic Claude | `kitkat[anthropic]` | ✅ | ✅ | — |
-| OpenAI | `kitkat[openai]` | ✅ | ✅ | — |
-| Google Gemini | `kitkat[gemini]` | ✅ | ✅ | ✅ |
+| Anthropic Claude | `kitkat[anthropic]` | ✅ | ✅ |
+| OpenAI | `kitkat[openai]` | ✅ | ✅ |
+| Google Gemini | `kitkat[gemini]` | ✅ | ✅ |
 
 Each provider ships its own typed config dataclass:
 
@@ -455,7 +455,7 @@ my-llm = "mypkg.provider:MyProvider"
 
 ## Contributing
 
-Contributions are welcome — bug reports, documentation improvements, new features, and tests are all appreciated. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a pull request.
+Contributions are welcome — bug reports, documentation improvements, new features, and tests are all appreciated. Please read [CONTRIBUTING.md](https://github.com/RajeshTechForge/kitkat/CONTRIBUTING.md) before opening a pull request.
 
 **Development setup:**
 
@@ -467,7 +467,7 @@ cd kitkat
 uv sync --extra dev
 
 # Run the unit test suite
-uv run pytest tests/unit/ -v
+just test-all
 
 # Lint and format
 uv run ruff check .
@@ -479,4 +479,4 @@ uv run ruff format .
 
 MIT © 2026 [Rajesh Mondal](https://github.com/RajeshTechForge)
 
-See [LICENSE](./LICENSE) for the full text.
+See [LICENSE](https://github.com/RajeshTechForge/kitkat/LICENSE) for the full text.

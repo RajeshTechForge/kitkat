@@ -30,3 +30,8 @@ AGENTS.md
 
 # Virtual environments
 .venv
+
+# Node / JS Tooling
+node_modules/
+.wrangler/
+.astro/

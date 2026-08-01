@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-01
+
+### Added
+- **LangGraph Workflows Layer (`kitkat.workflows`)**: Added stateful, multi-step agentic workflows using LangGraph.
+  - **Base Workflow Abstract Class (`BaseWorkflow`)**: A generic abstract base class defining a unified contract (`build_graph()` and `run()`) for LangGraph-based workflows.
+  - **Research Workflow (`ResearchWorkflow`)**: A concrete multi-step research workflow utilizing parallel execution for search and document retrieval, state verification via Pydantic model validation (`ResearchState`), and support for Auth0-ready human-in-the-loop approval conditional hooks.
+  - **State Schema (`ResearchState`)**: Type-safe Pydantic state model for the research pipeline tracking queries, plans, retrieved documents, final synthesis, and approval states.
+- **Package Extra & Lazy Exports**:
+  - Added `workflows = ["langgraph>=1.2.0"]` optional dependency extra (`pip install kitkat[workflows]`).
+  - Added lazy `__getattr__` exports on top-level `kitkat` package for `BaseWorkflow`, `ResearchWorkflow`, and `ResearchState` to keep core package imports lightweight.
+
 ## [0.4.0] - 2026-07-28
 
 ### Added
