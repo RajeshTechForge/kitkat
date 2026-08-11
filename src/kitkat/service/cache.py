@@ -35,6 +35,8 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any
 
+import redis.asyncio as aioredis
+
 from ..core.enums import CacheBackendType, FinishReason, ProviderType
 from ..core.models import (
     LLMRequest,
@@ -274,12 +276,6 @@ class RedisCache(CacheBackend):
             key_prefix: Namespace prefix applied to every key stored in Redis.
                 Override to isolate multiple apps sharing one Redis instance.
         """
-        try:
-            import redis.asyncio as aioredis
-        except ImportError as exc:
-            raise ImportError(
-                "RedisCache requires the 'redis' extra. Install it with: pip install kitkat[redis]"
-            ) from exc
 
         self._url = redis_url
         self._key_prefix = key_prefix

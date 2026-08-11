@@ -31,6 +31,7 @@ dependencies = [
     "pydantic>=2.13",
     "pydantic-settings>=2.13.0",
     "tiktoken>=0.13.0",
+    "redis>=7.1.1"
 ]
 
 # ── Provider extras ────────────────────────────
@@ -38,7 +39,6 @@ dependencies = [
 anthropic     = ["anthropic>=0.76.0"]
 openai        = ["openai>=2.15"]
 gemini        = ["google-genai>=1.57.0"]
-redis         = ["redis>=7.1.1"]
 all-providers = [
     "kitkat[anthropic]",
     "kitkat[openai]",
@@ -58,7 +58,6 @@ observability = [
 # ── Bundles ───────────────────────────────────────────────────────────────
 all = [
     "kitkat[all-providers]",
-    "kitkat[redis]",
     "kitkat[agents]",
     "kitkat[workflows]",
     "kitkat[observability]",

@@ -30,7 +30,6 @@ Provider and feature extras must be installed separately::
     pip install kitkat[anthropic]   # Anthropic Claude
     pip install kitkat[openai]      # OpenAI + compatible endpoints
     pip install kitkat[gemini]      # Google Gemini / Vertex AI
-    pip install kitkat[redis]       # Redis cache backend
     pip install kitkat[agents]      # PydanticAI agent adapters
     pip install kitkat[workflows]   # LangGraph workflow layer
     pip install kitkat[all]
