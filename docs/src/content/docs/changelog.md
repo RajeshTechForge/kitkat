@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-11
+
+### Added
+
+- **Plugin System Surface (`kitkat.plugins`)**: Public discovery and registration API for custom third-party LLM providers.
+  - **Public Functions**: Exposes `discover_plugins()`, `register_provider()`, `get_provider_class()`, and `list_providers()`.
+  - **Entry-Point Auto-Discovery**: Automatically loads custom providers registered under the `kitkat.providers` entry-point group in `pyproject.toml`, with fault-tolerant warning logging for invalid or duplicate entry points.
+- **Observability Integration (`kitkat.agents.configure_observability`)**: One-line configuration for agent tracing, latency tracking, token metrics, and execution spans.
+  - **Logfire Integration**: Native PydanticAI agent instrumentation (`Agent.instrument_all()`) and Logfire tracer configuration (`logfire.configure()`).
+  - **Langfuse Integration**: Connects Langfuse tracing by attaching an OpenTelemetry OTLP HTTP span exporter (`OTLPSpanExporter` + `BatchSpanProcessor`) to the TracerProvider, enabling simultaneous trace collection in Logfire and Langfuse without conflicts.
+  - **Package Extra (`kitkat[observability]`)**: Added `observability` optional dependency bundle (`logfire`, `langfuse`, `opentelemetry-sdk`, `opentelemetry-exporter-otlp-proto-http`) and updated `kitkat[all]` bundle.
+
 ## [0.5.0] - 2026-08-01
 
 ### Added

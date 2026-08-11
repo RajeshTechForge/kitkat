@@ -15,6 +15,7 @@ from .adapters.byok import BYOKModelAdapter
 from .adapters.managed import ManagedModelAdapter
 from .builders import build_chat_agent, build_structured_agent
 from .context import BaseAgentContext, RoutingTier
+from .observability import configure_observability
 from .tools.registry import ToolRegistry
 
 __all__ = [
@@ -25,4 +26,5 @@ __all__ = [
     "ToolRegistry",
     "build_chat_agent",
     "build_structured_agent",
+    "configure_observability",
 ]

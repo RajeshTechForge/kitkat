@@ -48,7 +48,12 @@ from kitkat.providers.openai import OpenAIProvider, OpenAIConfig             # p
 from kitkat.providers.gemini import GeminiProvider, GeminiConfig              # pip install kitkat[gemini]
 
 # Plugin / registry API (for advanced users adding custom providers)
-from kitkat.providers import register_provider, get_provider_class
+from kitkat.plugins import (
+    discover_plugins,
+    get_provider_class,
+    list_providers,
+    register_provider,
+)
 ```
 
 
@@ -84,6 +89,9 @@ from kitkat.agents import ManagedModelAdapter, BYOKModelAdapter
 
 # Context, routing and Tool infrastructure
 from kitkat.agents import BaseAgentContext, RoutingTier, ToolRegistry
+
+# Observability configuration (Logfire + Langfuse)
+from kitkat.agents import configure_observability
 ```
 
 

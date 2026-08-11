@@ -11,3 +11,15 @@ def require_agents_extra() -> None:
         raise ImportError(
             "Agent features require the 'agents' extra. Install with: pip install kitkat[agents]"
         )
+
+
+def require_observability_extra() -> None:
+    if (
+        importlib.util.find_spec("logfire") is None
+        or importlib.util.find_spec("langfuse") is None
+        or importlib.util.find_spec("opentelemetry") is None
+    ):
+        raise ImportError(
+            "Observability features require the 'observability' extra. Install with: "
+            "pip install kitkat[observability]"
+        )
