@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python and uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --extra dev --extra all
+
+      - name: Lint check (ruff)
+        run: uv run ruff check src/ tests/ examples/
+
+      - name: Code format check (ruff)
+        run: uv run ruff format --check src/ tests/ examples/
+
+      - name: Type check (mypy)
+        run: uv run mypy src/kitkat/plugins/ src/kitkat/agents/observability.py
+
+      - name: Run unit tests (pytest)
+        run: uv run pytest tests/unit/
+
+      - name: Build distribution package
+        run: uv build
+
+      - name: Verify wheel installation and imports
+        run: |
+          uv venv test_env
+          uv pip install --python test_env dist/*.whl
+          uv run --python test_env python -c "import kitkat; print(f'Kitkat version: {kitkat.__version__}')"
+          uv run --python test_env python -c "from kitkat import LLMRequest, LLMResponse, ProviderType"
+          uv run --python test_env python -c "from kitkat.service import LLMService, BYOKLLMService, create_llm_service"
+          uv run --python test_env python -c "from kitkat.plugins import discover_plugins, get_provider_class"

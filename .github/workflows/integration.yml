@@ -1,0 +1,29 @@
+name: Integration Tests (Nightly)
+
+on:
+  # schedule:
+  #   - cron: "0 3 * * *" # 3:00 AM UTC daily
+  workflow_dispatch: # Manual execution trigger from GitHub UI
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python and uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --extra dev --extra all
+
+      - name: Run integration and E2E tests
+        run: uv run pytest tests/integration/ tests/e2e/ -m integration
+        env:
+          INTEGRATION_TESTS: "1"
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
