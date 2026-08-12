@@ -35,43 +35,103 @@ export interface DocPagination {
 
 export function getDocHref(id: string): string {
   if (id === "index") return "/docs";
-  return `/docs/${encodeURIComponent(id)}`;
+  let cleanId = id;
+  if (cleanId.endsWith("/index")) {
+    cleanId = cleanId.slice(0, -6);
+  }
+  const segments = cleanId.split("/").map((seg) => encodeURIComponent(seg));
+  return `/docs/${segments.join("/")}`;
+}
+
+function parseDirectoryCategory(dir: string): string {
+  // Strip leading numeric prefixes (e.g., '01-getting-started' -> 'getting-started')
+  const cleaned = dir.replace(/^[0-9]+[_-]/, "");
+  return cleaned
+    .split(/[-_]/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function extractOrderPrefix(segment: string): number | null {
+  const match = segment.match(/^([0-9]+)[_-]/);
+  return match ? parseInt(match[1], 10) : null;
 }
 
 export async function getNavGroups(): Promise<NavGroup[]> {
   const entries = await getCollection("docs");
 
-  const navItems: NavItem[] = entries.map((entry) => ({
-    id: entry.id,
-    title: entry.data.title,
-    description: entry.data.description,
-    href: getDocHref(entry.id),
-    category: entry.data.category || "Overview",
-    order: entry.data.order ?? 0,
-  }));
+  const navItems: (NavItem & { categoryOrder: number })[] = entries.map(
+    (entry) => {
+      const parts = entry.id.split("/");
+      const isSubfolder = parts.length > 1;
 
-  const groupsMap = new Map<string, NavItem[]>();
-  for (const item of navItems) {
-    if (!groupsMap.has(item.category)) {
-      groupsMap.set(item.category, []);
-    }
-    groupsMap.get(item.category)!.push(item);
-  }
+      let category = entry.data.category;
+      let categoryOrder = 999;
+      let order = entry.data.order ?? 999;
 
-  const groups: NavGroup[] = Array.from(groupsMap.entries()).map(
-    ([category, items]) => {
-      items.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
-      return { category, items };
+      if (isSubfolder) {
+        const topDir = parts[0];
+        const dirOrder = extractOrderPrefix(topDir);
+        if (dirOrder !== null) {
+          categoryOrder = dirOrder;
+        }
+
+        if (!category) {
+          category = parseDirectoryCategory(topDir);
+        }
+
+        const fileName = parts[parts.length - 1];
+        const fileOrder = extractOrderPrefix(fileName);
+        if (entry.data.order === undefined && fileOrder !== null) {
+          order = fileOrder;
+        }
+      }
+
+      if (!category) {
+        category = "Overview";
+        categoryOrder = 0;
+      }
+
+      return {
+        id: entry.id,
+        title: entry.data.title,
+        description: entry.data.description,
+        href: getDocHref(entry.id),
+        category,
+        order,
+        categoryOrder,
+      };
     },
   );
 
-  groups.sort((a, b) => {
-    const minA = Math.min(...a.items.map((i) => i.order));
-    const minB = Math.min(...b.items.map((i) => i.order));
-    return minA - minB;
-  });
+  const groupsMap = new Map<string, { order: number; items: NavItem[] }>();
 
-  return groups;
+  for (const item of navItems) {
+    if (!groupsMap.has(item.category)) {
+      groupsMap.set(item.category, {
+        order: item.categoryOrder,
+        items: [],
+      });
+    }
+    const group = groupsMap.get(item.category)!;
+    group.order = Math.min(group.order, item.categoryOrder);
+    group.items.push(item);
+  }
+
+  const groups: NavGroup[] = Array.from(groupsMap.entries())
+    .map(([category, data]) => {
+      data.items.sort(
+        (a, b) => a.order - b.order || a.title.localeCompare(b.title),
+      );
+      return { category, items: data.items, categoryOrder: data.order };
+    })
+    .sort(
+      (a, b) =>
+        a.categoryOrder - b.categoryOrder ||
+        a.category.localeCompare(b.category),
+    );
+
+  return groups.map(({ category, items }) => ({ category, items }));
 }
 
 export async function getSortedDocs(): Promise<NavItem[]> {
@@ -83,7 +143,10 @@ export async function getDocPagination(
   currentId: string,
 ): Promise<DocPagination> {
   const sorted = await getSortedDocs();
-  const currentIndex = sorted.findIndex((doc) => doc.id === currentId);
+  const currentIndex = sorted.findIndex(
+    (doc) =>
+      doc.id === currentId || getDocHref(doc.id) === getDocHref(currentId),
+  );
   if (currentIndex === -1) return { prev: null, next: null };
 
   const prevDoc = currentIndex > 0 ? sorted[currentIndex - 1] : null;
@@ -97,19 +160,22 @@ export async function getDocPagination(
 }
 
 export async function getSearchItems(): Promise<SearchItem[]> {
+  const sortedDocs = await getSortedDocs();
   const entries = await getCollection("docs");
+  const entriesMap = new Map(entries.map((e) => [e.id, e]));
+
   const searchItems: SearchItem[] = [];
 
-  for (const entry of entries) {
-    const href = getDocHref(entry.id);
-    const category = entry.data.category || "Docs";
+  for (const doc of sortedDocs) {
+    const entry = entriesMap.get(doc.id);
+    if (!entry) continue;
 
     searchItems.push({
       id: entry.id,
-      category,
+      category: doc.category,
       title: entry.data.title,
       snippet: entry.data.description,
-      href,
+      href: doc.href,
       type: "page",
     });
 
@@ -122,7 +188,7 @@ export async function getSearchItems(): Promise<SearchItem[]> {
             category: entry.data.title,
             title: h.text,
             snippet: `Section in ${entry.data.title}`,
-            href: `${href}#${h.slug}`,
+            href: `${doc.href}#${h.slug}`,
             type: "heading",
           });
         }

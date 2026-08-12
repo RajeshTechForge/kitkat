@@ -9,10 +9,18 @@ import {
 
 export async function getStaticPaths() {
     const entries = await getCollection("docs");
-    return entries.map((entry) => ({
-        params: { slug: entry.id === "index" ? undefined : entry.id },
-        props: { entry },
-    }));
+    return entries.map((entry) => {
+        let slug: string | undefined = entry.id;
+        if (slug === "index") {
+            slug = undefined;
+        } else if (slug.endsWith("/index")) {
+            slug = slug.slice(0, -6);
+        }
+        return {
+            params: { slug },
+            props: { entry },
+        };
+    });
 }
 
 const { entry } = Astro.props;

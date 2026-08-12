@@ -1,8 +1,7 @@
 ---
 title: Contributing
 description: Learn how to contribute to the Kitkat project.
-category: Reference
-order: 5
+order: 2
 ---
 
 **🎉 Welcome to Kitkat!**
