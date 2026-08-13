@@ -329,6 +329,86 @@
     }
 
     /* ---------------------------------------------------------
+     DOC-PAGE COLOR SCHEME & SYNTAX HIGHLIGHTING (LIGHT / DARK)
+     Scoped to html[data-doc-theme] to ensure Home-Page is untouched.
+     --------------------------------------------------------- */
+    html[data-doc-theme="light"] {
+        color-scheme: light;
+        --color-bg-primary: #fafbfc;
+        --color-bg-secondary: #f5f6f8;
+        --color-bg-tertiary: #ffffff;
+        --color-text-primary: #1a1d23;
+        --color-text-secondary: #57606a;
+        --color-text-tertiary: #8b949e;
+        --color-accent: #e94a2a;
+        --color-accent-hover: #d74528;
+        --color-border: #d0d7de;
+        --color-border-subtle: #e8ecf0;
+        --color-success: #1a7f37;
+        --color-warning: #9a6700;
+        --color-error: #cf222e;
+        --color-inline-code-bg: #eff1f3;
+
+        --astro-code-foreground: #1a1d23;
+        --astro-code-background: #ffffff;
+        --astro-code-token-constant: #1a7f37;
+        --astro-code-token-string: #0a3069;
+        --astro-code-token-comment: #6e7781;
+        --astro-code-token-keyword: #e94a2a;
+        --astro-code-token-parameter: #0a3069;
+        --astro-code-token-function: #8250df;
+        --astro-code-token-string-expression: #e94a2a;
+        --astro-code-token-punctuation: #24292f;
+        --astro-code-token-link: #0969da;
+    }
+
+    html[data-doc-theme="dark"] {
+        color-scheme: dark;
+        --color-bg-primary: #0d1117;
+        --color-bg-secondary: #161b22;
+        --color-bg-tertiary: #21262d;
+        --color-text-primary: #e6edf3;
+        --color-text-secondary: #8b949e;
+        --color-text-tertiary: #6e7681;
+        --color-accent: #f06b50;
+        --color-accent-hover: #f07b64;
+        --color-border: #30363d;
+        --color-border-subtle: #21262d;
+        --color-success: #3fb950;
+        --color-warning: #d29922;
+        --color-error: #f85149;
+        --color-inline-code-bg: #1c2128;
+
+        --astro-code-foreground: #e6edf3;
+        --astro-code-background: #161b22;
+        --astro-code-token-constant: #7ee787;
+        --astro-code-token-string: #a5d6ff;
+        --astro-code-token-comment: #61676e;
+        --astro-code-token-keyword: #ff7b72;
+        --astro-code-token-parameter: #e6edf3;
+        --astro-code-token-function: #d2a8ff;
+        --astro-code-token-string-expression: #f06b50;
+        --astro-code-token-punctuation: #dce1e6;
+        --astro-code-token-link: #58a6ff;
+    }
+
+    html[data-doc-theme="light"] ::selection {
+        background: #0969da33;
+        color: #1a1d23;
+    }
+
+    html[data-doc-theme="dark"] ::selection {
+        background: #58a6ff33;
+        color: #e6edf3;
+    }
+
+    html[data-doc-theme] .docs-prose code:not(pre code) {
+        background: var(--color-inline-code-bg);
+        border: 1px solid var(--color-border-subtle, var(--color-border));
+        color: var(--color-text-primary);
+    }
+
+    /* ---------------------------------------------------------
      SHIKI (css-variables theme) — mapped onto Warm Graphite,
      so markdown-authored code fences match the hand-built panes.
      --------------------------------------------------------- */
@@ -352,6 +432,10 @@
         font-size: 13px;
         line-height: 1.75;
         background: transparent !important;
+    }
+
+    .docs-prose pre.astro-code span[style*="var(--astro-code-token-comment)"] {
+        font-style: italic;
     }
 
     /* Once wrapped by the docs-layout script, the .pane already carries the

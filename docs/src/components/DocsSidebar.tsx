@@ -43,8 +43,8 @@ export default function DocsSidebar({ groups, currentPath }: Props) {
         return (
           <div key={group.category} className="mb-4 last:mb-0">
             {/* Category Header */}
-            <div className="flex items-center justify-between px-5 py-1.5 mb-1 group">
-              <span className="eyebrow text-[11px] font-mono text-text-tertiary uppercase tracking-wider">
+            <div className="flex items-center justify-between px-5 py-2 mb-1 group">
+              <span className="font-display font-bold text-[14px] text-text-primary tracking-tight">
                 {group.category}
               </span>
               <button
@@ -58,8 +58,8 @@ export default function DocsSidebar({ groups, currentPath }: Props) {
                 className="text-text-tertiary hover:text-text-primary transition-colors p-1 -mr-1"
               >
                 <svg
-                  width="8"
-                  height="8"
+                  width="10"
+                  height="10"
                   viewBox="0 0 9 9"
                   className={`transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`}
                 >
@@ -82,7 +82,7 @@ export default function DocsSidebar({ groups, currentPath }: Props) {
                     <a
                       key={item.href}
                       href={item.href}
-                      className={`group flex items-center justify-between px-5 py-2 transition-colors border-l-2 ${
+                      className={`group flex items-center justify-between pl-7 pr-5 py-1.5 transition-colors text-[13px] border-l-2 ${
                         active
                           ? "text-accent bg-bg-tertiary font-medium border-l-accent"
                           : "text-text-secondary hover:text-text-primary hover:bg-bg-tertiary border-l-transparent"

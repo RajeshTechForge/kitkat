@@ -38,13 +38,30 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
 ---
 
 <BaseLayout title={`${title} · Kitkat Docs`} description={description}>
+    <script is:inline>
+        (function () {
+            const saved = localStorage.getItem("doc-theme") || "system";
+            let active = "dark";
+            if (saved === "system") {
+                active = window.matchMedia("(prefers-color-scheme: dark)")
+                    .matches
+                    ? "dark"
+                    : "light";
+            } else {
+                active = saved;
+            }
+            document.documentElement.dataset.docTheme = active;
+            document.documentElement.dataset.docThemeMode = saved;
+        })();
+    </script>
+
     <div class="sticky top-0 z-30 bg-bg-primary">
         <DocsHeader searchItems={searchItems} />
         <Breadcrumbs trail={trail} />
     </div>
 
     <div
-        class="grid-frame grid-cols-1 lg:grid-cols-[260px_1fr_240px] items-start min-h-[calc(100vh-5.75rem)]"
+        class="grid-frame grid-cols-1 lg:grid-cols-[280px_1fr] items-start min-h-[calc(100vh-5.75rem)]"
     >
         {/* Sidebar */}
         <aside
@@ -99,14 +116,14 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
                 Menu
             </button>
 
-            <article class="docs-prose max-w-[68ch] mx-auto lg:mx-0">
+            <article class="docs-prose max-w-4xl mx-auto lg:mx-0">
                 <slot />
             </article>
 
             {/* Previous / Next Pagination Cards */}
             {
                 pagination && (pagination.prev || pagination.next) && (
-                    <div class="mt-14 pt-8 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-[68ch]">
+                    <div class="mt-14 pt-8 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl">
                         {pagination.prev ? (
                             <a
                                 href={pagination.prev.href}
@@ -142,33 +159,6 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
                 )
             }
         </main>
-
-        {/* Right TOC Sidebar */}
-        <aside
-            class="pane pane-raised p-6 hidden lg:block lg:sticky lg:top-23 lg:self-start lg:max-h-[calc(100vh-5.75rem)] lg:overflow-y-auto no-scrollbar"
-        >
-            <span class="eyebrow text-[11px]">On this page</span>
-            {
-                toc.length > 0 ? (
-                    <ul id="docs-toc" class="mt-4 flex flex-col gap-2.5">
-                        {toc.map((item) => (
-                            <li class:list={[{ "pl-3": item.depth === 3 }]}>
-                                <a
-                                    href={item.href}
-                                    class="text-[12.5px] text-text-secondary hover:text-accent transition-colors block py-0.5"
-                                >
-                                    {item.label}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p class="mt-4 text-[12px] text-text-tertiary font-mono">
-                        no sections
-                    </p>
-                )
-            }
-        </aside>
     </div>
 
     {/* Mobile drawer background scrim */}
@@ -204,42 +194,6 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/docs";
     sidebar?.querySelectorAll("a").forEach((link) => {
         link.addEventListener("click", () => setOpen(false));
     });
-
-    // ScrollSpy for TOC links
-    const tocLinks =
-        document.querySelectorAll<HTMLAnchorElement>("#docs-toc a");
-    if (tocLinks.length > 0) {
-        const headingIds = Array.from(tocLinks)
-            .map((link) => link.getAttribute("href")?.replace("#", ""))
-            .filter((id): id is string => Boolean(id));
-
-        const headings = headingIds
-            .map((id) => document.getElementById(id))
-            .filter((el): el is HTMLElement => el !== null);
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        const id = entry.target.getAttribute("id");
-                        tocLinks.forEach((link) => {
-                            const isMatch =
-                                link.getAttribute("href") === `#${id}`;
-                            link.classList.toggle("text-accent", isMatch);
-                            link.classList.toggle("font-medium", isMatch);
-                            link.classList.toggle(
-                                "text-text-secondary",
-                                !isMatch,
-                            );
-                        });
-                    }
-                });
-            },
-            { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
-        );
-
-        headings.forEach((heading) => observer.observe(heading));
-    }
 
     // Markdown-authored code fences wrapper script
     document
