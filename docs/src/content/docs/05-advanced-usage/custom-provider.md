@@ -1,27 +1,23 @@
 ---
 title: Custom Providers
-description: Learn how to implement a custom LLM provider for KitKat by subclassing the `LLMProvider` abstract base class. This guide covers the complete contract, error mapping, streaming, token counting, health checks, and testing.
+description: Learn how to implement a custom LLM provider for Kitkat by subclassing the `LLMProvider` abstract base class. This guide covers the complete contract, error mapping, streaming, token counting, health checks, and testing.
 order: 1
 ---
 
-KitKat's provider system is open: any class that implements the `LLMProvider` abstract base class (ABC) is a first-class provider. You can wrap any LLM API — a proprietary internal model, an on-premises vLLM deployment, a custom inference server, or a provider that KitKat doesn't ship with — and have it work identically to the built-in Anthropic, OpenAI, and Gemini providers.
+Kitkat's provider system is open: any class that implements the `LLMProvider` abstract base class (ABC) is a first-class provider. You can wrap any LLM API — a proprietary internal model, an on-premises vLLM deployment, a custom inference server, or a provider that Kitkat doesn't ship with — and have it work identically to the built-in Anthropic, OpenAI, and Gemini providers.
 
 This page walks through the complete `LLMProvider` contract, a full working implementation using `httpx`, BYOK compatibility, error mapping, streaming, token counting, health checks, retry configuration, testing, and shipping your provider as an installable plugin.
-
----
 
 ## When to Write a Custom Provider
 
 Write a custom provider when:
 
-- You are using an LLM API that KitKat does not ship with (e.g., Cohere, Mistral, a private internal model).
+- You are using an LLM API that Kitkat does not ship with (e.g., Cohere, Mistral, a private internal model).
 - You need to wrap a self-hosted vLLM server that uses a non-standard (non-OpenAI-compatible) API format.
 - You want to add pre/post-processing hooks (prompt caching, PII scrubbing, cost metering) at the transport layer without modifying application code.
 - You are building a mock provider for integration testing that simulates specific error conditions.
 
 If the API you want to use is OpenAI-compatible (follows the Chat Completions spec), use `OpenAIProvider` with a custom `base_url` instead — it is simpler and maintained for you. See [OpenAI — OpenAI-Compatible Endpoints](./openai.md#openai-compatible-endpoints).
-
----
 
 ## Installation
 
@@ -30,8 +26,6 @@ pip install kitkat httpx
 ```
 
 This guide uses `httpx` as the HTTP client. You can substitute any async HTTP library.
-
----
 
 ## The `LLMProvider` ABC
 
@@ -43,42 +37,40 @@ from kitkat.abc import LLMProvider
 
 ### Class-level attributes (mandatory)
 
-Declare these as class variables on every provider. KitKat reads them at runtime to power routing decisions, capability queries, and default model resolution.
+Declare these as class variables on every provider. Kitkat reads them at runtime to power routing decisions, capability queries, and default model resolution.
 
-| Attribute | Type | Description |
-|---|---|---|
-| `PROVIDER_TYPE` | `ProviderType` | Canonical provider enum value. Use an existing `ProviderType` member or extend the enum for a completely new provider. |
-| `DEFAULT_MODEL` | `str` | Fallback model identifier used when `LLMRequest.model` is empty. |
-| `CAPABILITIES` | `ProviderCapabilities` | Feature flags the router queries when selecting a provider (streaming support, context window size, etc.). |
-| `RETRY_POLICY` | `RetryPolicy` | Optional — a class-level `RetryPolicy` overrides the base class default (`max_attempts=3, base_delay_s=1.0`). |
+| Attribute       | Type                   | Description                                                                                                            |
+| --------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `PROVIDER_TYPE` | `ProviderType`         | Canonical provider enum value. Use an existing `ProviderType` member or extend the enum for a completely new provider. |
+| `DEFAULT_MODEL` | `str`                  | Fallback model identifier used when `LLMRequest.model` is empty.                                                       |
+| `CAPABILITIES`  | `ProviderCapabilities` | Feature flags the router queries when selecting a provider (streaming support, context window size, etc.).             |
+| `RETRY_POLICY`  | `RetryPolicy`          | Optional — a class-level `RetryPolicy` overrides the base class default (`max_attempts=3, base_delay_s=1.0`).          |
 
 ### Abstract methods (mandatory)
 
 Every subclass must implement these eight methods. The base class provides helpful shared utilities (see [Helpers provided by the base class](#helpers-provided-by-the-base-class)) that you should use rather than re-implement.
 
-| Method | Signature | Purpose |
-|---|---|---|
-| `initialize` | `async () -> None` | Open HTTP client, validate credentials. |
-| `_init_client_only` | `async () -> None` | Open HTTP client only — no credential probe. Used by `BYOKLLMService`. |
-| `shutdown` | `async () -> None` | Close HTTP client, release resources. |
-| `complete` | `async (request: LLMRequest) -> LLMResponse` | One non-streaming inference attempt. No retry. |
-| `stream` | `async (request: LLMRequest) -> AsyncIterator[StreamChunk]` | Async generator of token chunks. |
-| `health_check` | `async () -> bool` | Liveness probe. Must return `False`, never raise, on failure. |
-| `count_tokens` | `(text: str) -> int` | Local token estimate. No network call. |
+| Method              | Signature                                                   | Purpose                                                                |
+| ------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `initialize`        | `async () -> None`                                          | Open HTTP client, validate credentials.                                |
+| `_init_client_only` | `async () -> None`                                          | Open HTTP client only — no credential probe. Used by `BYOKLLMService`. |
+| `shutdown`          | `async () -> None`                                          | Close HTTP client, release resources.                                  |
+| `complete`          | `async (request: LLMRequest) -> LLMResponse`                | One non-streaming inference attempt. No retry.                         |
+| `stream`            | `async (request: LLMRequest) -> AsyncIterator[StreamChunk]` | Async generator of token chunks.                                       |
+| `health_check`      | `async () -> bool`                                          | Liveness probe. Must return `False`, never raise, on failure.          |
+| `count_tokens`      | `(text: str) -> int`                                        | Local token estimate. No network call.                                 |
 
 ### Helpers provided by the base class
 
 These methods are implemented by `LLMProvider` and available for free in every subclass. Do not re-implement them.
 
-| Helper | Description |
-|---|---|
+| Helper                                      | Description                                                                                                                                    |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `complete_with_retry(request, policy=None)` | Calls `execute_with_retry` with the class-level `RETRY_POLICY`. Use this in your service-layer calls instead of calling `complete()` directly. |
-| `count_prompt_tokens(messages)` | Concatenates message content strings and delegates to your `count_tokens()`. |
-| `_assert_initialized()` | Raises `RuntimeError` if `self._initialized` is `False`. Call this at the top of `complete()`, `stream()`, and `health_check()`. |
-| `run_sync(request)` | Blocking synchronous wrapper around `complete()`. Safe to use outside an asyncio event loop. |
-| `__aenter__` / `__aexit__` | Async context manager support: `__aenter__` calls `initialize()`, `__aexit__` calls `shutdown()`. |
-
----
+| `count_prompt_tokens(messages)`             | Concatenates message content strings and delegates to your `count_tokens()`.                                                                   |
+| `_assert_initialized()`                     | Raises `RuntimeError` if `self._initialized` is `False`. Call this at the top of `complete()`, `stream()`, and `health_check()`.               |
+| `run_sync(request)`                         | Blocking synchronous wrapper around `complete()`. Safe to use outside an asyncio event loop.                                                   |
+| `__aenter__` / `__aexit__`                  | Async context manager support: `__aenter__` calls `initialize()`, `__aexit__` calls `shutdown()`.                                              |
 
 ## Complete Implementation: `MyProvider`
 
@@ -477,7 +469,7 @@ class MyProvider(LLMProvider):
         return body
 
     def _raise_for_status(self, resp: httpx.Response) -> None:
-        """Map HTTP error responses to KitKat exception types.
+        """Map HTTP error responses to Kitkat exception types.
 
         Always map to the most specific exception available. The retry engine
         relies on the exception type — not the status code — to decide
@@ -543,28 +535,24 @@ class MyProvider(LLMProvider):
         return mapping.get(raw or "", FinishReason.UNKNOWN)
 ```
 
----
-
 ## The `_init_client_only` Pattern
 
 `_init_client_only` exists specifically for the BYOK service path. `BYOKLLMService.__aenter__` calls it instead of `initialize()` to avoid making a preflight API call for every user session.
 
 The key difference:
 
-| | `initialize()` | `_init_client_only()` |
-|---|---|---|
-| Creates HTTP client | ✅ Yes | ✅ Yes |
-| Credential probe | ✅ Yes | ❌ No |
-| Auth failures surface | At `initialize()` call | At first `complete()` / `stream()` call |
-| Used by | Managed service startup | `BYOKLLMService.__aenter__` |
+|                       | `initialize()`          | `_init_client_only()`                   |
+| --------------------- | ----------------------- | --------------------------------------- |
+| Creates HTTP client   | ✅ Yes                  | ✅ Yes                                  |
+| Credential probe      | ✅ Yes                  | ❌ No                                   |
+| Auth failures surface | At `initialize()` call  | At first `complete()` / `stream()` call |
+| Used by               | Managed service startup | `BYOKLLMService.__aenter__`             |
 
 **Contract requirements for `_init_client_only`:**
 
 - Must be **idempotent**: calling it on an already-initialized provider is a no-op.
 - Must set `self._initialized = True` before returning.
 - Must NOT make any network calls.
-
----
 
 ## Error Mapping Best Practices
 
@@ -579,8 +567,6 @@ The mapping in `_raise_for_status` above follows these rules:
 4. **Non-retryable exceptions must never be wrapped in `LLMProviderError`.** If `LLMAuthenticationError` were wrapped in `LLMProviderError`, the retry engine would incorrectly retry it. Raise them directly.
 
 5. **`health_check()` must NEVER raise.** Catch all exceptions inside `health_check()` and return `False`.
-
----
 
 ## Testing Your Provider
 
@@ -697,8 +683,6 @@ async def test_context_manager(provider: MyProvider) -> None:
     assert provider._initialized is False
 ```
 
----
-
 ## Using Your Provider with `LLMService`
 
 Once implemented, your provider is a drop-in replacement for any built-in provider:
@@ -736,8 +720,6 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
----
-
 ## Shipping as a Plugin Package
 
 See [Plugin System](./plugins.md) for the complete guide. In brief:
@@ -758,8 +740,6 @@ MyProvider = get_provider_class("my-llm")
 provider = MyProvider({"api_key": "sk-..."})
 ```
 
----
-
 ## Provider Checklist
 
 Before shipping your provider, verify every item:
@@ -774,8 +754,6 @@ Before shipping your provider, verify every item:
 - [ ] `_raise_for_status()` maps 401/403 → `LLMAuthenticationError`, 429 → `LLMRateLimitError` with `retry_after_s`, token errors → `LLMTokenLimitError`, safety blocks → `LLMContentFilterError`.
 - [ ] `count_tokens()` has a fallback for air-gapped environments.
 - [ ] Tests cover: success, 401, 429, timeout, and the context manager lifecycle.
-
----
 
 ## Further Reading
 

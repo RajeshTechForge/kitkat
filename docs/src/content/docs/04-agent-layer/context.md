@@ -1,14 +1,12 @@
 ---
 title: Agent Context
-description: Documentation for the context object used in PydanticAI agents built with KitKat. The context carries user identity, routing preferences, locale, and application-specific data for tools.
+description: Documentation for the context object used in PydanticAI agents built with Kitkat. The context carries user identity, routing preferences, locale, and application-specific data for tools.
 order: 2
 ---
 
-Every PydanticAI agent built with KitKat uses a **context object** as its dependency injection container — the `deps` argument you pass to `agent.run()`. The context carries the user's identity, routing preferences, locale, and any application-specific data your tools need to function.
+Every PydanticAI agent built with Kitkat uses a **context object** as its dependency injection container — the `deps` argument you pass to `agent.run()`. The context carries the user's identity, routing preferences, locale, and any application-specific data your tools need to function.
 
-This page documents `BaseAgentContext`, the `RoutingTier` enum, the subclassing pattern for application-level fields, and how KitKat uses the context to power dynamic system prompts.
-
----
+This page documents `BaseAgentContext`, the `RoutingTier` enum, the subclassing pattern for application-level fields, and how Kitkat uses the context to power dynamic system prompts.
 
 ## Installation
 
@@ -16,11 +14,9 @@ This page documents `BaseAgentContext`, the `RoutingTier` enum, the subclassing 
 pip install kitkat[agents]
 ```
 
----
-
 ## `BaseAgentContext`
 
-`BaseAgentContext` is a plain Python dataclass. It defines the minimum set of fields that the KitKat agent layer reads directly. All other fields you add via subclassing are opaque to library code — they exist solely for your application tools.
+`BaseAgentContext` is a plain Python dataclass. It defines the minimum set of fields that the Kitkat agent layer reads directly. All other fields you add via subclassing are opaque to library code — they exist solely for your application tools.
 
 ```python
 from dataclasses import dataclass, field
@@ -30,13 +26,13 @@ from kitkat.agents import BaseAgentContext, RoutingTier
 
 ### Fields
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `user_id` | `str` | — | **Required. No default.** Opaque identifier for the calling user. Used for logging, tracing, and per-user routing decisions. Never defaulted — omitting it raises `TypeError` at instantiation so that silent routing mistakes are impossible. |
-| `routing_tier` | `RoutingTier` | `RoutingTier.MANAGED` | Determines which service path handles this request: managed server-side keys, BYOK user-supplied keys, or enterprise priority queue. |
-| `locale` | `str` | `"en"` | IETF BCP-47 locale tag injected into the default system prompt. For example `"fr"`, `"de"`, `"ja"`. The default prompt becomes: `"You are a helpful AI assistant. User locale: en."` |
-| `system_prompt_override` | `str \| None` | `None` | When non-`None`, replaces the library's default system prompt entirely. Useful for per-user or per-tenant prompt customization. |
-| `metadata` | `dict[str, Any]` | `{}` | Free-form application data. Library code never reads this field. It exists solely for application-registered tools that receive the context via `RunContext[YourContext]`. |
+| Field                    | Type             | Default               | Description                                                                                                                                                                                                                                    |
+| ------------------------ | ---------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `user_id`                | `str`            | —                     | **Required. No default.** Opaque identifier for the calling user. Used for logging, tracing, and per-user routing decisions. Never defaulted — omitting it raises `TypeError` at instantiation so that silent routing mistakes are impossible. |
+| `routing_tier`           | `RoutingTier`    | `RoutingTier.MANAGED` | Determines which service path handles this request: managed server-side keys, BYOK user-supplied keys, or enterprise priority queue.                                                                                                           |
+| `locale`                 | `str`            | `"en"`                | IETF BCP-47 locale tag injected into the default system prompt. For example `"fr"`, `"de"`, `"ja"`. The default prompt becomes: `"You are a helpful AI assistant. User locale: en."`                                                           |
+| `system_prompt_override` | `str \| None`    | `None`                | When non-`None`, replaces the library's default system prompt entirely. Useful for per-user or per-tenant prompt customization.                                                                                                                |
+| `metadata`               | `dict[str, Any]` | `{}`                  | Free-form application data. Library code never reads this field. It exists solely for application-registered tools that receive the context via `RunContext[YourContext]`.                                                                     |
 
 ### Creating a context
 
@@ -74,8 +70,6 @@ ctx = BaseAgentContext(
 )
 ```
 
----
-
 ## `RoutingTier`
 
 `RoutingTier` is a `StrEnum` that signals which service path should handle the request. It is defined in `kitkat.core.enums` and re-exported from `kitkat.agents` for convenience.
@@ -86,19 +80,17 @@ from kitkat.agents import RoutingTier
 from kitkat.core.enums import RoutingTier
 ```
 
-| Value | String value | Description |
-|---|---|---|
-| `RoutingTier.MANAGED` | `"managed"` | Use `LLMService` with server-side API keys. The service is initialized at startup and shared across all requests. |
-| `RoutingTier.BYOK` | `"byok"` | Use `BYOKLLMService` with a per-request user-supplied API key. Each request gets an ephemeral provider client. |
-| `RoutingTier.ENTERPRISE` | `"enterprise"` | Managed path with a priority queue. Reserved for future use. |
+| Value                    | String value   | Description                                                                                                       |
+| ------------------------ | -------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `RoutingTier.MANAGED`    | `"managed"`    | Use `LLMService` with server-side API keys. The service is initialized at startup and shared across all requests. |
+| `RoutingTier.BYOK`       | `"byok"`       | Use `BYOKLLMService` with a per-request user-supplied API key. Each request gets an ephemeral provider client.    |
+| `RoutingTier.ENTERPRISE` | `"enterprise"` | Managed path with a priority queue. Reserved for future use.                                                      |
 
-> **📝 Note:** `RoutingTier` is a signal to your application code — KitKat itself does not automatically switch between `LLMService` and `BYOKLLMService` based on this field. Your handler or factory is responsible for checking `ctx.routing_tier` and constructing the right adapter. See the [subclassing pattern](#subclassing-baseagentcontext) below for a complete example.
-
----
+> **📝 Note:** `RoutingTier` is a signal to your application code — Kitkat itself does not automatically switch between `LLMService` and `BYOKLLMService` based on this field. Your handler or factory is responsible for checking `ctx.routing_tier` and constructing the right adapter. See the [subclassing pattern](#subclassing-baseagentcontext) below for a complete example.
 
 ## Dynamic System Prompt
 
-When you call `build_chat_agent()` without a `system_prompt` argument, KitKat registers a dynamic system prompt function on the agent. This function runs before each `agent.run()` call and reads the context to determine what prompt to use.
+When you call `build_chat_agent()` without a `system_prompt` argument, Kitkat registers a dynamic system prompt function on the agent. This function runs before each `agent.run()` call and reads the context to determine what prompt to use.
 
 The logic is straightforward:
 
@@ -140,8 +132,6 @@ agent = build_chat_agent(
 ```
 
 > **⚠️ Warning:** If you pass a non-empty `system_prompt` to `build_chat_agent`, `ctx.system_prompt_override` has no effect. Choose one approach: static prompt via the builder, or dynamic prompt via the context.
-
----
 
 ## Subclassing `BaseAgentContext`
 
@@ -197,8 +187,6 @@ print(result.data)
 # Organization 'org-42' is on the enterprise plan.
 ```
 
----
-
 ## Routing Tier Dispatch Pattern
 
 A common pattern in multi-tenant applications is to inspect `ctx.routing_tier` in a factory or handler and build the right adapter on the fly:
@@ -252,8 +240,6 @@ async def handle_request(
     return result.data
 ```
 
----
-
 ## Context in Streaming Runs
 
 The context is available in tools during streaming runs exactly as it is during blocking runs. The `agent.run_stream()` API mirrors `agent.run()`:
@@ -266,8 +252,6 @@ async with agent.run_stream("Tell me about Python.", deps=ctx) as streamed:
     final = await streamed.get_data()
     print(f"Full response: {final}")
 ```
-
----
 
 ## Further Reading
 

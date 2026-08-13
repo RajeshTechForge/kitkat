@@ -6,9 +6,7 @@ order: 1
 
 This page covers every built-in provider — Anthropic, OpenAI, and Gemini — their configuration classes, default models, capabilities, and provider-specific behaviours. It also explains the `LLMService` managed service that wraps them.
 
-> **📝 Note:** KitKat uses an opt-in extras model. Each provider requires its own extra to be installed (`kitkat[anthropic]`, `kitkat[openai]`, `kitkat[gemini]`). See [Installation](./installation.md) for details.
-
----
+> **📝 Note:** Kitkat uses an opt-in extras model. Each provider requires its own extra to be installed (`kitkat[anthropic]`, `kitkat[openai]`, `kitkat[gemini]`). See [Installation](./installation.md) for details.
 
 ## LLMService — the Managed Service
 
@@ -144,12 +142,10 @@ if caps.supports_thinking:
 
 #### Properties
 
-| Property | Type | Description |
-|---|---|---|
-| `providers` | `dict[ProviderType, LLMProvider]` | Read-only copy of the registered provider mapping |
-| `provider_count` | `int` | Number of registered providers |
-
----
+| Property         | Type                              | Description                                       |
+| ---------------- | --------------------------------- | ------------------------------------------------- |
+| `providers`      | `dict[ProviderType, LLMProvider]` | Read-only copy of the registered provider mapping |
+| `provider_count` | `int`                             | Number of registered providers                    |
 
 ## Anthropic Provider
 
@@ -169,7 +165,7 @@ config = AnthropicConfig(
     api_key=os.environ["ANTHROPIC_API_KEY"],  # Required. Must be non-empty.
     model="claude-opus-4-5",                  # Default: "claude-sonnet-4-6"
     base_url=None,                            # Override for proxies. Default: None (uses api.anthropic.com)
-    max_retries=0,                            # SDK-level retries. Default: 0 (KitKat handles retries itself)
+    max_retries=0,                            # SDK-level retries. Default: 0 (Kitkat handles retries itself)
     timeout_s=30.0,                           # Per-request timeout in seconds. Default: 30.0
     extra_headers={},                         # Extra HTTP headers injected into every request. Default: {}
 )
@@ -180,19 +176,19 @@ config = AnthropicConfig(
 - `api_key` must be a non-empty string. An empty string raises `LLMProviderInitError` immediately.
 - `timeout_s` must be positive. Zero or negative values raise `LLMProviderInitError`.
 
-**Why `max_retries=0`?** KitKat's own `RetryPolicy` wraps every call with exponential back-off. Setting SDK-level retries to 0 prevents double-retrying and gives KitKat full control over the retry schedule.
+**Why `max_retries=0`?** Kitkat's own `RetryPolicy` wraps every call with exponential back-off. Setting SDK-level retries to 0 prevents double-retrying and gives Kitkat full control over the retry schedule.
 
 ### Provider capabilities
 
-| Capability | Value |
-|---|---|
-| Default model | `claude-sonnet-4-6` |
-| Max context tokens | 200,000 |
-| Streaming | ✅ |
-| System prompt | ✅ |
-| Tool calling | ✅ |
-| Vision | ✅ |
-| Extended thinking | ✅ |
+| Capability         | Value               |
+| ------------------ | ------------------- |
+| Default model      | `claude-sonnet-4-6` |
+| Max context tokens | 200,000             |
+| Streaming          | ✅                  |
+| System prompt      | ✅                  |
+| Tool calling       | ✅                  |
+| Vision             | ✅                  |
+| Extended thinking  | ✅                  |
 
 ### Initialization probe
 
@@ -200,7 +196,7 @@ config = AnthropicConfig(
 
 ### System prompt handling
 
-Anthropic's API separates the system prompt from conversation turns via a dedicated `system` parameter. KitKat handles this automatically: any `Message(role=Role.SYSTEM, ...)` objects are extracted from the message list and concatenated with `\n\n---\n\n` as the separator.
+Anthropic's API separates the system prompt from conversation turns via a dedicated `system` parameter. Kitkat handles this automatically: any `Message(role=Role.SYSTEM, ...)` objects are extracted from the message list and concatenated with `\n\n---\n\n` as the separator.
 
 ```python
 from kitkat import Message, Role
@@ -209,7 +205,7 @@ messages = [
     Message(role=Role.SYSTEM, content="You are a helpful assistant."),
     Message(role=Role.USER, content="Hello!"),
 ]
-# KitKat sends: system="You are a helpful assistant.", messages=[{"role": "user", ...}]
+# Kitkat sends: system="You are a helpful assistant.", messages=[{"role": "user", ...}]
 ```
 
 ### Extended thinking (Anthropic)
@@ -237,9 +233,9 @@ request = LLMRequest(
 )
 ```
 
-> **📝 Note:** Anthropic does not report thinking tokens separately; `output_tokens` in the usage response covers both thinking and answer tokens. KitKat reflects this: `TokenUsage.thinking_tokens` is always `0` for Anthropic responses, and `completion_tokens` equals the total output token count.
+> **📝 Note:** Anthropic does not report thinking tokens separately; `output_tokens` in the usage response covers both thinking and answer tokens. Kitkat reflects this: `TokenUsage.thinking_tokens` is always `0` for Anthropic responses, and `completion_tokens` equals the total output token count.
 
-> **⚠️ Warning:** When `thinking` is enabled on an Anthropic request, `temperature` and `top_p` are automatically omitted from the API call (Anthropic requires this). KitKat handles this silently — you do not need to adjust your `LLMRequest`.
+> **⚠️ Warning:** When `thinking` is enabled on an Anthropic request, `temperature` and `top_p` are automatically omitted from the API call (Anthropic requires this). Kitkat handles this silently — you do not need to adjust your `LLMRequest`.
 
 ### Token counting
 
@@ -263,16 +259,14 @@ print(exact)  # 4
 
 ### Retry policy
 
-| Parameter | Value |
-|---|---|
-| `max_attempts` | 3 |
-| `base_delay_s` | 1.0 |
-| `max_delay_s` | 60.0 |
-| `exponential_base` | 2.0 |
-| `jitter` | `True` |
-| Retryable codes | 408, 429, 500, 502, 503, 504 |
-
----
+| Parameter          | Value                        |
+| ------------------ | ---------------------------- |
+| `max_attempts`     | 3                            |
+| `base_delay_s`     | 1.0                          |
+| `max_delay_s`      | 60.0                         |
+| `exponential_base` | 2.0                          |
+| `jitter`           | `True`                       |
+| Retryable codes    | 408, 429, 500, 502, 503, 504 |
 
 ## OpenAI Provider
 
@@ -318,15 +312,15 @@ nvidia_config = OpenAIConfig(
 
 ### Provider capabilities
 
-| Capability | Value |
-|---|---|
-| Default model | `gpt-4o-mini` |
-| Max context tokens | 128,000 |
-| Streaming | ✅ |
-| System prompt | ✅ |
-| Tool calling | ✅ |
-| Vision | ✅ |
-| Extended thinking | ✅ (o-series models) |
+| Capability         | Value                |
+| ------------------ | -------------------- |
+| Default model      | `gpt-4o-mini`        |
+| Max context tokens | 128,000              |
+| Streaming          | ✅                   |
+| System prompt      | ✅                   |
+| Tool calling       | ✅                   |
+| Vision             | ✅                   |
+| Extended thinking  | ✅ (o-series models) |
 
 ### Initialization probe
 
@@ -334,11 +328,11 @@ nvidia_config = OpenAIConfig(
 
 ### System prompt handling
 
-OpenAI supports system prompts inline as standard `{"role": "system", "content": "..."}` messages in the conversation list. KitKat serializes `Message` objects verbatim — no extraction or restructuring is needed.
+OpenAI supports system prompts inline as standard `{"role": "system", "content": "..."}` messages in the conversation list. Kitkat serializes `Message` objects verbatim — no extraction or restructuring is needed.
 
 ### Extended thinking (OpenAI)
 
-OpenAI's o-series models (o1, o3, o4-mini, etc.) use `reasoning_effort` to control thinking intensity. KitKat maps the normalized `ThinkingConfig.effort` field to `reasoning_effort`:
+OpenAI's o-series models (o1, o3, o4-mini, etc.) use `reasoning_effort` to control thinking intensity. Kitkat maps the normalized `ThinkingConfig.effort` field to `reasoning_effort`:
 
 ```python
 from kitkat import LLMRequest, Message, Role, ThinkingConfig
@@ -360,16 +354,14 @@ request = LLMRequest(
 
 ### Retry policy
 
-| Parameter | Value |
-|---|---|
-| `max_attempts` | 3 |
-| `base_delay_s` | 1.0 |
-| `max_delay_s` | 60.0 |
-| `exponential_base` | 2.0 |
-| `jitter` | `True` |
-| Retryable codes | 408, 429, 500, 502, 503, 504 |
-
----
+| Parameter          | Value                        |
+| ------------------ | ---------------------------- |
+| `max_attempts`     | 3                            |
+| `base_delay_s`     | 1.0                          |
+| `max_delay_s`      | 60.0                         |
+| `exponential_base` | 2.0                          |
+| `jitter`           | `True`                       |
+| Retryable codes    | 408, 429, 500, 502, 503, 504 |
 
 ## Gemini Provider
 
@@ -411,19 +403,19 @@ vertex_config = GeminiConfig(
 
 ### Provider capabilities
 
-| Capability | Value |
-|---|---|
-| Default model | `gemini-3-flash-preview` |
-| Max context tokens | 1,048,576 (1M+) |
-| Streaming | ✅ |
-| System prompt | ✅ |
-| Tool calling | ✅ |
-| Vision | ✅ |
-| Extended thinking | ✅ |
+| Capability         | Value                    |
+| ------------------ | ------------------------ |
+| Default model      | `gemini-3-flash-preview` |
+| Max context tokens | 1,048,576 (1M+)          |
+| Streaming          | ✅                       |
+| System prompt      | ✅                       |
+| Tool calling       | ✅                       |
+| Vision             | ✅                       |
+| Extended thinking  | ✅                       |
 
 ### Vertex AI support
 
-KitKat's Gemini provider supports Vertex AI deployments transparently. Set `vertexai=True` and provide your GCP `project` and `location`. The google-genai SDK uses Application Default Credentials (ADC) in Vertex AI mode — no `api_key` is required.
+Kitkat's Gemini provider supports Vertex AI deployments transparently. Set `vertexai=True` and provide your GCP `project` and `location`. The google-genai SDK uses Application Default Credentials (ADC) in Vertex AI mode — no `api_key` is required.
 
 ```python
 import os
@@ -444,9 +436,9 @@ await service.initialize()
 
 ### System prompt handling
 
-Gemini uses a top-level `system_instruction` parameter separate from the conversation turns. KitKat extracts all `Role.SYSTEM` messages and concatenates them with `\n\n---\n\n` as the separator, then passes the result as `system_instruction`.
+Gemini uses a top-level `system_instruction` parameter separate from the conversation turns. Kitkat extracts all `Role.SYSTEM` messages and concatenates them with `\n\n---\n\n` as the separator, then passes the result as `system_instruction`.
 
-Gemini's role vocabulary differs from the standard: KitKat maps `Role.ASSISTANT` → `"model"` and `Role.USER` → `"user"` automatically.
+Gemini's role vocabulary differs from the standard: Kitkat maps `Role.ASSISTANT` → `"model"` and `Role.USER` → `"user"` automatically.
 
 ### Extended thinking (Gemini)
 
@@ -459,7 +451,7 @@ request = LLMRequest(
     messages=[Message(role=Role.USER, content="Prove the Pythagorean theorem.")],
     model="gemini-3-flash-preview",
     thinking=ThinkingConfig(enabled=True, effort="high"),
-    # KitKat maps: effort="high" → thinking_level="HIGH"
+    # Kitkat maps: effort="high" → thinking_level="HIGH"
     max_tokens=4096,
 )
 ```
@@ -472,30 +464,26 @@ Gemini raises `LLMContentFilterError` when its safety policies block a response.
 
 ### Retry policy
 
-| Parameter | Value |
-|---|---|
-| `max_attempts` | 3 |
-| `base_delay_s` | 2.0 (extended for quota limits) |
-| `max_delay_s` | 60.0 |
-| `exponential_base` | 2.0 |
-| `jitter` | `True` |
-| Retryable codes | 408, 429, 500, 502, 503, 504 |
-
----
+| Parameter          | Value                           |
+| ------------------ | ------------------------------- |
+| `max_attempts`     | 3                               |
+| `base_delay_s`     | 2.0 (extended for quota limits) |
+| `max_delay_s`      | 60.0                            |
+| `exponential_base` | 2.0                             |
+| `jitter`           | `True`                          |
+| Retryable codes    | 408, 429, 500, 502, 503, 504    |
 
 ## Provider Comparison
 
-| Feature | Anthropic | OpenAI | Gemini |
-|---|---|---|---|
-| Default model | `claude-sonnet-4-6` | `gpt-4o-mini` | `gemini-3-flash-preview` |
-| Max context | 200k tokens | 128k tokens | 1M+ tokens |
-| System prompt | Separate `system` param | Inline `role=system` | `system_instruction` param |
-| Thinking tokens reported | No (merged with output) | Yes (o-series only) | Yes (`thoughts_token_count`) |
-| Health probe | `count_tokens("ping")` | `models.list()` | `count_tokens("ping")` |
-| Base retry delay | 1.0 s | 1.0 s | 2.0 s |
-| Vertex AI support | ❌ | ❌ | ✅ |
-
----
+| Feature                  | Anthropic               | OpenAI               | Gemini                       |
+| ------------------------ | ----------------------- | -------------------- | ---------------------------- |
+| Default model            | `claude-sonnet-4-6`     | `gpt-4o-mini`        | `gemini-3-flash-preview`     |
+| Max context              | 200k tokens             | 128k tokens          | 1M+ tokens                   |
+| System prompt            | Separate `system` param | Inline `role=system` | `system_instruction` param   |
+| Thinking tokens reported | No (merged with output) | Yes (o-series only)  | Yes (`thoughts_token_count`) |
+| Health probe             | `count_tokens("ping")`  | `models.list()`      | `count_tokens("ping")`       |
+| Base retry delay         | 1.0 s                   | 1.0 s                | 2.0 s                        |
+| Vertex AI support        | ❌                      | ❌                   | ✅                           |
 
 ## Further Reading
 

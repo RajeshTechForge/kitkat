@@ -6,8 +6,6 @@ order: 2
 
 This page explains how to use `LLMRouter` to distribute requests across multiple providers with automatic failover, circuit breaking, and response caching. It covers all four routing strategies, the circuit breaker state machine, cache configuration for both in-memory and Redis backends, and the observability surface exposed by the router.
 
----
-
 ## Why Use the Router?
 
 `LLMService` is the right choice when you always want to target a specific provider. `LLMRouter` is the right choice when you want:
@@ -17,8 +15,6 @@ This page explains how to use `LLMRouter` to distribute requests across multiple
 - **Latency optimization** — always pick the provider that has been fastest recently.
 - **Response caching** — avoid redundant API calls for identical requests.
 - **Circuit breaking** — stop sending requests to a provider that is failing, give it time to recover, then test it with a single probe.
-
----
 
 ## Building a Router
 
@@ -105,8 +101,6 @@ config = RouterConfig(
 )
 ```
 
----
-
 ## Routing Strategies
 
 The router selects which provider to try first based on the configured `RoutingStrategy`. All strategies maintain a fallback list — if the first candidate fails (and the error is retryable), the next candidate in the ordered list is tried.
@@ -156,8 +150,6 @@ config = RouterConfig(strategy=RoutingStrategy.RANDOM)
 
 **Best for:** Rough load distribution when exact fairness is not required.
 
----
-
 ## Circuit Breaker
 
 Each provider in the pool has its own independent circuit breaker. The circuit breaker prevents cascading failures by blocking requests to unhealthy providers until they have had time to recover.
@@ -176,10 +168,10 @@ HALF_OPEN ◄────────────────── (timer fires
   └──────────────────────────► OPEN
 ```
 
-| State | Behavior |
-|---|---|
-| `CLOSED` | Normal operation. Requests are forwarded to the provider. A successful call resets the failure counter. |
-| `OPEN` | Provider is considered unhealthy. All requests are blocked immediately without hitting the provider. After `recovery_timeout_s` seconds, transitions to `HALF_OPEN`. |
+| State       | Behavior                                                                                                                                                                                        |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLOSED`    | Normal operation. Requests are forwarded to the provider. A successful call resets the failure counter.                                                                                         |
+| `OPEN`      | Provider is considered unhealthy. All requests are blocked immediately without hitting the provider. After `recovery_timeout_s` seconds, transitions to `HALF_OPEN`.                            |
 | `HALF_OPEN` | One test probe is allowed through. If the probe succeeds, the circuit moves toward `CLOSED` after `success_threshold` consecutive successes. If the probe fails, the circuit returns to `OPEN`. |
 
 ### Configuring the circuit breaker
@@ -199,11 +191,11 @@ cb_config = CircuitBreakerConfig(
 
 The following exception types are **never** retried across providers, because a different provider would encounter the same issue:
 
-| Exception | Reason not retried |
-|---|---|
-| `LLMAuthenticationError` | The request has invalid credentials — routing to another provider changes nothing |
-| `LLMTokenLimitError` | The prompt is too long — routing to another provider (unless it has a larger context) changes nothing |
-| `LLMContentFilterError` | The content was blocked by safety policy — the same content would be blocked elsewhere |
+| Exception                | Reason not retried                                                                                    |
+| ------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `LLMAuthenticationError` | The request has invalid credentials — routing to another provider changes nothing                     |
+| `LLMTokenLimitError`     | The prompt is too long — routing to another provider (unless it has a larger context) changes nothing |
+| `LLMContentFilterError`  | The content was blocked by safety policy — the same content would be blocked elsewhere                |
 
 ### Manual circuit breaker reset
 
@@ -215,13 +207,9 @@ was_reset = await router.reset_circuit_breaker(ProviderType.ANTHROPIC)
 print(was_reset)  # True
 ```
 
----
-
 ## Rate Limit Handling
 
 When a provider returns `LLMRateLimitError` with a `retry_after_s` value (from the `Retry-After` HTTP header), the router records that provider as rate-limited until the specified time has elapsed. During this window, the provider is skipped in the routing order without counting against the circuit breaker. This respects the provider's back-off hint and avoids piling on further requests that would also fail.
-
----
 
 ## Response Caching
 
@@ -236,6 +224,7 @@ The cache key is a **SHA-256 hash** of:
 ```
 
 The following fields are deliberately excluded from the key because they do not affect the generated text:
+
 - `timeout` — an infrastructure concern, not a content parameter
 - `stream` — caching applies only to non-streaming requests
 
@@ -317,8 +306,6 @@ stats = await router.cache.stats()
 print(f"Hit rate: {router.cache.hit_rate:.1%}")
 ```
 
----
-
 ## Router API
 
 #### `classmethod async LLMRouter.build(providers, config=None) -> LLMRouter`
@@ -381,12 +368,10 @@ Shuts down all providers and flushes the cache.
 
 #### Properties
 
-| Property | Type | Description |
-|---|---|---|
-| `providers` | `list[LLMProvider]` | Read-only snapshot of the provider pool |
-| `cache` | `LLMCache \| None` | Direct access to the cache instance, or `None` if caching is disabled |
-
----
+| Property    | Type                | Description                                                           |
+| ----------- | ------------------- | --------------------------------------------------------------------- |
+| `providers` | `list[LLMProvider]` | Read-only snapshot of the provider pool                               |
+| `cache`     | `LLMCache \| None`  | Direct access to the cache instance, or `None` if caching is disabled |
 
 ## Full Example: Failover with Redis Cache
 
@@ -442,8 +427,6 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
-
----
 
 ## Further Reading
 

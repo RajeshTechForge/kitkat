@@ -57,8 +57,6 @@ class MyWorkflow(BaseWorkflow[MyState]):
         return MyState.model_validate(result)
 ```
 
----
-
 ## `ResearchWorkflow`
 
 ```python
@@ -91,8 +89,6 @@ Compiles the graph in `__init__`. No parameters.
 | `build_graph` | `() -> CompiledStateGraph`                                      | Returns the compiled `StateGraph(ResearchState)`.                |
 | `run`         | `async (initial_state: ResearchState \| dict) -> ResearchState` | Execute the workflow. Returns a fully validated `ResearchState`. |
 
----
-
 ## `ResearchState`
 
 ```python
@@ -111,8 +107,6 @@ Pydantic `BaseModel` state object for `ResearchWorkflow`.
 | `final_answer`     | `str`                      | `""`    | `synthesise_node` | Assembled final response.                                                  |
 | `pending_approval` | `bool`                     | `False` | **Caller**        | Auth0 CIBA hook. Set `True` to signal approval is needed (future feature). |
 | `approval_action`  | `str \| None`              | `None`  | **Caller**        | Describes the action awaiting approval.                                    |
-
----
 
 ## Plugin Registry
 
@@ -137,8 +131,6 @@ Returns a sorted list of all currently registered provider names.
 list_providers()  # ['anthropic', 'gemini', 'openai']
 ```
 
----
-
 ### `get_provider_class`
 
 ```python
@@ -152,8 +144,6 @@ Returns the provider class registered under `name`.
 ```python
 cls = get_provider_class("anthropic")   # AnthropicProvider
 ```
-
----
 
 ### `register_provider`
 
@@ -169,8 +159,6 @@ Programmatically register a provider class without using entry points.
 from my_provider import MyProvider
 register_provider("my-llm", MyProvider)
 ```
-
----
 
 ### `discover_plugins`
 
@@ -188,8 +176,6 @@ subprocess.run(["pip", "install", "kitkat-my-llm"], check=True)
 discover_plugins()
 cls = get_provider_class("my-llm")
 ```
-
----
 
 ## Further Reading
 

@@ -37,8 +37,6 @@ ManagedModelAdapter(
 | `default_model`  | `str`                   | `""`    | Model identifier. Empty string falls back to the provider's `DEFAULT_MODEL`. |
 | `model_settings` | `ModelSettings \| None` | `None`  | PydanticAI `ModelSettings` for `max_tokens`, `temperature`, etc.             |
 
----
-
 ### `BYOKModelAdapter`
 
 ```python
@@ -63,15 +61,13 @@ BYOKModelAdapter(
 
 > **📝 Note:** Both adapters implement PydanticAI's `Model` protocol (`request()` and `request_stream()`). They are direct drop-ins wherever PydanticAI expects a `Model`.
 
----
-
 ## `BaseAgentContext`
 
 ```python
 from kitkat.agents import BaseAgentContext
 ```
 
-The `deps_type` for every KitKat agent. Subclass with `@dataclass` to add application-specific fields.
+The `deps_type` for every Kitkat agent. Subclass with `@dataclass` to add application-specific fields.
 
 ```python
 from dataclasses import dataclass
@@ -91,8 +87,6 @@ class UserContext(BaseAgentContext):
 | `routing_tier`           | `RoutingTier`    | `RoutingTier.MANAGED` | Selects the service path (`MANAGED`, `BYOK`, or `ENTERPRISE`).                                              |
 | `system_prompt_override` | `str \| None`    | `None`                | When non-`None`, replaces the entire dynamic system prompt.                                                 |
 | `metadata`               | `dict[str, Any]` | `{}`                  | Freeform bag for request-scoped data (feature flags, A/B test groups, auth claims).                         |
-
----
 
 ## Builder Functions
 
@@ -128,8 +122,6 @@ def build_chat_agent(
 
 **Returns:** `Agent[ContextT, str]`
 
----
-
 ### `build_structured_agent`
 
 ```python
@@ -163,8 +155,6 @@ def build_structured_agent(
 | `validator`      | `Callable \| None` | `None`             | Optional post-validation hook following the pydantic-ai `output_validator` protocol. Raise `ModelRetry` to trigger another attempt. |
 
 **Returns:** `Agent[ContextT, BaseModel]`
-
----
 
 ## `ToolRegistry`
 
@@ -214,8 +204,6 @@ async def _search(ctx: RunContext[BaseAgentContext], query: str) -> str: ...
 | -------- | ---------------- | ------------------------------------------------- |
 | `tools`  | `list[Callable]` | Registered callables (without metadata wrappers). |
 
----
-
 ## `configure_observability`
 
 ```python
@@ -250,8 +238,6 @@ def configure_observability(
 | `environment`         | `str \| None` | `None`                         | `ENVIRONMENT`         | Deployment environment label. Defaults to `"production"`.       |
 
 **Returns:** `None`. Errors during Langfuse setup are logged as warnings and do not prevent Logfire from working.
-
----
 
 ## Further Reading
 

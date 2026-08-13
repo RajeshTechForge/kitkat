@@ -1,14 +1,12 @@
 ---
 title: Anthropic
-description: Complete reference for KitKat's Anthropic provider, including installation, configuration, model selection, system prompt handling, streaming, extended thinking, token counting, error mapping, and retry policy.
+description: Complete reference for Kitkat's Anthropic provider, including installation, configuration, model selection, system prompt handling, streaming, extended thinking, token counting, error mapping, and retry policy.
 order: 1
 ---
 
-This page is the complete reference for KitKat's Anthropic provider. It covers installation, every configuration field, model selection, system prompt handling, streaming, extended thinking in both adaptive and fixed-budget modes, exact token counting, the full error mapping, and a summary of the retry policy.
+This page is the complete reference for Kitkat's Anthropic provider. It covers installation, every configuration field, model selection, system prompt handling, streaming, extended thinking in both adaptive and fixed-budget modes, exact token counting, the full error mapping, and a summary of the retry policy.
 
 > **📝 Note:** This page assumes you have read [Concepts](../concepts.md) and understand `LLMRequest`, `LLMResponse`, and `StreamChunk`. If not, start there first.
-
----
 
 ## Installation
 
@@ -16,9 +14,7 @@ This page is the complete reference for KitKat's Anthropic provider. It covers i
 pip install kitkat[anthropic]
 ```
 
-This installs the `anthropic` Python SDK (≥ 0.76.0) alongside KitKat's core package.
-
----
+This installs the `anthropic` Python SDK (≥ 0.76.0) alongside Kitkat's core package.
 
 ## Quick Start
 
@@ -51,8 +47,6 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
----
-
 ## `AnthropicConfig`
 
 `AnthropicConfig` is a dataclass that holds all configuration for the Anthropic provider. Every field is validated in `__post_init__` — invalid values raise `LLMProviderInitError` immediately at object construction, before any network calls are made.
@@ -73,14 +67,14 @@ config = AnthropicConfig(
 
 ### Fields
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `api_key` | `str` | — | **Required.** Your Anthropic API key. Must be a non-empty string. |
-| `model` | `str` | `"claude-sonnet-4-6"` | The default model identifier. Used when `LLMRequest.model` is empty. |
-| `base_url` | `str \| None` | `None` | Override the API base URL. Useful for Anthropic-compatible proxies or enterprise gateways. When `None`, the SDK default (`api.anthropic.com`) is used. |
-| `max_retries` | `int` | `0` | Number of SDK-level automatic retries. Keep at `0` so KitKat's own `RetryPolicy` has exclusive control over the retry schedule. |
-| `timeout_s` | `float` | `30.0` | Per-request wall-clock timeout in seconds. Applied via `asyncio.wait_for`. Overridden per-request by `LLMRequest.timeout`. |
-| `extra_headers` | `dict[str, str]` | `{}` | Arbitrary HTTP headers injected into every request. Useful for tracing IDs or custom gateway auth headers. |
+| Field           | Type             | Default               | Description                                                                                                                                            |
+| --------------- | ---------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `api_key`       | `str`            | —                     | **Required.** Your Anthropic API key. Must be a non-empty string.                                                                                      |
+| `model`         | `str`            | `"claude-sonnet-4-6"` | The default model identifier. Used when `LLMRequest.model` is empty.                                                                                   |
+| `base_url`      | `str \| None`    | `None`                | Override the API base URL. Useful for Anthropic-compatible proxies or enterprise gateways. When `None`, the SDK default (`api.anthropic.com`) is used. |
+| `max_retries`   | `int`            | `0`                   | Number of SDK-level automatic retries. Keep at `0` so Kitkat's own `RetryPolicy` has exclusive control over the retry schedule.                        |
+| `timeout_s`     | `float`          | `30.0`                | Per-request wall-clock timeout in seconds. Applied via `asyncio.wait_for`. Overridden per-request by `LLMRequest.timeout`.                             |
+| `extra_headers` | `dict[str, str]` | `{}`                  | Arbitrary HTTP headers injected into every request. Useful for tracing IDs or custom gateway auth headers.                                             |
 
 ### Validation rules
 
@@ -97,8 +91,6 @@ config = AnthropicConfig.from_dict({
     "extra_headers": {"X-Request-ID": "my-trace-id"},
 })
 ```
-
----
 
 ## `AnthropicProvider`
 
@@ -117,18 +109,16 @@ provider = AnthropicProvider({"api_key": os.environ["ANTHROPIC_API_KEY"]})
 
 ### Class-level attributes
 
-| Attribute | Value |
-|---|---|
-| `PROVIDER_TYPE` | `ProviderType.ANTHROPIC` |
-| `DEFAULT_MODEL` | `"claude-sonnet-4-6"` |
-| `CAPABILITIES.supports_streaming` | `True` |
-| `CAPABILITIES.supports_system_prompt` | `True` |
-| `CAPABILITIES.supports_tool_calling` | `True` |
-| `CAPABILITIES.supports_vision` | `True` |
-| `CAPABILITIES.supports_thinking` | `True` |
-| `CAPABILITIES.max_context_tokens` | `200_000` |
-
----
+| Attribute                             | Value                    |
+| ------------------------------------- | ------------------------ |
+| `PROVIDER_TYPE`                       | `ProviderType.ANTHROPIC` |
+| `DEFAULT_MODEL`                       | `"claude-sonnet-4-6"`    |
+| `CAPABILITIES.supports_streaming`     | `True`                   |
+| `CAPABILITIES.supports_system_prompt` | `True`                   |
+| `CAPABILITIES.supports_tool_calling`  | `True`                   |
+| `CAPABILITIES.supports_vision`        | `True`                   |
+| `CAPABILITIES.supports_thinking`      | `True`                   |
+| `CAPABILITIES.max_context_tokens`     | `200_000`                |
 
 ## Lifecycle
 
@@ -157,8 +147,6 @@ async with AnthropicProvider(config) as provider:
 ### `async shutdown()`
 
 Closes the `AsyncAnthropic` HTTP connection pool and marks the provider as uninitialized. Safe to call if the provider was never initialized — it is a no-op in that case.
-
----
 
 ## Completions
 
@@ -239,13 +227,11 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
----
-
 ## System Prompt Handling
 
-Anthropic's API treats the system prompt as a **separate top-level parameter** (`system=`) rather than an element in the messages list. KitKat handles this automatically.
+Anthropic's API treats the system prompt as a **separate top-level parameter** (`system=`) rather than an element in the messages list. Kitkat handles this automatically.
 
-When you include `Message(role=Role.SYSTEM, ...)` objects in your message list, KitKat:
+When you include `Message(role=Role.SYSTEM, ...)` objects in your message list, Kitkat:
 
 1. Extracts all system messages from the list.
 2. Concatenates their content with `\n\n---\n\n` as a separator (for multi-system-message scenarios).
@@ -261,14 +247,12 @@ messages = [
     Message(role=Role.USER, content="Explain list comprehensions."),
 ]
 
-# What KitKat sends to Anthropic:
+# What Kitkat sends to Anthropic:
 # system="You are a Python expert.\n\n---\n\nAlways show code examples."
 # messages=[{"role": "user", "content": "Explain list comprehensions."}]
 ```
 
 > **💡 Tip:** While Anthropic supports multiple system messages via this concatenation, it is best practice to keep your system instructions in a single `Role.SYSTEM` message for clarity.
-
----
 
 ## Extended Thinking
 
@@ -294,7 +278,7 @@ request = LLMRequest(
 )
 ```
 
-KitKat maps `effort` → Anthropic's `output_config: {effort: ...}` parameter.
+Kitkat maps `effort` → Anthropic's `output_config: {effort: ...}` parameter.
 
 ### Fixed-budget mode
 
@@ -315,7 +299,7 @@ request = LLMRequest(
 )
 ```
 
-KitKat maps `provider_options` → Anthropic's `thinking: {type: "enabled", budget_tokens: ...}`.
+Kitkat maps `provider_options` → Anthropic's `thinking: {type: "enabled", budget_tokens: ...}`.
 
 ### Accessing thinking output
 
@@ -350,17 +334,15 @@ print("Answer:", "".join(answer_buf))
 
 ### Thinking and temperature
 
-> **⚠️ Warning:** Anthropic requires that `temperature` and `top_p` are **not sent** when extended thinking is enabled. KitKat automatically omits these parameters from the API call when `ThinkingConfig.enabled=True`. You do not need to remove them from your `LLMRequest` manually.
+> **⚠️ Warning:** Anthropic requires that `temperature` and `top_p` are **not sent** when extended thinking is enabled. Kitkat automatically omits these parameters from the API call when `ThinkingConfig.enabled=True`. You do not need to remove them from your `LLMRequest` manually.
 
 ### Token counting with thinking
 
-Anthropic does not expose separate thinking-token and answer-token counts in its usage response. `output_tokens` covers both. KitKat reflects this faithfully:
+Anthropic does not expose separate thinking-token and answer-token counts in its usage response. `output_tokens` covers both. Kitkat reflects this faithfully:
 
 - `TokenUsage.thinking_tokens` is always `0` for Anthropic responses.
 - `TokenUsage.completion_tokens` equals the total output tokens (thinking + answer combined).
 - `TokenUsage.total_tokens` = `prompt_tokens` + `completion_tokens`.
-
----
 
 ## Token Counting
 
@@ -385,7 +367,7 @@ estimate = provider.count_prompt_tokens(messages)
 print(estimate)  # ~15
 ```
 
-**Fallback:** If tiktoken's BPE data cannot be downloaded (e.g., air-gapped environments), KitKat falls back to a character-based estimate: `max(1, len(text) // 4)`.
+**Fallback:** If tiktoken's BPE data cannot be downloaded (e.g., air-gapped environments), Kitkat falls back to a character-based estimate: `max(1, len(text) // 4)`.
 
 ### Exact count via Anthropic API
 
@@ -407,8 +389,6 @@ print(exact)  # Exact value from Anthropic
 
 Use `async_count_tokens` when you need to gate requests against a strict token budget (e.g., reject requests that would exceed `max_context_tokens`).
 
----
-
 ## Health Check
 
 `health_check()` sends a lightweight `messages.count_tokens("ping")` call to verify the provider is reachable. It times out after 5 seconds.
@@ -420,60 +400,53 @@ print(is_healthy)  # True or False
 
 Returns `False` (rather than raising) on any error, including network failures and authentication errors. This makes it safe to use in monitoring loops.
 
----
-
 ## Retry Policy
 
 The Anthropic provider's class-level `RETRY_POLICY` is:
 
-| Parameter | Value | Rationale |
-|---|---|---|
-| `max_attempts` | `3` | 1 original + 2 retries covers most transient blips |
-| `base_delay_s` | `1.0` | Short initial delay for fast recovery on brief outages |
-| `max_delay_s` | `60.0` | Cap prevents multi-minute waits in degraded scenarios |
-| `exponential_base` | `2.0` | Standard doubling: 1s → 2s → 4s (before jitter) |
-| `jitter` | `True` | ±50% random variation prevents thundering-herd on shared infra |
-| Retryable codes | `{408, 429, 500, 502, 503, 504}` | Standard transient HTTP codes |
+| Parameter          | Value                            | Rationale                                                      |
+| ------------------ | -------------------------------- | -------------------------------------------------------------- |
+| `max_attempts`     | `3`                              | 1 original + 2 retries covers most transient blips             |
+| `base_delay_s`     | `1.0`                            | Short initial delay for fast recovery on brief outages         |
+| `max_delay_s`      | `60.0`                           | Cap prevents multi-minute waits in degraded scenarios          |
+| `exponential_base` | `2.0`                            | Standard doubling: 1s → 2s → 4s (before jitter)                |
+| `jitter`           | `True`                           | ±50% random variation prevents thundering-herd on shared infra |
+| Retryable codes    | `{408, 429, 500, 502, 503, 504}` | Standard transient HTTP codes                                  |
 
 The following errors bypass retry entirely and are raised immediately:
+
 - `LLMAuthenticationError` (401, 403) — a different attempt will not fix the credentials.
 - `LLMTokenLimitError` — the prompt is too long for any number of retries.
 - `LLMContentFilterError` — content policy blocks do not resolve on retry.
 
----
-
 ## Error Mapping
 
-Every Anthropic SDK exception is mapped to a specific KitKat `LLMError` subclass:
+Every Anthropic SDK exception is mapped to a specific Kitkat `LLMError` subclass:
 
-| Anthropic SDK exception | KitKat exception | Notes |
-|---|---|---|
-| `anthropic.AuthenticationError` | `LLMAuthenticationError` | Invalid or revoked API key |
-| `anthropic.PermissionDeniedError` | `LLMAuthenticationError` | Key lacks permission for the operation |
-| `anthropic.RateLimitError` | `LLMRateLimitError` | Parses `Retry-After` header into `retry_after_s` |
-| `anthropic.APITimeoutError` | `LLMTimeoutError` | SDK-level timeout |
-| `asyncio.TimeoutError` | `LLMTimeoutError` | `asyncio.wait_for` timeout (from `LLMRequest.timeout`) |
-| `anthropic.APIConnectionError` | `LLMProviderError` | Network-level connection failure |
-| `anthropic.NotFoundError` | `LLMProviderError` | Model or resource not found |
-| `anthropic.BadRequestError` | `LLMProviderError` | Malformed request |
-| `anthropic.UnprocessableEntityError` | `LLMProviderError` | Input format or parameter issue |
-| `anthropic.InternalServerError` | `LLMProviderError` | Covers `OverloadedError` and `ServiceUnavailableError` |
-| `anthropic.APIStatusError` | `LLMProviderError` | Catch-all for other HTTP status errors |
-
----
+| Anthropic SDK exception              | Kitkat exception         | Notes                                                  |
+| ------------------------------------ | ------------------------ | ------------------------------------------------------ |
+| `anthropic.AuthenticationError`      | `LLMAuthenticationError` | Invalid or revoked API key                             |
+| `anthropic.PermissionDeniedError`    | `LLMAuthenticationError` | Key lacks permission for the operation                 |
+| `anthropic.RateLimitError`           | `LLMRateLimitError`      | Parses `Retry-After` header into `retry_after_s`       |
+| `anthropic.APITimeoutError`          | `LLMTimeoutError`        | SDK-level timeout                                      |
+| `asyncio.TimeoutError`               | `LLMTimeoutError`        | `asyncio.wait_for` timeout (from `LLMRequest.timeout`) |
+| `anthropic.APIConnectionError`       | `LLMProviderError`       | Network-level connection failure                       |
+| `anthropic.NotFoundError`            | `LLMProviderError`       | Model or resource not found                            |
+| `anthropic.BadRequestError`          | `LLMProviderError`       | Malformed request                                      |
+| `anthropic.UnprocessableEntityError` | `LLMProviderError`       | Input format or parameter issue                        |
+| `anthropic.InternalServerError`      | `LLMProviderError`       | Covers `OverloadedError` and `ServiceUnavailableError` |
+| `anthropic.APIStatusError`           | `LLMProviderError`       | Catch-all for other HTTP status errors                 |
 
 ## `stop_reason` → `FinishReason` Mapping
 
 | Anthropic `stop_reason` | `FinishReason` |
-|---|---|
-| `"end_turn"` | `STOP` |
-| `"stop_sequence"` | `STOP` |
-| `"max_tokens"` | `LENGTH` |
-| `"tool_use"` | `TOOL_CALL` |
-| `"pause_turn"` | `UNKNOWN` |
-| `None` | `UNKNOWN` |
-
----
+| ----------------------- | -------------- |
+| `"end_turn"`            | `STOP`         |
+| `"stop_sequence"`       | `STOP`         |
+| `"max_tokens"`          | `LENGTH`       |
+| `"tool_use"`            | `TOOL_CALL`    |
+| `"pause_turn"`          | `UNKNOWN`      |
+| `None`                  | `UNKNOWN`      |
 
 ## Further Reading
 

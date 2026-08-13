@@ -1,22 +1,18 @@
 ---
 title: Structured Outputs
-description: KitKat's `build_structured_agent` function creates a PydanticAI agent that returns a validated Pydantic model instead of a raw string. Learn how to design output schemas, handle validation retries, implement custom validators, and stream structured output.
+description: Kitkat's `build_structured_agent` function creates a PydanticAI agent that returns a validated Pydantic model instead of a raw string. Learn how to design output schemas, handle validation retries, implement custom validators, and stream structured output.
 order: 3
 ---
 
-KitKat's `build_structured_agent` function creates a PydanticAI agent that returns a **validated Pydantic model** instead of a raw string. The LLM is instructed to produce JSON, PydanticAI parses and validates it against your schema, and the result is a fully typed Python object — with automatic retries when the model produces malformed output.
+Kitkat's `build_structured_agent` function creates a PydanticAI agent that returns a **validated Pydantic model** instead of a raw string. The LLM is instructed to produce JSON, PydanticAI parses and validates it against your schema, and the result is a fully typed Python object — with automatic retries when the model produces malformed output.
 
 This page covers `build_structured_agent`, designing output schemas, validation retries, custom validators, and streaming structured output.
-
----
 
 ## Installation
 
 ```bash
 pip install kitkat[agents]
 ```
-
----
 
 ## Why Structured Output?
 
@@ -26,8 +22,6 @@ Raw LLM responses are unstructured strings. Structured output guarantees:
 - **Schema enforcement** — the LLM is guided by the JSON schema derived from your Pydantic model.
 - **Automatic retries** — when the model produces invalid JSON or fails Pydantic validation, the agent automatically retries (up to `output_retries` times) with the validation error appended to the context.
 - **Custom validation** — plug in domain-specific rules (field ranges, cross-field constraints, business logic) via a validator function.
-
----
 
 ## Quick Start
 
@@ -88,8 +82,6 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
----
-
 ## `build_structured_agent`
 
 ```python
@@ -107,20 +99,18 @@ agent = build_structured_agent(
 
 ### Parameters
 
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `model` | `Model` | — | **Required.** A `ManagedModelAdapter` or `BYOKModelAdapter` instance. |
-| `output_type` | `type[BaseModel]` | — | **Required.** A Pydantic `BaseModel` subclass. The LLM output is validated against this schema. |
-| `context_type` | `type[ContextT]` | `BaseAgentContext` | The `deps_type` for the agent. Pass your application's context subclass here so tools are fully typed. |
-| `system_prompt` | `str` | `""` | Static system prompt. When empty, the default prompt is used: `"You are a helpful AI assistant. Always respond in valid JSON matching the requested schema."` |
-| `output_retries` | `int` | `1` | Number of times PydanticAI retries when the model output fails Pydantic validation. Each retry appends the validation error to the conversation, giving the model a chance to correct itself. Default is `1` (one retry after the initial failure). |
-| `validator` | `Callable | None` | `None` | Optional callable following the pydantic-ai v2.x `output_validator` protocol. Called after successful Pydantic parsing for additional domain validation. |
+| Parameter        | Type              | Default            | Description                                                                                                                                                                                                                                         |
+| ---------------- | ----------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`          | `Model`           | —                  | **Required.** A `ManagedModelAdapter` or `BYOKModelAdapter` instance.                                                                                                                                                                               |
+| `output_type`    | `type[BaseModel]` | —                  | **Required.** A Pydantic `BaseModel` subclass. The LLM output is validated against this schema.                                                                                                                                                     |
+| `context_type`   | `type[ContextT]`  | `BaseAgentContext` | The `deps_type` for the agent. Pass your application's context subclass here so tools are fully typed.                                                                                                                                              |
+| `system_prompt`  | `str`             | `""`               | Static system prompt. When empty, the default prompt is used: `"You are a helpful AI assistant. Always respond in valid JSON matching the requested schema."`                                                                                       |
+| `output_retries` | `int`             | `1`                | Number of times PydanticAI retries when the model output fails Pydantic validation. Each retry appends the validation error to the conversation, giving the model a chance to correct itself. Default is `1` (one retry after the initial failure). |
+| `validator`      | `Callable         | None`              | `None`                                                                                                                                                                                                                                              | Optional callable following the pydantic-ai v2.x `output_validator` protocol. Called after successful Pydantic parsing for additional domain validation. |
 
 ### Returns
 
 `Agent[ContextT, BaseModel]` — a configured PydanticAI agent ready for `.run()`.
-
----
 
 ## Designing Output Schemas
 
@@ -153,8 +143,6 @@ class ArticleSummary(BaseModel):
 
 > **💡 Tip:** Always add `description` to every field. The description is included in the JSON schema the model sees and significantly improves output quality. Generic field names without descriptions lead to inconsistent or hallucinated values.
 
----
-
 ## Validation Retries
 
 When the LLM produces output that fails Pydantic validation, PydanticAI automatically sends a follow-up message with the validation error and asks the model to correct its output. The number of correction attempts is controlled by `output_retries`.
@@ -172,13 +160,11 @@ agent = build_structured_agent(
 1. Agent sends the prompt.
 2. Model returns `{"title": "Python", "key_points": ["Fast"], "difficulty": "easy", "estimated_read_minutes": 5}`.
 3. Pydantic validation fails: `key_points` has only 1 item (min 3), `difficulty` is `"easy"` (not in Literal).
-4. Agent sends the error back to the model: *"Output validation failed: key_points must have at least 3 items; difficulty must be one of 'beginner', 'intermediate', 'advanced'."*
+4. Agent sends the error back to the model: _"Output validation failed: key_points must have at least 3 items; difficulty must be one of 'beginner', 'intermediate', 'advanced'."_
 5. Model corrects its output.
 6. Pydantic validation passes. `result.data` is a valid `ArticleSummary`.
 
 > **📝 Note:** Each retry is a separate LLM call and counts against your token usage. For production use cases with strict cost budgets, keep `output_retries=1` (the default) and invest in clear schema descriptions and system prompts to reduce first-pass failures.
-
----
 
 ## Custom Validators
 
@@ -266,8 +252,6 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
----
-
 ## Nested and Complex Schemas
 
 Pydantic's full model composition features are available. Nested models, `list` fields, `Optional` fields, and `Literal` unions all work as expected.
@@ -326,8 +310,6 @@ for comment in review.comments:
     print(f"  Line {comment.line_number} [{comment.severity}]: {comment.message}")
 ```
 
----
-
 ## BYOK with Structured Output
 
 `build_structured_agent` works identically with `BYOKModelAdapter`:
@@ -350,8 +332,6 @@ async def classify_with_byok(user_key: str, text: str) -> SentimentResult:
     return result.data
 ```
 
----
-
 ## Accessing Usage and Metadata
 
 The `RunResult` returned by `agent.run()` exposes token usage and model metadata alongside `result.data`:
@@ -367,8 +347,6 @@ usage = result.usage()
 print(f"Input tokens:  {usage.input_tokens}")
 print(f"Output tokens: {usage.output_tokens}")
 ```
-
----
 
 ## Further Reading
 

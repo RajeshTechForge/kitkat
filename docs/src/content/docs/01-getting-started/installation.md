@@ -1,23 +1,22 @@
 ---
 title: Installation
-description: How to install KitKat, optional extras, and verify your installation
+description: How to install Kitkat, optional extras, and verify your installation
 order: 2
 ---
 
-This page explains every way to install KitKat, which optional extras to choose, how to verify your installation, and what each dependency is responsible for.
+This page explains every way to install Kitkat, which optional extras to choose, how to verify your installation, and what each dependency is responsible for.
 
 ## Requirements
 
-| Requirement | Minimum version |
-|---|---|
-| Python | 3.11 |
-| pip | 23.0+ (or `uv`) |
+| Requirement      | Minimum version                                         |
+| ---------------- | ------------------------------------------------------- |
+| Python           | 3.11                                                    |
+| pip              | 23.0+ (or `uv`)                                         |
 | Operating system | Linux, macOS, Windows (CPython and PyPy both supported) |
 
-> **📝 Note:** KitKat requires Python 3.11 or newer because it relies on `StrEnum` (added in 3.11) and several `typing` features that were stabilized in that release. Python 3.12, 3.13, and 3.14 are all fully tested in CI.
+> **📝 Note:** Kitkat requires Python 3.11 or newer because it relies on `StrEnum` (added in 3.11) and several `typing` features that were stabilized in that release. Python 3.12, 3.13, and 3.14 are all fully tested in CI.
 
-
-## Installing KitKat
+## Installing Kitkat
 
 ### Core package only
 
@@ -53,7 +52,6 @@ pip install kitkat[all-providers]
 
 > **💡 Tip:** If you are unsure which provider you will use, start with `kitkat[anthropic]`. The Anthropic provider is the most feature-complete and supports streaming and extended thinking out of the box.
 
-
 ### Feature extras
 
 These extras enable additional capabilities on top of the core library.
@@ -69,7 +67,6 @@ pip install kitkat[workflows]
 pip install kitkat[observability]
 ```
 
-
 ### Install everything
 
 ```bash
@@ -84,10 +81,9 @@ With `uv`:
 uv add "kitkat[all]"
 ```
 
-
 ## Development installation
 
-If you are contributing to KitKat or hacking on the source, use the `dev` extra to install the full test and lint toolchain.
+If you are contributing to Kitkat or hacking on the source, use the `dev` extra to install the full test and lint toolchain.
 
 ```bash
 git clone https://github.com/RajeshTechForge/kitkat.git
@@ -96,7 +92,6 @@ cd kitkat
 # Install all dev dependencies into a managed virtual environment
 uv sync --extra dev
 ```
-
 
 ### Running tests
 
@@ -112,7 +107,6 @@ uv run mypy src/kitkat
 ```
 
 > **📝 Note:** Integration tests hit real provider APIs and require environment variables (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`). Run them with `INTEGRATION_TESTS=1 uv run pytest tests/` only when those keys are available.
-
 
 ## Verifying the installation
 
@@ -142,10 +136,9 @@ print(kitkat.LLMResponse)              # <class 'kitkat.core.models.LLMResponse'
 print(kitkat.LLMError.__mro__)
 ```
 
-
 ## Environment variables
 
-KitKat never hard-codes API keys. The recommended approach is to pass credentials through environment variables and read them at initialization time.
+Kitkat never hard-codes API keys. The recommended approach is to pass credentials through environment variables and read them at initialization time.
 
 ```bash
 # For the Anthropic provider
@@ -158,8 +151,7 @@ export OPENAI_API_KEY="sk-..."
 export GOOGLE_API_KEY="AIza..."
 ```
 
-> **🔒 Security:** Never commit API keys to source control. Use a secrets manager or a `.env` file excluded from version control. KitKat's provider config classes use `pydantic-settings`, which automatically reads from environment variables — you do not need to pass keys explicitly if they are set in the environment.
-
+> **🔒 Security:** Never commit API keys to source control. Use a secrets manager or a `.env` file excluded from version control. Kitkat's provider config classes use `pydantic-settings`, which automatically reads from environment variables — you do not need to pass keys explicitly if they are set in the environment.
 
 ## Further Reading
 

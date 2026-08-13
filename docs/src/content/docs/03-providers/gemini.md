@@ -1,14 +1,12 @@
 ---
 title: Gemini
-description: Complete reference for KitKat's Gemini provider, including installation, configuration, model selection, system prompt handling, streaming, extended thinking, token counting, error mapping, and retry policy.
+description: Complete reference for Kitkat's Gemini provider, including installation, configuration, model selection, system prompt handling, streaming, extended thinking, token counting, error mapping, and retry policy.
 order: 3
 ---
 
-This page is the complete reference for KitKat's Gemini provider. It covers installation, every configuration field, both API-key and Vertex AI modes, model selection, system prompt handling, streaming, extended thinking, exact token counting, the full error mapping, and the retry policy.
+This page is the complete reference for Kitkat's Gemini provider. It covers installation, every configuration field, both API-key and Vertex AI modes, model selection, system prompt handling, streaming, extended thinking, exact token counting, the full error mapping, and the retry policy.
 
 > **📝 Note:** This page assumes you have read [Concepts](../concepts.md). If not, start there first.
-
----
 
 ## Installation
 
@@ -16,9 +14,7 @@ This page is the complete reference for KitKat's Gemini provider. It covers inst
 pip install kitkat[gemini]
 ```
 
-This installs the `google-genai` Python SDK (≥ 1.57.0) alongside KitKat's core package.
-
----
+This installs the `google-genai` Python SDK (≥ 1.57.0) alongside Kitkat's core package.
 
 ## Quick Start
 
@@ -47,8 +43,6 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
-
----
 
 ## `GeminiConfig`
 
@@ -85,15 +79,15 @@ vertex_config = GeminiConfig(
 
 ### Fields
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `api_key` | `str` | `""` | Your Google API key. Required when `vertexai=False`. Ignored in Vertex AI mode. |
-| `model` | `str` | `"gemini-3-flash-preview"` | The default model identifier. Used when `LLMRequest.model` is empty. |
-| `vertexai` | `bool` | `False` | When `True`, uses Vertex AI with ADC instead of the standard API. |
-| `project` | `str` | `""` | GCP project ID. Required when `vertexai=True`. |
-| `location` | `str` | `""` | GCP region (e.g., `"us-central1"`). Required when `vertexai=True`. |
-| `timeout_s` | `float` | `60.0` | Per-request wall-clock timeout in seconds. Overridden by `LLMRequest.timeout`. |
-| `extra_headers` | `dict[str, str]` | `{}` | Arbitrary HTTP headers injected into every request. |
+| Field           | Type             | Default                    | Description                                                                     |
+| --------------- | ---------------- | -------------------------- | ------------------------------------------------------------------------------- |
+| `api_key`       | `str`            | `""`                       | Your Google API key. Required when `vertexai=False`. Ignored in Vertex AI mode. |
+| `model`         | `str`            | `"gemini-3-flash-preview"` | The default model identifier. Used when `LLMRequest.model` is empty.            |
+| `vertexai`      | `bool`           | `False`                    | When `True`, uses Vertex AI with ADC instead of the standard API.               |
+| `project`       | `str`            | `""`                       | GCP project ID. Required when `vertexai=True`.                                  |
+| `location`      | `str`            | `""`                       | GCP region (e.g., `"us-central1"`). Required when `vertexai=True`.              |
+| `timeout_s`     | `float`          | `60.0`                     | Per-request wall-clock timeout in seconds. Overridden by `LLMRequest.timeout`.  |
+| `extra_headers` | `dict[str, str]` | `{}`                       | Arbitrary HTTP headers injected into every request.                             |
 
 ### Validation rules
 
@@ -111,8 +105,6 @@ config = GeminiConfig.from_dict({
 })
 ```
 
----
-
 ## `GeminiProvider`
 
 `GeminiProvider` wraps `GeminiConfig` and implements the `LLMProvider` ABC using the official `google.genai.Client`.
@@ -128,22 +120,20 @@ provider = GeminiProvider({"api_key": os.environ["GOOGLE_API_KEY"]})
 
 ### Class-level attributes
 
-| Attribute | Value |
-|---|---|
-| `PROVIDER_TYPE` | `ProviderType.GEMINI` |
-| `DEFAULT_MODEL` | `"gemini-3-flash-preview"` |
-| `CAPABILITIES.supports_streaming` | `True` |
-| `CAPABILITIES.supports_system_prompt` | `True` |
-| `CAPABILITIES.supports_tool_calling` | `True` |
-| `CAPABILITIES.supports_vision` | `True` |
-| `CAPABILITIES.supports_thinking` | `True` |
-| `CAPABILITIES.max_context_tokens` | `1_048_576` (1M+) |
-
----
+| Attribute                             | Value                      |
+| ------------------------------------- | -------------------------- |
+| `PROVIDER_TYPE`                       | `ProviderType.GEMINI`      |
+| `DEFAULT_MODEL`                       | `"gemini-3-flash-preview"` |
+| `CAPABILITIES.supports_streaming`     | `True`                     |
+| `CAPABILITIES.supports_system_prompt` | `True`                     |
+| `CAPABILITIES.supports_tool_calling`  | `True`                     |
+| `CAPABILITIES.supports_vision`        | `True`                     |
+| `CAPABILITIES.supports_thinking`      | `True`                     |
+| `CAPABILITIES.max_context_tokens`     | `1_048_576` (1M+)          |
 
 ## Vertex AI Support
 
-KitKat's Gemini provider supports Vertex AI deployments transparently. When `vertexai=True`, the `google-genai` SDK uses Application Default Credentials (ADC) rather than an API key.
+Kitkat's Gemini provider supports Vertex AI deployments transparently. When `vertexai=True`, the `google-genai` SDK uses Application Default Credentials (ADC) rather than an API key.
 
 **Setting up ADC:**
 
@@ -155,7 +145,7 @@ gcloud auth application-default login
 export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-key.json"
 ```
 
-**Using Vertex AI with KitKat:**
+**Using Vertex AI with Kitkat:**
 
 ```python
 import os
@@ -185,8 +175,6 @@ asyncio.run(main())
 
 > **📝 Note:** The BYOK service path (`BYOKLLMService`) does not support Vertex AI mode, because Vertex AI uses ADC rather than a user-supplied API key. Use the managed service path for Vertex AI deployments.
 
----
-
 ## Lifecycle
 
 ### `async initialize()`
@@ -208,8 +196,6 @@ async with GeminiProvider(config) as provider:
 ### `async shutdown()`
 
 Closes both the async and sync Gemini client connections, releasing the underlying HTTP connection pool.
-
----
 
 ## Completions
 
@@ -249,7 +235,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-> **📝 Note:** `top_p` is only sent to the Gemini API when it differs from `1.0`. When `top_p=1.0` (the default), KitKat omits it from the API call to avoid overriding Gemini's own default nucleus sampling settings.
+> **📝 Note:** `top_p` is only sent to the Gemini API when it differs from `1.0`. When `top_p=1.0` (the default), Kitkat omits it from the API call to avoid overriding Gemini's own default nucleus sampling settings.
 
 ### Streaming
 
@@ -283,13 +269,11 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
----
-
 ## System Prompt Handling
 
-Gemini uses a dedicated `system_instruction` top-level parameter separate from the conversation turns. KitKat handles the extraction automatically.
+Gemini uses a dedicated `system_instruction` top-level parameter separate from the conversation turns. Kitkat handles the extraction automatically.
 
-When you include `Message(role=Role.SYSTEM, ...)` objects in your message list, KitKat:
+When you include `Message(role=Role.SYSTEM, ...)` objects in your message list, Kitkat:
 
 1. Extracts all system messages from the list.
 2. Concatenates their content with `\n\n---\n\n` as a separator.
@@ -298,11 +282,11 @@ When you include `Message(role=Role.SYSTEM, ...)` objects in your message list, 
 
 **Role mapping:**
 
-| KitKat `Role` | Gemini role |
-|---|---|
-| `Role.USER` | `"user"` |
-| `Role.ASSISTANT` | `"model"` |
-| `Role.SYSTEM` | Extracted to `system_instruction` |
+| Kitkat `Role`    | Gemini role                       |
+| ---------------- | --------------------------------- |
+| `Role.USER`      | `"user"`                          |
+| `Role.ASSISTANT` | `"model"`                         |
+| `Role.SYSTEM`    | Extracted to `system_instruction` |
 
 ```python
 from kitkat import Message, Role
@@ -313,7 +297,7 @@ messages = [
     Message(role=Role.ASSISTANT, content="A tensor is a multi-dimensional array..."),
     Message(role=Role.USER, content="Give me an example in PyTorch."),
 ]
-# What KitKat sends to Gemini:
+# What Kitkat sends to Gemini:
 # system_instruction="You are a concise technical assistant."
 # contents=[
 #   Content(role="user", parts=[Part(text="What is a tensor?")]),
@@ -322,19 +306,17 @@ messages = [
 # ]
 ```
 
----
-
 ## Extended Thinking
 
-Gemini supports extended thinking via the `thinking_level` parameter (`"LOW"`, `"MEDIUM"`, `"HIGH"`). KitKat maps the normalized `ThinkingConfig.effort` field to Gemini's vocabulary.
+Gemini supports extended thinking via the `thinking_level` parameter (`"LOW"`, `"MEDIUM"`, `"HIGH"`). Kitkat maps the normalized `ThinkingConfig.effort` field to Gemini's vocabulary.
 
 ### Effort → thinking level mapping
 
 | `ThinkingConfig.effort` | Gemini `thinking_level` |
-|---|---|
-| `"low"` | `"LOW"` |
-| `"medium"` | `"MEDIUM"` |
-| `"high"` | `"HIGH"` |
+| ----------------------- | ----------------------- |
+| `"low"`                 | `"LOW"`                 |
+| `"medium"`              | `"MEDIUM"`              |
+| `"high"`                | `"HIGH"`                |
 
 ```python
 from kitkat import LLMRequest, Message, Role, ThinkingConfig
@@ -368,7 +350,7 @@ request = LLMRequest(
 
 ### Thinking in streaming
 
-Gemini streaming distinguishes thinking and answer parts via the `thought` attribute on `Part` objects. KitKat maps this to `StreamChunk.is_thinking`:
+Gemini streaming distinguishes thinking and answer parts via the `thought` attribute on `Part` objects. Kitkat maps this to `StreamChunk.is_thinking`:
 
 ```python
 thinking_buf: list[str] = []
@@ -388,7 +370,7 @@ print("Answer:", "".join(answer_buf))
 
 ### Thinking token reporting
 
-Unlike Anthropic, Gemini reports thinking tokens separately in `usage_metadata.thoughts_token_count`. KitKat maps this to `TokenUsage.thinking_tokens`:
+Unlike Anthropic, Gemini reports thinking tokens separately in `usage_metadata.thoughts_token_count`. Kitkat maps this to `TokenUsage.thinking_tokens`:
 
 ```python
 response = await provider.complete(thinking_request)
@@ -397,24 +379,22 @@ print(f"Answer tokens: {response.usage.completion_tokens}")
 print(f"Total: {response.usage.total_tokens}")
 ```
 
-> **📝 Note:** When `include_thoughts=True` (set automatically by KitKat when thinking is enabled), Gemini includes the reasoning trace in both `thinking_content` (non-streaming) and as `is_thinking=True` stream chunks (streaming).
-
----
+> **📝 Note:** When `include_thoughts=True` (set automatically by Kitkat when thinking is enabled), Gemini includes the reasoning trace in both `thinking_content` (non-streaming) and as `is_thinking=True` stream chunks (streaming).
 
 ## Safety Filters
 
-Gemini applies safety filters across multiple categories. When a response is blocked, KitKat raises `LLMContentFilterError`.
+Gemini applies safety filters across multiple categories. When a response is blocked, Kitkat raises `LLMContentFilterError`.
 
 ### Filter categories that trigger `LLMContentFilterError`
 
-| Gemini `finish_reason` | Category |
-|---|---|
-| `SAFETY` | General safety policy violation |
-| `RECITATION` | Copyright or recitation block |
-| `BLOCKLIST` | Blocked term list |
-| `PROHIBITED_CONTENT` | Prohibited content category |
-| `SPII` | Sensitive personally identifiable information |
-| `IMAGE_SAFETY` | Image content safety (multimodal) |
+| Gemini `finish_reason` | Category                                      |
+| ---------------------- | --------------------------------------------- |
+| `SAFETY`               | General safety policy violation               |
+| `RECITATION`           | Copyright or recitation block                 |
+| `BLOCKLIST`            | Blocked term list                             |
+| `PROHIBITED_CONTENT`   | Prohibited content category                   |
+| `SPII`                 | Sensitive personally identifiable information |
+| `IMAGE_SAFETY`         | Image content safety (multimodal)             |
 
 ### Behaviour
 
@@ -433,8 +413,6 @@ except LLMContentFilterError as exc:
 ```
 
 > **⚠️ Warning:** Content filter errors are **not retried** — the same content would be blocked on any subsequent attempt. Catch them explicitly and provide a user-facing error message rather than retrying.
-
----
 
 ## Token Counting
 
@@ -480,8 +458,6 @@ print(exact)  # Exact value from Gemini
 
 > **💡 Tip:** With Gemini's 1M+ context window, token budget management is less critical than with Anthropic or OpenAI. However, `async_count_tokens` is still useful when processing very large documents to avoid unexpected truncation.
 
----
-
 ## Health Check
 
 `health_check()` calls `aio.models.count_tokens(model=..., contents="ping")` with a 5-second timeout to verify the provider is reachable.
@@ -493,64 +469,57 @@ print(is_healthy)  # True or False
 
 Returns `False` on any error rather than raising.
 
----
-
 ## Retry Policy
 
-| Parameter | Value | Rationale |
-|---|---|---|
-| `max_attempts` | `3` | 1 original + 2 retries |
-| `base_delay_s` | `2.0` | Extended base delay for quota-limited environments |
-| `max_delay_s` | `60.0` | Cap for degraded scenarios |
-| `exponential_base` | `2.0` | Doubles per attempt: 2s → 4s → 8s (before jitter) |
-| `jitter` | `True` | ±50% random variation |
-| Retryable codes | `{408, 429, 500, 502, 503, 504}` | Standard transient codes |
+| Parameter          | Value                            | Rationale                                          |
+| ------------------ | -------------------------------- | -------------------------------------------------- |
+| `max_attempts`     | `3`                              | 1 original + 2 retries                             |
+| `base_delay_s`     | `2.0`                            | Extended base delay for quota-limited environments |
+| `max_delay_s`      | `60.0`                           | Cap for degraded scenarios                         |
+| `exponential_base` | `2.0`                            | Doubles per attempt: 2s → 4s → 8s (before jitter)  |
+| `jitter`           | `True`                           | ±50% random variation                              |
+| Retryable codes    | `{408, 429, 500, 502, 503, 504}` | Standard transient codes                           |
 
 > **📝 Note:** The Gemini provider's `base_delay_s` is `2.0` (vs `1.0` for Anthropic and OpenAI). Gemini quota limits are enforced on a per-minute basis, and a 2-second base delay gives the quota window more time to reset before the first retry.
 
 The following errors are **not** retried:
+
 - `LLMAuthenticationError` (401, 403)
 - `LLMTokenLimitError` (context exceeded)
 - `LLMContentFilterError` (safety policy block)
-
----
 
 ## Error Mapping
 
 Gemini uses a three-tier SDK exception hierarchy: `ClientError`, `ServerError`, and `APIError`.
 
-| Gemini error | Condition | KitKat exception |
-|---|---|---|
-| `ClientError` with code 401 or 403 | Authentication failure | `LLMAuthenticationError` |
-| `ClientError` with code 429 | Rate limit exceeded | `LLMRateLimitError` |
-| `ClientError` with code 400 and "token" or "context" in message | Prompt too long | `LLMTokenLimitError` |
-| Any other `ClientError` | Client-side API error | `LLMProviderError` |
-| `ServerError` | Gemini server-side error (5xx) | `LLMProviderError` |
-| `APIError` | Generic Gemini API error | `LLMProviderError` |
-| `asyncio.TimeoutError` | `asyncio.timeout()` exceeded | `LLMTimeoutError` |
-
----
+| Gemini error                                                    | Condition                      | Kitkat exception         |
+| --------------------------------------------------------------- | ------------------------------ | ------------------------ |
+| `ClientError` with code 401 or 403                              | Authentication failure         | `LLMAuthenticationError` |
+| `ClientError` with code 429                                     | Rate limit exceeded            | `LLMRateLimitError`      |
+| `ClientError` with code 400 and "token" or "context" in message | Prompt too long                | `LLMTokenLimitError`     |
+| Any other `ClientError`                                         | Client-side API error          | `LLMProviderError`       |
+| `ServerError`                                                   | Gemini server-side error (5xx) | `LLMProviderError`       |
+| `APIError`                                                      | Generic Gemini API error       | `LLMProviderError`       |
+| `asyncio.TimeoutError`                                          | `asyncio.timeout()` exceeded   | `LLMTimeoutError`        |
 
 ## `finish_reason` → `FinishReason` Mapping
 
-| Gemini `finish_reason` | `FinishReason` |
-|---|---|
-| `"STOP"` | `STOP` |
-| `"MAX_TOKENS"` | `LENGTH` |
-| `"SAFETY"` | `CONTENT_FILTER` |
-| `"RECITATION"` | `CONTENT_FILTER` |
-| `"BLOCKLIST"` | `CONTENT_FILTER` |
-| `"PROHIBITED_CONTENT"` | `CONTENT_FILTER` |
-| `"SPII"` | `CONTENT_FILTER` |
-| `"IMAGE_SAFETY"` | `CONTENT_FILTER` |
-| `"MALFORMED_FUNCTION_CALL"` | `TOOL_CALL` |
-| `"UNEXPECTED_TOOL_CALL"` | `TOOL_CALL` |
-| `"LANGUAGE"` | `UNKNOWN` |
-| `"OTHER"` | `UNKNOWN` |
-| `"IMAGE_OTHER"` | `UNKNOWN` |
-| `"FINISH_REASON_UNSPECIFIED"` | `UNKNOWN` |
-
----
+| Gemini `finish_reason`        | `FinishReason`   |
+| ----------------------------- | ---------------- |
+| `"STOP"`                      | `STOP`           |
+| `"MAX_TOKENS"`                | `LENGTH`         |
+| `"SAFETY"`                    | `CONTENT_FILTER` |
+| `"RECITATION"`                | `CONTENT_FILTER` |
+| `"BLOCKLIST"`                 | `CONTENT_FILTER` |
+| `"PROHIBITED_CONTENT"`        | `CONTENT_FILTER` |
+| `"SPII"`                      | `CONTENT_FILTER` |
+| `"IMAGE_SAFETY"`              | `CONTENT_FILTER` |
+| `"MALFORMED_FUNCTION_CALL"`   | `TOOL_CALL`      |
+| `"UNEXPECTED_TOOL_CALL"`      | `TOOL_CALL`      |
+| `"LANGUAGE"`                  | `UNKNOWN`        |
+| `"OTHER"`                     | `UNKNOWN`        |
+| `"IMAGE_OTHER"`               | `UNKNOWN`        |
+| `"FINISH_REASON_UNSPECIFIED"` | `UNKNOWN`        |
 
 ## Further Reading
 

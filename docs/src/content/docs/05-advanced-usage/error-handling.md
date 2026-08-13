@@ -1,14 +1,12 @@
 ---
 title: Error Handling
-description: KitKat uses a single, coherent exception hierarchy rooted at `KitkatError`. Every error the library raises is a subclass of this root, so you can choose between catching the base class for a broad handler or specific subclasses for precise, actionable recovery.
+description: Kitkat uses a single, coherent exception hierarchy rooted at `KitkatError`. Every error the library raises is a subclass of this root, so you can choose between catching the base class for a broad handler or specific subclasses for precise, actionable recovery.
 order: 3
 ---
 
-KitKat uses a single, coherent exception hierarchy rooted at `KitkatError`. Every error the library raises is a subclass of this root, so you can choose between catching the base class for a broad handler or specific subclasses for precise, actionable recovery.
+Kitkat uses a single, coherent exception hierarchy rooted at `KitkatError`. Every error the library raises is a subclass of this root, so you can choose between catching the base class for a broad handler or specific subclasses for precise, actionable recovery.
 
 This page documents the complete exception tree, every attribute on every class, how non-retryable vs. retryable errors are distinguished, and practical patterns for catching errors in web frameworks, CLIs, and background workers.
-
----
 
 ## The Exception Hierarchy
 
@@ -40,11 +38,9 @@ from kitkat import (
 )
 ```
 
----
-
 ## `KitkatError` — root
 
-The root class for all library errors. Catching this class guarantees you catch every exception KitKat can raise.
+The root class for all library errors. Catching this class guarantees you catch every exception Kitkat can raise.
 
 ```python
 class KitkatError(Exception):
@@ -53,8 +49,6 @@ class KitkatError(Exception):
     details: dict | None  # Optional structured context (provider name, etc.)
     status_code: int   # HTTP-style status code. Default: 500
 ```
-
----
 
 ## `LLMError` — base for all provider errors
 
@@ -88,13 +82,12 @@ async def safe_complete(service: LLMService, prompt: str) -> str:
         return ""
 ```
 
----
-
 ## Individual Exception Classes
 
 ### `LLMProviderInitError`
 
 Raised during `provider.initialize()` when the provider cannot start. This happens when:
+
 - The API key is empty or invalid at construction time (caught in `__post_init__` validation).
 - The HTTP client cannot be created (network misconfiguration).
 - The credential probe fails with an authentication error.
@@ -124,8 +117,6 @@ except LLMProviderInitError as exc:
     raise SystemExit(1) from exc
 ```
 
----
-
 ### `LLMProviderError`
 
 The generic catch-all for provider-side failures that don't fall into a more specific category. Examples: connection refused, HTTP 400 bad request, HTTP 404 model not found, HTTP 5xx server errors after retries are exhausted.
@@ -138,8 +129,6 @@ class LLMProviderError(LLMError):
 ```
 
 **Retry behaviour:** `LLMProviderError` is retried by the built-in `RetryPolicy` when the HTTP status code is in the retryable set (`{408, 429, 500, 502, 503, 504}`). After all retries are exhausted, it is re-raised.
-
----
 
 ### `LLMAuthenticationError`
 
@@ -164,8 +153,6 @@ except LLMAuthenticationError as exc:
     print(f"CRITICAL: OpenAI API key is invalid. Rotate immediately. ({exc.message})")
     raise
 ```
-
----
 
 ### `LLMRateLimitError`
 
@@ -194,8 +181,6 @@ except LLMRateLimitError as exc:
     raise
 ```
 
----
-
 ### `LLMTimeoutError`
 
 Raised when the request exceeds its configured timeout. This can come from `LLMRequest.timeout` (via `asyncio.wait_for`) or from the provider's SDK-level timeout.
@@ -222,8 +207,6 @@ except LLMTimeoutError as exc:
     print(f"Request timed out after {elapsed}. Provider: {exc.provider}.")
     # Consider increasing LLMRequest.timeout or switching providers.
 ```
-
----
 
 ### `LLMTokenLimitError`
 
@@ -265,8 +248,6 @@ if estimated > caps.max_context_tokens:
     # Truncate messages before sending.
 ```
 
----
-
 ### `LLMContentFilterError`
 
 Raised when the provider's safety policy blocks a response. This applies to all Gemini safety categories (`SAFETY`, `RECITATION`, `BLOCKLIST`, `PROHIBITED_CONTENT`, `SPII`, `IMAGE_SAFETY`) and to OpenAI's `content_filter` finish reason.
@@ -291,23 +272,19 @@ except LLMContentFilterError as exc:
     return "I'm sorry, I can't help with that request."
 ```
 
----
-
 ## Non-Retryable vs. Retryable — Quick Reference
 
 The retry engine (`execute_with_retry`) uses this rule: three exception types are always raised immediately without sleeping; everything else is retried according to `RetryPolicy`.
 
-| Exception | Retried? | Rationale |
-|---|---|---|
-| `LLMAuthenticationError` | ❌ Never | Credentials are wrong — no retry can fix this |
-| `LLMTokenLimitError` | ❌ Never | Prompt is deterministically too long |
-| `LLMContentFilterError` | ❌ Never | Same content would be blocked every time |
-| `LLMRateLimitError` | ✅ Yes | Transient — provider asks you to wait and retry |
-| `LLMTimeoutError` | ✅ Yes | Transient — network blip or slow provider |
-| `LLMProviderError` | ✅ Yes (on retryable codes) | Transient server errors |
-| `LLMProviderInitError` | ❌ Not applicable | Raised at startup, outside the retry loop |
-
----
+| Exception                | Retried?                    | Rationale                                       |
+| ------------------------ | --------------------------- | ----------------------------------------------- |
+| `LLMAuthenticationError` | ❌ Never                    | Credentials are wrong — no retry can fix this   |
+| `LLMTokenLimitError`     | ❌ Never                    | Prompt is deterministically too long            |
+| `LLMContentFilterError`  | ❌ Never                    | Same content would be blocked every time        |
+| `LLMRateLimitError`      | ✅ Yes                      | Transient — provider asks you to wait and retry |
+| `LLMTimeoutError`        | ✅ Yes                      | Transient — network blip or slow provider       |
+| `LLMProviderError`       | ✅ Yes (on retryable codes) | Transient server errors                         |
+| `LLMProviderInitError`   | ❌ Not applicable           | Raised at startup, outside the retry loop       |
 
 ## Complete Handler Pattern
 
@@ -389,8 +366,6 @@ async def call_llm(service: LLMService, user_message: str) -> dict:
         return {"status": "error", "code": exc.status_code, "message": "An unexpected AI error occurred."}
 ```
 
----
-
 ## Accessing Raw Provider Errors
 
 Every `LLMError` is raised **from** the underlying SDK exception via `raise KitkatError(...) from sdk_exc`. You can access the original SDK exception via `__cause__`:
@@ -405,8 +380,6 @@ except LLMRateLimitError as exc:
 ```
 
 This is useful for logging detailed provider-level context without exposing it to end users.
-
----
 
 ## Startup Error Handling
 
@@ -441,12 +414,10 @@ async def create_service():
     return service
 ```
 
----
-
 ## Further Reading
 
 - [Providers Overview](./providers.md) — Per-provider error mapping tables
 - [Routing & Cache](./routing-cache.md) — How the router handles errors and circuit breaking
 - [BYOK](./byok.md) — Error handling patterns specific to the BYOK path
-- [Custom Providers](./custom-provider.md) — How to map SDK errors to KitKat exceptions
+- [Custom Providers](./custom-provider.md) — How to map SDK errors to Kitkat exceptions
 - [API Reference — Core](./api-reference/core.md) — Complete exception API surface

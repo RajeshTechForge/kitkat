@@ -1,16 +1,14 @@
 ---
 title: LangGraph Workflows
-description: Learn how to build multi-step, stateful agentic pipelines with KitKat's workflow layer on top of LangGraph.
+description: Learn how to build multi-step, stateful agentic pipelines with Kitkat's workflow layer on top of LangGraph.
 order: 2
 ---
 
-KitKat's workflow layer provides a thin, opinionated scaffold on top of [LangGraph](https://github.com/langchain-ai/langgraph) for building multi-step, stateful agentic pipelines. The `BaseWorkflow` abstract class defines a consistent interface — `build_graph()` and `async run()` — so all your workflows are testable, composable, and interchangeable.
+Kitkat's workflow layer provides a thin, opinionated scaffold on top of [LangGraph](https://github.com/langchain-ai/langgraph) for building multi-step, stateful agentic pipelines. The `BaseWorkflow` abstract class defines a consistent interface — `build_graph()` and `async run()` — so all your workflows are testable, composable, and interchangeable.
 
-This page covers installation, the `BaseWorkflow` interface, the built-in `ResearchWorkflow` as a reference implementation, how to build your own workflow from scratch, state management with Pydantic models, conditional edges and fan-out/fan-in patterns, and how to wire KitKat providers into graph nodes.
+This page covers installation, the `BaseWorkflow` interface, the built-in `ResearchWorkflow` as a reference implementation, how to build your own workflow from scratch, state management with Pydantic models, conditional edges and fan-out/fan-in patterns, and how to wire Kitkat providers into graph nodes.
 
-> **📝 Note:** The workflow layer requires LangGraph to be installed separately. It is not included in any KitKat extra. Install it with `pip install langgraph`.
-
----
+> **📝 Note:** The workflow layer requires LangGraph to be installed separately. It is not included in any Kitkat extra. Install it with `pip install langgraph`.
 
 ## Installation
 
@@ -18,13 +16,11 @@ This page covers installation, the `BaseWorkflow` interface, the built-in `Resea
 pip install kitkat langgraph
 ```
 
-If you also need KitKat's agent layer inside your workflow nodes:
+If you also need Kitkat's agent layer inside your workflow nodes:
 
 ```bash
 pip install kitkat[agents] langgraph
 ```
-
----
 
 ## `BaseWorkflow`
 
@@ -57,11 +53,9 @@ class BaseWorkflow(ABC, Generic[S]):
     async def run(self, initial_state: S | dict[str, Any]) -> S: ...
 ```
 
----
-
 ## Built-in: `ResearchWorkflow`
 
-KitKat ships a `ResearchWorkflow` as a complete, runnable reference implementation. It demonstrates:
+Kitkat ships a `ResearchWorkflow` as a complete, runnable reference implementation. It demonstrates:
 
 - Pydantic state models
 - Fan-out parallelism (plan → search + retrieve simultaneously)
@@ -89,16 +83,16 @@ state = ResearchState(
 )
 ```
 
-| Field | Type | Description |
-|---|---|---|
-| `user_query` | `str` | The user's original question. Set this before calling `run()`. |
-| `research_plan` | `list[str]` | Populated by `plan_node`. Contains the research sub-tasks. |
-| `search_results` | `list[str]` | Populated by `search_node`. Contains search result strings. |
-| `retrieved_docs` | `list[str]` | Populated by `retrieve_node`. Contains retrieved document strings. |
-| `final_answer` | `str` | Populated by `synthesise_node`. The assembled final response. |
-| `agent_context` | `BaseAgentContext \| None` | Carries user identity and routing tier through the workflow. |
-| `pending_approval` | `bool` | Auth0 CIBA hook. When `True`, the conditional edge will route to a `request_approval` node (future feature). |
-| `approval_action` | `str \| None` | Describes the action awaiting approval. |
+| Field              | Type                       | Description                                                                                                  |
+| ------------------ | -------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `user_query`       | `str`                      | The user's original question. Set this before calling `run()`.                                               |
+| `research_plan`    | `list[str]`                | Populated by `plan_node`. Contains the research sub-tasks.                                                   |
+| `search_results`   | `list[str]`                | Populated by `search_node`. Contains search result strings.                                                  |
+| `retrieved_docs`   | `list[str]`                | Populated by `retrieve_node`. Contains retrieved document strings.                                           |
+| `final_answer`     | `str`                      | Populated by `synthesise_node`. The assembled final response.                                                |
+| `agent_context`    | `BaseAgentContext \| None` | Carries user identity and routing tier through the workflow.                                                 |
+| `pending_approval` | `bool`                     | Auth0 CIBA hook. When `True`, the conditional edge will route to a `request_approval` node (future feature). |
+| `approval_action`  | `str \| None`              | Describes the action awaiting approval.                                                                      |
 
 ### Running the workflow
 
@@ -133,8 +127,6 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
-
----
 
 ## Building a Custom Workflow
 
@@ -313,8 +305,6 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
----
-
 ## Fan-Out / Fan-In Parallelism
 
 LangGraph executes multiple edges from a single source node concurrently. To fan out:
@@ -333,8 +323,6 @@ g.add_edge("retrieve", "synthesise")
 
 > **⚠️ Warning:** When multiple nodes write to the same state field concurrently, their updates are merged in an arbitrary order. Avoid having parallel nodes write to the same field. Design your state so each parallel branch writes to distinct fields that the convergence node reads from.
 
----
-
 ## Human-in-the-Loop Approval
 
 `ResearchWorkflow` pre-wires an Auth0 CIBA (Client-Initiated Backchannel Authentication) approval hook. The `should_request_approval` conditional edge currently always returns `END`, but the state model carries two fields for the future approval flow:
@@ -348,8 +336,6 @@ state = ResearchState(
 ```
 
 When `should_request_approval` is updated to check `state.pending_approval`, it will return `"request_approval"` instead of `END`, routing to a node that pauses the workflow and triggers an Auth0 CIBA push notification to the user's device.
-
----
 
 ## Error Handling in Nodes
 
@@ -371,8 +357,6 @@ async def resilient_llm_node(state: LLMPipelineState) -> dict[str, Any]:
         # Record the error in state so format_node can surface it.
         return {"validation_error": f"LLM call failed: {exc.message}"}
 ```
-
----
 
 ## Testing Workflows
 
@@ -400,11 +384,9 @@ async def test_research_workflow_happy_path() -> None:
     assert len(result.search_results) > 0
 ```
 
----
-
 ## Further Reading
 
-- [Agent Layer Overview](./agents/index.md) — Using KitKat agents inside workflow nodes
+- [Agent Layer Overview](./agents/index.md) — Using Kitkat agents inside workflow nodes
 - [Providers Overview](./providers.md) — Injecting `LLMService` into workflows
 - [Error Handling](./error-handling.md) — Handling `LLMError` inside nodes
 - [LangGraph documentation](https://langchain-ai.github.io/langgraph/) — Full LangGraph API reference

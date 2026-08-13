@@ -1,14 +1,12 @@
 ---
 title: Quick Start
-description: A five-minute guide to sending your first LLM request with KitKat.
+description: A five-minute guide to sending your first LLM request with Kitkat.
 order: 1
 ---
 
 This guide walks you from a fresh install to a working LLM completion in under five minutes. By the end you will have sent a message to a real provider, read the response, streamed tokens, and handled a basic error.
 
-> **📝 Note:** If you have not installed KitKat yet, read [Installation](./installation.md) first. This guide assumes you have `kitkat[anthropic]` installed and an `ANTHROPIC_API_KEY` environment variable set.
-
----
+> **📝 Note:** If you have not installed Kitkat yet, read [Installation](./installation.md) first. This guide assumes you have `kitkat[anthropic]` installed and an `ANTHROPIC_API_KEY` environment variable set.
 
 ## Your First Completion
 
@@ -63,16 +61,14 @@ Latency: 832 ms
 
 ### What each step does
 
-| Step | What happens |
-|---|---|
-| `AnthropicConfig(api_key=...)` | Validates the key format with Pydantic and stores it in a settings model |
-| `AnthropicProvider(config)` | Wraps the config — no network calls yet |
-| `create_llm_service({...})` | Constructs an `LLMService` and registers the provider mapping |
-| `await service.initialize()` | Calls each provider's `initialize()`, opening connection pools |
-| `LLMRequest(messages=[...])` | Validates the request fields (min 1 message, temperature in [0.0, 2.0], max_tokens ≥ 1) |
-| `await service.complete(...)` | Dispatches the request to the correct provider, retries on transient errors, returns `LLMResponse` |
-
----
+| Step                           | What happens                                                                                       |
+| ------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `AnthropicConfig(api_key=...)` | Validates the key format with Pydantic and stores it in a settings model                           |
+| `AnthropicProvider(config)`    | Wraps the config — no network calls yet                                                            |
+| `create_llm_service({...})`    | Constructs an `LLMService` and registers the provider mapping                                      |
+| `await service.initialize()`   | Calls each provider's `initialize()`, opening connection pools                                     |
+| `LLMRequest(messages=[...])`   | Validates the request fields (min 1 message, temperature in [0.0, 2.0], max_tokens ≥ 1)            |
+| `await service.complete(...)`  | Dispatches the request to the correct provider, retries on transient errors, returns `LLMResponse` |
 
 ## Using a System Prompt
 
@@ -107,8 +103,6 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
-
----
 
 ## Streaming Responses
 
@@ -150,9 +144,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-> **💡 Tip:** KitKat guarantees that all thinking chunks (`is_thinking=True`) are emitted before any answer chunks (`is_thinking=False`). The transition is one-way and never interleaved. You can safely buffer thinking output and answer output into separate strings.
-
----
+> **💡 Tip:** Kitkat guarantees that all thinking chunks (`is_thinking=True`) are emitted before any answer chunks (`is_thinking=False`). The transition is one-way and never interleaved. You can safely buffer thinking output and answer output into separate strings.
 
 ## BYOK: User-Supplied API Keys
 
@@ -181,8 +173,6 @@ asyncio.run(handle_user_request("sk-...", "Summarize the Python GIL in one parag
 ```
 
 > **🔒 Security:** `BYOKLLMService` does not cache or log the user-supplied API key. Each `async with` block creates a short-lived client that is destroyed on exit. See [BYOK](./byok.md) for the full security model.
-
----
 
 ## Switching Providers
 
@@ -228,11 +218,9 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
----
-
 ## Basic Error Handling
 
-KitKat maps every provider failure to a specific typed exception. Catch exceptions as narrowly or as broadly as your use case requires.
+Kitkat maps every provider failure to a specific typed exception. Catch exceptions as narrowly or as broadly as your use case requires.
 
 ```python
 import asyncio
@@ -289,23 +277,19 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-> **📝 Note:** KitKat automatically retries transient errors (HTTP 408, 429, 500, 502, 503, 504) according to the default `RetryPolicy` before raising an exception. What you catch in the `except` block is only raised after all retry attempts are exhausted. See [Error Handling](./error-handling.md) for customizing retry behaviour.
-
----
+> **📝 Note:** Kitkat automatically retries transient errors (HTTP 408, 429, 500, 502, 503, 504) according to the default `RetryPolicy` before raising an exception. What you catch in the `except` block is only raised after all retry attempts are exhausted. See [Error Handling](./error-handling.md) for customizing retry behaviour.
 
 ## Next Steps
 
 You now know how to send completions, stream tokens, use BYOK, and handle errors. Here is where to go next depending on your use case:
 
-| Goal | Guide |
-|---|---|
-| Understand what `LLMRequest`, `Message`, and `ProviderType` are | [Concepts](./concepts.md) |
-| Configure Anthropic, OpenAI, or Gemini in detail | [Providers](./providers.md) |
-| Set up automatic failover between providers | [Routing & Cache](./routing-cache.md) |
-| Use per-user API keys in a SaaS product | [BYOK](./byok.md) |
-| Build a PydanticAI agent on top of KitKat | [Agent Overview](./agents/index.md) |
-
----
+| Goal                                                            | Guide                                 |
+| --------------------------------------------------------------- | ------------------------------------- |
+| Understand what `LLMRequest`, `Message`, and `ProviderType` are | [Concepts](./concepts.md)             |
+| Configure Anthropic, OpenAI, or Gemini in detail                | [Providers](./providers.md)           |
+| Set up automatic failover between providers                     | [Routing & Cache](./routing-cache.md) |
+| Use per-user API keys in a SaaS product                         | [BYOK](./byok.md)                     |
+| Build a PydanticAI agent on top of Kitkat                       | [Agent Overview](./agents/index.md)   |
 
 ## Further Reading
 

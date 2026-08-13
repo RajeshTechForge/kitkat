@@ -1,14 +1,12 @@
 ---
 title: Observability
-description: KitKat's observability layer provides automatic distributed tracing for every agent run. Every call to `agent.run()` or `agent.run_stream()` is captured as a trace span — including input messages, LLM output, tool calls, token usage, latency, and model metadata — with zero changes to your application code.
+description: Kitkat's observability layer provides automatic distributed tracing for every agent run. Every call to `agent.run()` or `agent.run_stream()` is captured as a trace span — including input messages, LLM output, tool calls, token usage, latency, and model metadata.
 order: 4
 ---
 
-KitKat's observability layer provides automatic distributed tracing for every agent run. Every call to `agent.run()` or `agent.run_stream()` is captured as a trace span — including input messages, LLM output, tool calls, token usage, latency, and model metadata — with zero changes to your application code.
+Kitkat's observability layer provides automatic distributed tracing for every agent run. Every call to `agent.run()` or `agent.run_stream()` is captured as a trace span — including input messages, LLM output, tool calls, token usage, latency, and model metadata — with zero changes to your application code.
 
 This page covers installation, `configure_observability`, Logfire setup, Langfuse integration, what gets traced, and practical patterns for filtering, annotating, and querying traces in production.
-
----
 
 ## Installation
 
@@ -17,14 +15,13 @@ pip install kitkat[agents,observability]
 ```
 
 This installs:
+
 - `pydantic-ai` — the agent runtime that PydanticAI's Logfire integration instruments.
 - `logfire` — Pydantic's first-party OpenTelemetry tracing backend.
 - `langfuse` — LLM observability platform with an OpenTelemetry OTLP exporter.
 - `opentelemetry-exporter-otlp-proto-http` — the OTLP HTTP exporter used to forward spans to Langfuse.
 
 > **📝 Note:** The `observability` extra requires the `agents` extra as a prerequisite. If you install `kitkat[observability]` without `kitkat[agents]`, importing `configure_observability` raises `ImportError` because `pydantic-ai` is missing.
-
----
 
 ## `configure_observability`
 
@@ -45,24 +42,22 @@ configure_observability(
 
 ### Parameters
 
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `logfire_token` | `str \| None` | `None` | Logfire project write token. When `None`, Logfire reads `LOGFIRE_TOKEN` from the environment. When no token is available at all, Logfire runs in local-only mode (no cloud upload). |
-| `langfuse_public_key` | `str \| None` | `None` | Langfuse project public key. Required for Langfuse integration. Falls back to `LANGFUSE_PUBLIC_KEY` env var. |
-| `langfuse_secret_key` | `str \| None` | `None` | Langfuse project secret key. Required for Langfuse integration. Falls back to `LANGFUSE_SECRET_KEY` env var. |
-| `langfuse_host` | `str` | `"https://cloud.langfuse.com"` | Langfuse API host. Override for self-hosted Langfuse deployments. Falls back to `LANGFUSE_HOST` env var. |
-| `service_name` | `str` | `"kitkat"` | Service name tag applied to all spans. Use your application name so traces are identifiable across a multi-service deployment. |
-| `environment` | `str \| None` | `None` | Deployment environment label (`"production"`, `"staging"`, `"development"`). Falls back to `ENVIRONMENT` env var, then defaults to `"production"`. |
+| Parameter             | Type          | Default                        | Description                                                                                                                                                                         |
+| --------------------- | ------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `logfire_token`       | `str \| None` | `None`                         | Logfire project write token. When `None`, Logfire reads `LOGFIRE_TOKEN` from the environment. When no token is available at all, Logfire runs in local-only mode (no cloud upload). |
+| `langfuse_public_key` | `str \| None` | `None`                         | Langfuse project public key. Required for Langfuse integration. Falls back to `LANGFUSE_PUBLIC_KEY` env var.                                                                        |
+| `langfuse_secret_key` | `str \| None` | `None`                         | Langfuse project secret key. Required for Langfuse integration. Falls back to `LANGFUSE_SECRET_KEY` env var.                                                                        |
+| `langfuse_host`       | `str`         | `"https://cloud.langfuse.com"` | Langfuse API host. Override for self-hosted Langfuse deployments. Falls back to `LANGFUSE_HOST` env var.                                                                            |
+| `service_name`        | `str`         | `"kitkat"`                     | Service name tag applied to all spans. Use your application name so traces are identifiable across a multi-service deployment.                                                      |
+| `environment`         | `str \| None` | `None`                         | Deployment environment label (`"production"`, `"staging"`, `"development"`). Falls back to `ENVIRONMENT` env var, then defaults to `"production"`.                                  |
 
 ### Return value
 
 `None`. The function configures the global OpenTelemetry `TracerProvider` and calls `Agent.instrument_all()` to hook PydanticAI's tracing into it.
 
----
-
 ## Architecture
 
-KitKat's observability is built on OpenTelemetry and is designed to send traces to multiple backends simultaneously without conflicts.
+Kitkat's observability is built on OpenTelemetry and is designed to send traces to multiple backends simultaneously without conflicts.
 
 ```
 agent.run() → PydanticAI instrumentation
@@ -84,8 +79,6 @@ Concretely, `configure_observability` does four things:
 4. Initializes a `Langfuse` client (for SDK-level features like manual scoring and dataset management).
 
 Errors during Langfuse configuration are logged as warnings and do not prevent the rest of the observability setup from working.
-
----
 
 ## Minimal Setup — Logfire Only
 
@@ -133,14 +126,13 @@ asyncio.run(main())
 ```
 
 After running this, open [Logfire](https://logfire.pydantic.dev) and you will see a trace with:
+
 - The user prompt
 - The system prompt
 - The model response text
 - Token counts (input + output)
 - Latency in milliseconds
 - Model name and provider
-
----
 
 ## Logfire + Langfuse (Dual Export)
 
@@ -189,8 +181,6 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
----
-
 ## Environment Variable Reference
 
 All configuration can be provided via environment variables instead of constructor arguments:
@@ -211,8 +201,6 @@ configure_observability()  # Reads all credentials from the environment
 
 > **🔒 Security:** Never commit API tokens to version control. Use environment variables, a secrets manager (e.g., AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault), or a `.env` file excluded from your repository.
 
----
-
 ## Self-Hosted Langfuse
 
 For on-premises or self-hosted Langfuse deployments, set `langfuse_host` to your instance's base URL:
@@ -227,8 +215,6 @@ configure_observability(
 ```
 
 The OTLP endpoint is derived automatically as `{langfuse_host}/api/public/otel/v1/traces`.
-
----
 
 ## FastAPI Integration
 
@@ -277,28 +263,24 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(lifespan=lifespan)
 ```
 
----
-
 ## What Gets Traced
 
 PydanticAI's `Agent.instrument_all()` automatically captures the following attributes on every agent run span:
 
-| Attribute | Description |
-|---|---|
-| `gen_ai.system` | Provider identifier (`"anthropic"`, `"openai"`, `"gemini"`) |
-| `gen_ai.request.model` | Model identifier used for the request |
-| `gen_ai.usage.input_tokens` | Number of prompt tokens |
-| `gen_ai.usage.output_tokens` | Number of completion tokens |
-| `gen_ai.response.finish_reasons` | List of finish reasons from all candidates |
-| `logfire.span_type` | `"llm"` for model calls, `"tool"` for tool invocations |
-| Input messages | Full conversation history at run start |
-| Output content | The final model response text |
-| Tool calls | Name, arguments, and return value for each tool invocation |
-| Latency | Wall-clock duration of the entire `agent.run()` call |
+| Attribute                        | Description                                                 |
+| -------------------------------- | ----------------------------------------------------------- |
+| `gen_ai.system`                  | Provider identifier (`"anthropic"`, `"openai"`, `"gemini"`) |
+| `gen_ai.request.model`           | Model identifier used for the request                       |
+| `gen_ai.usage.input_tokens`      | Number of prompt tokens                                     |
+| `gen_ai.usage.output_tokens`     | Number of completion tokens                                 |
+| `gen_ai.response.finish_reasons` | List of finish reasons from all candidates                  |
+| `logfire.span_type`              | `"llm"` for model calls, `"tool"` for tool invocations      |
+| Input messages                   | Full conversation history at run start                      |
+| Output content                   | The final model response text                               |
+| Tool calls                       | Name, arguments, and return value for each tool invocation  |
+| Latency                          | Wall-clock duration of the entire `agent.run()` call        |
 
-> **📝 Note:** PydanticAI traces the agent run loop, including all LLM calls within a single `agent.run()` (there may be multiple if tools trigger follow-up calls). The individual KitKat provider calls (`service.complete()`, `service.stream()`) are not separately traced by the observability module — they appear as part of the PydanticAI span.
-
----
+> **📝 Note:** PydanticAI traces the agent run loop, including all LLM calls within a single `agent.run()` (there may be multiple if tools trigger follow-up calls). The individual Kitkat provider calls (`service.complete()`, `service.stream()`) are not separately traced by the observability module — they appear as part of the PydanticAI span.
 
 ## Checking Whether Observability Is Active
 
@@ -313,8 +295,6 @@ configured = logfire.DEFAULT_LOGFIRE_INSTANCE is not None
 ```
 
 > **💡 Tip:** In tests, omit `configure_observability()` entirely. PydanticAI still works without it — traces are simply not emitted. This keeps unit tests fast and free of external dependencies.
-
----
 
 ## Further Reading
 

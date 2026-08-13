@@ -1,20 +1,18 @@
 ---
 title: Overview
-description: KitKat's agent layer bridges the library's provider and service infrastructure into PydanticAI, giving you structured, type-safe agents with full access to multi-provider routing, BYOK, streaming, and observability, without any boilerplate.
+description: Kitkat's agent layer bridges the library's provider and service infrastructure into PydanticAI, giving you structured, type-safe agents with full access to multi-provider routing, BYOK, streaming, and observability.
 order: 1
 ---
 
-KitKat's agent layer bridges the library's provider and service infrastructure into [PydanticAI](https://ai.pydantic.dev/), giving you structured, type-safe agents with full access to multi-provider routing, BYOK, streaming, and observability, without any boilerplate.
+Kitkat's agent layer bridges the library's provider and service infrastructure into [PydanticAI](https://ai.pydantic.dev/), giving you structured, type-safe agents with full access to multi-provider routing, BYOK, streaming, and observability, without any boilerplate.
 
 This section covers the four pillars of the agent layer:
 
-| Page | What you will learn |
-|---|---|
-| [Agent Context](./context.md) | `BaseAgentContext`, `RoutingTier`, and how to extend the context for your application |
-| [Structured Outputs](./structured-outputs.md) | `build_structured_agent` with Pydantic output validation and custom validators |
-| [Tool Calling](./tools.md) | `ToolRegistry`, `@agent.tool`, and writing context-aware tools |
-
----
+| Page                                          | What you will learn                                                                   |
+| --------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [Agent Context](./context.md)                 | `BaseAgentContext`, `RoutingTier`, and how to extend the context for your application |
+| [Structured Outputs](./structured-outputs.md) | `build_structured_agent` with Pydantic output validation and custom validators        |
+| [Tool Calling](./tools.md)                    | `ToolRegistry`, `@agent.tool`, and writing context-aware tools                        |
 
 ## Installation
 
@@ -24,15 +22,13 @@ The agent layer requires the `agents` extra:
 pip install kitkat[agents]
 ```
 
-This installs `pydantic-ai` alongside KitKat's core package. Importing any symbol from `kitkat.agents` without this extra installed raises `ImportError` immediately with an actionable message.
+This installs `pydantic-ai` alongside Kitkat's core package. Importing any symbol from `kitkat.agents` without this extra installed raises `ImportError` immediately with an actionable message.
 
 For observability (Logfire + Langfuse), install the `observability` extra:
 
 ```bash
 pip install kitkat[agents,observability]
 ```
-
----
 
 ## Architecture Overview
 
@@ -50,9 +46,7 @@ kitkat.agents
     └── registry.py     ToolRegistry
 ```
 
-The central design principle is **separation of concerns**: KitKat owns the provider transport layer; PydanticAI owns the agent run loop, output validation, and tool orchestration. The two adapters (`ManagedModelAdapter`, `BYOKModelAdapter`) are the seam where the two worlds meet.
-
----
+The central design principle is **separation of concerns**: Kitkat owns the provider transport layer; PydanticAI owns the agent run loop, output validation, and tool orchestration. The two adapters (`ManagedModelAdapter`, `BYOKModelAdapter`) are the seam where the two worlds meet.
 
 ## Quick Start
 
@@ -115,8 +109,6 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
----
-
 ## The Two Adapters
 
 ### `ManagedModelAdapter`
@@ -157,8 +149,6 @@ async def handle_user_request(user_key: str, user_message: str) -> str:
 
 **Best for:** Multi-tenant SaaS products where each user provides their own API key.
 
----
-
 ## Model Settings
 
 Both adapters translate PydanticAI's `ModelSettings` into `LLMRequest` parameters. Pass settings at the agent level or override them per-run:
@@ -176,13 +166,11 @@ result = await agent.run(
 )
 ```
 
-| `ModelSettings` key | Mapped `LLMRequest` field | Default when absent |
-|---|---|---|
-| `max_tokens` | `max_tokens` | `2048` |
-| `temperature` | `temperature` | `0.1` |
-| `model` | `model` | `""` (provider default) |
-
----
+| `ModelSettings` key | Mapped `LLMRequest` field | Default when absent     |
+| ------------------- | ------------------------- | ----------------------- |
+| `max_tokens`        | `max_tokens`              | `2048`                  |
+| `temperature`       | `temperature`             | `0.1`                   |
+| `model`             | `model`                   | `""` (provider default) |
 
 ## Further Reading
 

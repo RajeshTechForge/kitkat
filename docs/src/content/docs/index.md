@@ -7,7 +7,6 @@ description: A modern & minimal Python library for talking to LLMs.
 
 A modern & minimal Python library for talking to LLMs.
 
-
 ## What is Kitkat?
 
 Kitkat gives you a **single, consistent interface** to every major LLM provider — Anthropic Claude, OpenAI GPT, and Google Gemini — with streaming, BYOK (Bring Your Own Key), extended thinking, and typed responses that work identically across every provider.
@@ -48,23 +47,21 @@ Kitkat solves this with a **thin, typed abstraction layer** that:
 - **Is built to be extended.** A clear abstract base class makes writing a custom provider or plugin straightforward, with no framework magic involved.
 - **Fails loudly and precisely.** Every failure maps to a specific, typed exception — `LLMRateLimitError`, `LLMAuthenticationError`, and so on — so your error handlers never have to parse raw strings.
 
-
 ## Key Features
 
-| Feature | Description |
-|---|---|
-| **Unified API** | One `LLMRequest` / `LLMResponse` shape for all providers |
-| **Async-first** | Built on `asyncio` and `httpx`; no hidden blocking calls |
-| **Streaming** | Token-by-token `AsyncIterator[StreamChunk]` with a strict ordering contract |
-| **Extended Thinking** | Provider-agnostic `ThinkingConfig` for Claude and o-series models |
-| **BYOK** | `BYOKLLMService` accepts per-request user API keys — ideal for multi-tenant SaaS |
-| **Smart Routing** | Failover, round-robin, least-latency, and random strategies with per-provider circuit breakers |
-| **Response Caching** | In-process LRU cache or Redis-backed caching for identical requests |
-| **Agent Layer** | PydanticAI adapters with managed and BYOK context objects |
-| **LangGraph Workflows** | Pre-built research workflow with an extensible base class |
-| **Plugin System** | Discover and load third-party extensions via Python entry points |
-| **Typed Exceptions** | Named exception classes for auth, rate limits, timeouts, token limits, and content filters |
-
+| Feature                 | Description                                                                                    |
+| ----------------------- | ---------------------------------------------------------------------------------------------- |
+| **Unified API**         | One `LLMRequest` / `LLMResponse` shape for all providers                                       |
+| **Async-first**         | Built on `asyncio` and `httpx`; no hidden blocking calls                                       |
+| **Streaming**           | Token-by-token `AsyncIterator[StreamChunk]` with a strict ordering contract                    |
+| **Extended Thinking**   | Provider-agnostic `ThinkingConfig` for Claude and o-series models                              |
+| **BYOK**                | `BYOKLLMService` accepts per-request user API keys — ideal for multi-tenant SaaS               |
+| **Smart Routing**       | Failover, round-robin, least-latency, and random strategies with per-provider circuit breakers |
+| **Response Caching**    | In-process LRU cache or Redis-backed caching for identical requests                            |
+| **Agent Layer**         | PydanticAI adapters with managed and BYOK context objects                                      |
+| **LangGraph Workflows** | Pre-built research workflow with an extensible base class                                      |
+| **Plugin System**       | Discover and load third-party extensions via Python entry points                               |
+| **Typed Exceptions**    | Named exception classes for auth, rate limits, timeouts, token limits, and content filters     |
 
 ## Architecture Overview
 
@@ -93,22 +90,20 @@ Kitkat is organized into clearly separated layers. Each layer depends only on th
 
 **Core** (`kitkat.core`) holds models, enums, and exceptions with no provider SDK dependencies — it is importable with only the mandatory dependencies installed. The **ABC** (`kitkat.abc`) defines the interface every provider must implement. **Provider implementations** (`kitkat.providers`) contain the actual SDK calls, completely isolated behind the ABC. The **service layer** (`kitkat.service`) routes requests, manages caching, and handles retry loops. The **agent** and **workflow** layers are fully optional extras layered on top.
 
-
 ## Quick Navigation
 
-| I want to… | Go to |
-|---|---|
-| Install Kitkat | [Installation](./installation.md) |
-| Run my first completion | [Quick Start](./quickstart.md) |
-| Understand the core model | [Concepts](./concepts.md) |
-| Configure a specific provider | [Providers](./providers.md) |
-| Set up routing and caching | [Routing & Cache](./routing-cache.md) |
-| Let users bring their own API key | [BYOK](./byok.md) |
-| Build agents with PydanticAI | [Agent Overview](./agents/index.md) |
-| Handle errors robustly | [Error Handling](./error-handling.md) |
-| Write a custom provider | [Custom Providers](./custom-provider.md) |
-| Browse the full API surface | [API Reference](./api-reference/core.md) |
-
+| I want to…                        | Go to                                    |
+| --------------------------------- | ---------------------------------------- |
+| Install Kitkat                    | [Installation](./installation.md)        |
+| Run my first completion           | [Quick Start](./quickstart.md)           |
+| Understand the core model         | [Concepts](./concepts.md)                |
+| Configure a specific provider     | [Providers](./providers.md)              |
+| Set up routing and caching        | [Routing & Cache](./routing-cache.md)    |
+| Let users bring their own API key | [BYOK](./byok.md)                        |
+| Build agents with PydanticAI      | [Agent Overview](./agents/index.md)      |
+| Handle errors robustly            | [Error Handling](./error-handling.md)    |
+| Write a custom provider           | [Custom Providers](./custom-provider.md) |
+| Browse the full API surface       | [API Reference](./api-reference/core.md) |
 
 ## Project Links
 
@@ -117,11 +112,9 @@ Kitkat is organized into clearly separated layers. Each layer depends only on th
 - **Changelog:** [CHANGELOG.md](https://github.com/RajeshTechForge/kitkat/blob/main/CHANGELOG.md)
 - **PyPI:** [pypi.org/project/kitkat](https://pypi.org/project/kitkat/)
 
-
 ## License
 
 MIT © 2026 [Rajesh Mondal](https://github.com/RajeshTechForge). See the [LICENSE](https://github.com/RajeshTechForge/kitkat/blob/main/LICENSE) file for the full text.
-
 
 ## Further Reading
 

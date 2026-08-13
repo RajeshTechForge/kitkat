@@ -4,10 +4,9 @@ description: Learn how to ship a custom LLM provider as a standalone Python pack
 order: 5
 ---
 
-KitKat's plugin system lets you ship a custom LLM provider as a standalone Python package and have it automatically discovered by any application that installs your package. No configuration file is required — discovery is driven by Python's standard `importlib.metadata` entry-point mechanism, the same system used by pytest plugins and setuptools extras.
+Kitkat's plugin system lets you ship a custom LLM provider as a standalone Python package and have it automatically discovered by any application that installs your package. No configuration file is required — discovery is driven by Python's standard `importlib.metadata` entry-point mechanism, the same system used by pytest plugins and setuptools extras.
 
 This page covers how discovery works, the full plugin registry API, and how to install and use third-party provider plugins.
-
 
 ## How Discovery Works
 
@@ -18,7 +17,7 @@ When `kitkat.providers` is first imported, it calls `_discover()` automatically.
 3. Registers it in the global `_REGISTRY` dictionary under the entry-point's name.
 4. Logs a warning and **skips** any entry point that fails to load or is a duplicate — a broken third-party plugin never prevents the rest of the library from working.
 
-Built-in providers are declared in KitKat's own `pyproject.toml` using the same mechanism:
+Built-in providers are declared in Kitkat's own `pyproject.toml` using the same mechanism:
 
 ```toml
 [project.entry-points."kitkat.providers"]
@@ -26,8 +25,6 @@ anthropic = "kitkat.providers.anthropic:AnthropicProvider"
 openai    = "kitkat.providers.openai:OpenAIProvider"
 gemini    = "kitkat.providers.gemini:GeminiProvider"
 ```
-
----
 
 ## Plugin Registry API
 
@@ -125,11 +122,9 @@ cls = get_provider_class("my-llm")
 
 > **⚠️ Warning:** `register_provider` raises `ValueError` on duplicate names. If you call `discover_plugins()` after a plugin is already registered (e.g., at startup), duplicate entry points are silently skipped (logged as warnings). This means it is safe to call `discover_plugins()` multiple times.
 
----
-
 ## Shipping a Plugin Package
 
-This section shows how to structure, package, and publish a third-party KitKat provider plugin.
+This section shows how to structure, package, and publish a third-party Kitkat provider plugin.
 
 ### Step 1 — Create the package structure
 
@@ -257,7 +252,7 @@ build-backend = "hatchling.build"
 [project]
 name = "kitkat-my-llm"
 version = "0.1.0"
-description = "My custom LLM provider for KitKat"
+description = "My custom LLM provider for Kitkat"
 requires-python = ">=3.10"
 dependencies = [
     "kitkat>=0.1.0",
@@ -270,7 +265,7 @@ my-llm = "kitkat_my_llm.provider:MyLLMProvider"
 #  Name         Module path : Class name
 ```
 
-The name (`my-llm`) is what users pass to `get_provider_class("my-llm")`. It must be unique across all installed KitKat provider packages.
+The name (`my-llm`) is what users pass to `get_provider_class("my-llm")`. It must be unique across all installed Kitkat provider packages.
 
 ### Step 4 — Install the plugin
 
@@ -293,8 +288,6 @@ print(list_providers())
 cls = get_provider_class("my-llm")
 provider = cls({"api_key": "my-secret-key"})
 ```
-
----
 
 ## Using a Plugin with `LLMService`
 
@@ -328,8 +321,6 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
-
----
 
 ## Using a Plugin in `LLMRouter`
 
@@ -366,8 +357,6 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
-
----
 
 ## Further Reading
 

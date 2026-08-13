@@ -1,22 +1,18 @@
 ---
 title: Tool Calling
-description: Documentation for calling tools within PydanticAI agents built with KitKat.
+description: Documentation for calling tools within PydanticAI agents built with Kitkat.
 order: 4
 ---
 
-KitKat's agent layer integrates PydanticAI's tool system natively. Tools are async functions that the LLM can invoke during an agent run. They receive the typed context object via `RunContext`, so they have full access to your application state — database sessions, user permissions, API tokens — without global variables.
+Kitkat's agent layer integrates PydanticAI's tool system natively. Tools are async functions that the LLM can invoke during an agent run. They receive the typed context object via `RunContext`, so they have full access to your application state — database sessions, user permissions, API tokens — without global variables.
 
 This page covers the `ToolRegistry` for programmatic bulk registration, the `@agent.tool` decorator for inline registration, context-aware tool patterns, the `prep` hook for dynamic tool definitions, and multi-agent tool sharing.
-
----
 
 ## Installation
 
 ```bash
 pip install kitkat[agents]
 ```
-
----
 
 ## Tool Basics
 
@@ -77,8 +73,6 @@ asyncio.run(main())
 - Remaining arguments are the tool parameters. Type annotations are required; they are used to generate the JSON schema the LLM sees.
 - Return type annotation is required. Return `str` for simple text, or any JSON-serializable type (`dict`, `list`, `int`, `float`, `bool`).
 - The docstring becomes the tool description. Write it as if you are describing the tool to the LLM — clear, specific, and action-oriented.
-
----
 
 ## `ToolRegistry`
 
@@ -162,13 +156,11 @@ print(get_weather in registry) # True
 
 ### `@registry.tool` parameters
 
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `name` | `str \| None` | `None` | Override the tool name exposed to the LLM. When `None`, the function name is used. |
-| `description` | `str \| None` | `None` | Override the tool description. When `None`, the function docstring is used. |
-| `prep` | `bool` | `False` | When `True`, registers the tool with `prepare=True` in PydanticAI v2.x, enabling the tool preparation hook for dynamic tool definitions. See [Prep Tools](#prep-tools-dynamic-tool-definitions). |
-
----
+| Parameter     | Type          | Default | Description                                                                                                                                                                                      |
+| ------------- | ------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `name`        | `str \| None` | `None`  | Override the tool name exposed to the LLM. When `None`, the function name is used.                                                                                                               |
+| `description` | `str \| None` | `None`  | Override the tool description. When `None`, the function docstring is used.                                                                                                                      |
+| `prep`        | `bool`        | `False` | When `True`, registers the tool with `prepare=True` in PydanticAI v2.x, enabling the tool preparation hook for dynamic tool definitions. See [Prep Tools](#prep-tools-dynamic-tool-definitions). |
 
 ## Context-Aware Tools
 
@@ -226,8 +218,6 @@ async def check_topic_permission(
     return f"Access denied: topic {topic!r} is not in the allowed topics list."
 ```
 
----
-
 ## Tools with Structured Return Types
 
 Tools can return any JSON-serializable type. For complex tool output, return a `dict` or a Pydantic model. PydanticAI serializes the return value and passes it back to the LLM as a tool result.
@@ -276,8 +266,6 @@ async def lookup_product(
     return product.model_dump()
 ```
 
----
-
 ## Error Handling in Tools
 
 When a tool raises an exception, PydanticAI surfaces it as a tool error to the LLM. Raise `ModelRetry` to give the model a chance to correct the parameters and try again. For unrecoverable errors, raise any other exception to abort the agent run.
@@ -300,8 +288,6 @@ async def divide(
         raise ModelRetry("Division by zero is not allowed. Please provide a non-zero denominator.")
     return numerator / denominator
 ```
-
----
 
 ## Prep Tools: Dynamic Tool Definitions
 
@@ -336,8 +322,6 @@ async def _admin_reset_cache_impl(ctx: RunContext[UserContext]) -> str:
 ```
 
 > **📝 Note:** The `prep` flag maps to PydanticAI v2.x's `prepare` parameter in `agent.tool()`. The exact signature of the prep function may differ between pydantic-ai versions — check your installed version's documentation if you encounter signature errors.
-
----
 
 ## Complete Example: Multi-Tool Agent
 
@@ -456,8 +440,6 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
-
----
 
 ## Further Reading
 

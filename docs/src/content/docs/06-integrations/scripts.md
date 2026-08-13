@@ -1,22 +1,19 @@
 ---
 title: CLI Scripts & Batch Processing
-description: Learn how to use KitKat in command-line interface (CLI) applications, interactive terminal REPLs, high-throughput batch processing scripts, and automated background jobs.
+description: Learn how to use Kitkat in command-line interface (CLI) applications, interactive terminal REPLs, high-throughput batch processing scripts, and automated background jobs.
 order: 2
 ---
 
-This page is the complete reference for using KitKat in command-line interface (CLI) applications, interactive terminal REPLs, high-throughput batch processing scripts, and automated background jobs.
-
+This page is the complete reference for using Kitkat in command-line interface (CLI) applications, interactive terminal REPLs, high-throughput batch processing scripts, and automated background jobs.
 
 ## Overview
 
-KitKat's architecture supports both asynchronous (`asyncio`) and synchronous script execution models:
+Kitkat's architecture supports both asynchronous (`asyncio`) and synchronous script execution models:
 
 - **Async Script Pattern**: Ideal for high-throughput batch processing, interactive streaming REPLs, and concurrent multi-provider tasks.
 - **Synchronous Execution (`run_sync`)**: Use `provider.run_sync(request)` or `service.run_sync(request, provider_type)` for quick one-off CLI scripts, legacy synchronous toolchains, or `click`/`argparse` commands.
 - **Concurrency Throttling**: Use `asyncio.Semaphore` alongside `LLMService` retry logic to process thousands of prompts without exceeding provider rate limits or memory constraints.
 - **Graceful Termination**: Intercept `SIGINT` (Ctrl+C) and `SIGTERM` signals to cleanly shutdown HTTP connection pools before exiting scripts.
-
----
 
 ## Synchronous Execution with `run_sync()`
 
@@ -58,8 +55,6 @@ if __name__ == "__main__":
 
 > **📝 Note:** `run_sync()` automatically initializes the provider if it is not already initialized and cleans up connection resources after execution completes.
 
----
-
 ## Building a CLI Tool with `argparse`
 
 This import-complete script demonstrates a versatile command-line utility accepting arguments for provider, model, prompt text, system prompt, temperature, and max tokens.
@@ -79,7 +74,7 @@ from kitkat.providers.gemini import GeminiProvider, GeminiConfig
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="KitKat CLI: Unified LLM Command-Line Tool",
+        description="Kitkat CLI: Unified LLM Command-Line Tool",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("prompt", type=str, help="Prompt string or query for the model")
@@ -157,8 +152,6 @@ if __name__ == "__main__":
     main()
 ```
 
----
-
 ## Interactive Terminal REPL Chat
 
 Build an interactive multi-turn terminal chat session with token tracking, slash commands (`/clear`, `/provider`, `/help`, `/quit`), and real-time streaming output.
@@ -200,7 +193,7 @@ class ChatREPL:
         print("  /quit or /exit    Exit the chat session\n")
 
     async def run(self) -> None:
-        print(f"{BOLD}{GREEN}=== KitKat Interactive Terminal Chat ==={RESET}")
+        print(f"{BOLD}{GREEN}=== Kitkat Interactive Terminal Chat ==={RESET}")
         print(f"Active Provider: {BOLD}{self.active_provider.value}{RESET}. Type '/help' for commands.")
 
         while True:
@@ -289,8 +282,6 @@ async def main() -> None:
 if __name__ == "__main__":
     asyncio.run(main())
 ```
-
----
 
 ## High-Throughput Batch Processing Script
 
@@ -406,8 +397,6 @@ if __name__ == "__main__":
     asyncio.run(run_batch())
 ```
 
----
-
 ## Scheduled Automation & Signal Handling
 
 For automated cron jobs, systemd timers, or daemonized workers, handle `SIGINT` and `SIGTERM` signals cleanly to avoid leaving dangling HTTP sockets or corrupted state files.
@@ -494,11 +483,9 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
----
-
 ## Further Reading
 
-- [FastAPI Integration](./fastapi.md) — Integrating KitKat into web APIs
+- [FastAPI Integration](./fastapi.md) — Integrating Kitkat into web APIs
 - [Error Handling](./error-handling.md) — Handling `LLMRateLimitError` and `LLMTimeoutError`
 - [Providers Overview](./providers.md) — Service-layer configuration and models
 - [BYOK Guide](./byok.md) — Command-line tools with user-supplied API keys

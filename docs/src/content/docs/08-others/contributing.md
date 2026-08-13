@@ -16,7 +16,7 @@ You can contribute to **Kitkat** in many ways:
 - Submitting bug reports or feature requests
 - Improving documentation
 - Reviewing pull requests
--️ Contributing code or tests
+  -️ Contributing code or tests
 - Helping other users
 
 ## Issue Labels

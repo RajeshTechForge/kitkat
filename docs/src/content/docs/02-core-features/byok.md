@@ -6,7 +6,6 @@ order: 3
 
 This page explains the BYOK (Bring Your Own Key) service path: what it is, how it works, when to use it, how to configure it, and the security model that governs it.
 
-
 ## What is BYOK?
 
 In the managed service path, API keys live on your server and are shared across all requests. In the BYOK path, each request carries the **end user's own provider API key**. Your server never holds a shared key; users connect their own LLM accounts.
@@ -17,8 +16,6 @@ BYOK is the right architecture when:
 - You want to avoid accumulating provider spend on behalf of users.
 - Your product's value is the experience around LLM calls, not the LLM access itself.
 - You need to guarantee that one user's key can never be used to serve another user's request.
-
----
 
 ## `BYOKLLMService`
 
@@ -69,8 +66,6 @@ BYOKLLMService(
 
 All three arguments are required. Config validation (empty `api_key`, unsupported `provider_type`) raises `LLMProviderInitError` at construction time, before any network calls are made.
 
----
-
 ## Initialization: No Credential Probe
 
 A key design decision: `BYOKLLMService.__aenter__` calls `_init_client_only()` rather than the full `initialize()`. This means:
@@ -79,8 +74,6 @@ A key design decision: `BYOKLLMService.__aenter__` calls `_init_client_only()` r
 - **Authentication failures surface on the first `complete()` or `stream()` call** as `LLMAuthenticationError`, not at context entry.
 
 **Why?** In a BYOK application, thousands of users may open sessions every minute. A preflight probe per session would double the API calls and double the latency for session setup. By skipping the probe, `__aenter__` completes in microseconds and the auth check happens exactly when the user's first request is dispatched.
-
----
 
 ## Complete (non-streaming)
 
@@ -102,8 +95,6 @@ async with BYOKLLMService(ProviderType.ANTHROPIC, user_key, "claude-opus-4-5") a
 
 `complete()` applies the same exponential back-off retry policy as the managed path (`RetryPolicy` with `max_attempts=3` by default).
 
----
-
 ## Stream (token-by-token)
 
 ```python
@@ -121,8 +112,6 @@ async with BYOKLLMService(ProviderType.GEMINI, user_key, "gemini-3-flash-preview
 ```
 
 > **⚠️ Warning:** You must consume the stream **inside** the `async with` block. `__aexit__` destroys the provider client, so iterating after exit will encounter a closed HTTP connection. The same applies to `asyncio.create_task` — the task must complete before the context manager exits.
-
----
 
 ## Error Handling in BYOK
 
@@ -170,8 +159,6 @@ async def safe_byok_complete(
     except LLMError as exc:
         return {"status": "error", "code": exc.status_code, "message": exc.message}
 ```
-
----
 
 ## Using BYOK in a FastAPI Route
 
@@ -240,39 +227,33 @@ async def complete(
     }
 ```
 
----
-
 ## Supported Providers
 
 `BYOKLLMService` supports all three built-in providers:
 
-| `provider_type` | Required extra | Key environment variable |
-|---|---|---|
-| `ProviderType.ANTHROPIC` | `kitkat[anthropic]` | `ANTHROPIC_API_KEY` |
-| `ProviderType.OPENAI` | `kitkat[openai]` | `OPENAI_API_KEY` |
-| `ProviderType.GEMINI` | `kitkat[gemini]` | `GOOGLE_API_KEY` |
+| `provider_type`          | Required extra      | Key environment variable |
+| ------------------------ | ------------------- | ------------------------ |
+| `ProviderType.ANTHROPIC` | `kitkat[anthropic]` | `ANTHROPIC_API_KEY`      |
+| `ProviderType.OPENAI`    | `kitkat[openai]`    | `OPENAI_API_KEY`         |
+| `ProviderType.GEMINI`    | `kitkat[gemini]`    | `GOOGLE_API_KEY`         |
 
 Passing an unrecognized `provider_type` raises `LLMProviderError` at construction time.
 
 > **📝 Note:** `BYOKLLMService` does not support Vertex AI mode for the Gemini provider. Vertex AI uses Application Default Credentials (ADC) rather than a user-supplied API key, which is incompatible with the BYOK model. Use the managed service path with `GeminiConfig(vertexai=True)` for Vertex AI.
 
----
-
 ## BYOK vs Managed: Decision Guide
 
-| Concern | Managed (`LLMService`) | BYOK (`BYOKLLMService`) |
-|---|---|---|
-| API key owner | Your server | End user |
-| Shared credentials | Yes | No |
-| Provider billing | Your account | User's account |
-| Persistent connection pool | Yes (long-lived) | No (per-request) |
-| Credential probe at startup | Yes | No (deferred) |
-| Routing / caching | Yes (via `LLMRouter`) | No |
-| Token counting | Via `service.count_tokens()` | Not available |
-| Health checks | Via `service.health_check_all()` | Not available |
-| Best for | Internal services, batch jobs | Multi-tenant SaaS, user-owned keys |
-
----
+| Concern                     | Managed (`LLMService`)           | BYOK (`BYOKLLMService`)            |
+| --------------------------- | -------------------------------- | ---------------------------------- |
+| API key owner               | Your server                      | End user                           |
+| Shared credentials          | Yes                              | No                                 |
+| Provider billing            | Your account                     | User's account                     |
+| Persistent connection pool  | Yes (long-lived)                 | No (per-request)                   |
+| Credential probe at startup | Yes                              | No (deferred)                      |
+| Routing / caching           | Yes (via `LLMRouter`)            | No                                 |
+| Token counting              | Via `service.count_tokens()`     | Not available                      |
+| Health checks               | Via `service.health_check_all()` | Not available                      |
+| Best for                    | Internal services, batch jobs    | Multi-tenant SaaS, user-owned keys |
 
 ## Security Model
 
@@ -282,8 +263,6 @@ Passing an unrecognized `provider_type` raises `LLMProviderError` at constructio
 - **No shared state.** `BYOKLLMService` does not attach to any global router or cache. Responses are returned directly to the caller without being stored anywhere.
 
 > **🔒 Security:** Always transmit user API keys over HTTPS and never log the `X-API-Key` header or the `api_key` parameter. Consider using a secrets vault or encrypted field to store user keys at rest if your application needs to persist them.
-
----
 
 ## Further Reading
 

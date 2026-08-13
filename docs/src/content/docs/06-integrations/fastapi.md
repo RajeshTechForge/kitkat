@@ -1,16 +1,14 @@
 ---
 title: FastAPI Integration Guide
-description: Learn how to integrate KitKat into FastAPI web applications, including lifecycle management, dependency injection, streaming, error handling, and BYOK endpoints.
+description: Learn how to integrate Kitkat into FastAPI web applications, including lifecycle management, dependency injection, streaming, error handling, and BYOK endpoints.
 order: 1
 ---
 
-This page is the complete guide to integrating KitKat into [FastAPI](https://fastapi.tiangolo.com/) web applications. It covers application lifecycle management with lifespan context managers, dependency injection, managed and BYOK endpoints, Server-Sent Events (SSE) streaming, exception handling middleware, health check routes, and structured output integration.
-
----
+This page is the complete guide to integrating Kitkat into [FastAPI](https://fastapi.tiangolo.com/) web applications. It covers application lifecycle management with lifespan context managers, dependency injection, managed and BYOK endpoints, Server-Sent Events (SSE) streaming, exception handling middleware, health check routes, and structured output integration.
 
 ## Overview
 
-When building web applications with KitKat and FastAPI:
+When building web applications with Kitkat and FastAPI:
 
 - **Lifecycle Management**: Initialize long-lived `LLMService` or `LLMRouter` instances in the FastAPI lifespan handler so connection pools are opened at application startup and closed gracefully on shutdown.
 - **Dependency Injection**: Use FastAPI's `Depends` system to inject configured services into route functions.
@@ -18,15 +16,11 @@ When building web applications with KitKat and FastAPI:
 - **Streaming**: Use FastAPI's `StreamingResponse` with `service.stream()` to push Server-Sent Events (SSE) to frontend clients token-by-token.
 - **BYOK Isolation**: Isolate per-request user API keys in dedicated route handlers using `BYOKLLMService`.
 
----
-
 ## Installation
 
 ```bash
 pip install kitkat[all-providers,agents] fastapi uvicorn
 ```
-
----
 
 ## Application Lifespan & Service Setup
 
@@ -75,13 +69,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(
-    title="KitKat Powered AI API",
+    title="Kitkat Powered AI API",
     version="1.0.0",
     lifespan=lifespan,
 )
 ```
-
----
 
 ## Dependency Injection
 
@@ -100,11 +92,9 @@ def get_llm_service(request: Request) -> LLMService:
     return service
 ```
 
----
-
 ## Global Error Handling Middleware
 
-Register a custom exception handler for `LLMError`. This converts all KitKat exceptions into standardized JSON responses with proper HTTP status codes and headers.
+Register a custom exception handler for `LLMError`. This converts all Kitkat exceptions into standardized JSON responses with proper HTTP status codes and headers.
 
 ```python
 from fastapi import FastAPI, Request
@@ -165,8 +155,6 @@ def register_exception_handlers(app: FastAPI) -> None:
 ```
 
 > **🔒 Security:** Never expose internal API keys or detailed provider tracebacks to web callers in `LLMAuthenticationError` responses. Map 401 errors to generic message strings as shown above.
-
----
 
 ## Endpoint 1: Managed Completions (Non-Streaming)
 
@@ -236,8 +224,6 @@ async def create_chat_completion(
         latency_ms=response.latency_ms,
     )
 ```
-
----
 
 ## Endpoint 2: Server-Sent Events (SSE) Streaming
 
@@ -319,8 +305,6 @@ async def stream_chat_completion(
     )
 ```
 
----
-
 ## Endpoint 3: BYOK (Bring Your Own Key) Route
 
 Multi-tenant SaaS platforms allow end users to provide their own provider API keys. Extract the user's API key from the `X-API-Key` HTTP header and scope the request inside an `async with BYOKLLMService(...)` block.
@@ -378,13 +362,11 @@ async def byok_completion(
 
 > **🚀 Performance:** `BYOKLLMService` skips credential probing during initialization, allowing context setup to finish in microseconds. Authentication validation occurs on the completion request itself.
 
----
-
 ## Endpoint 4: Agent & Structured Output Integration
 
-Integrate KitKat agent builders (`build_structured_agent`) into FastAPI routes to return validated Pydantic models.
+Integrate Kitkat agent builders (`build_structured_agent`) into FastAPI routes to return validated Pydantic models.
 
-```python
+````python
 from dataclasses import dataclass
 from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel, Field
@@ -452,9 +434,7 @@ async def review_code(
 
     output: CodeReviewResult = result.data
     return output
-```
-
----
+````
 
 ## Health Check & Monitoring Route
 
@@ -484,8 +464,6 @@ async def health_check(
         },
     )
 ```
-
----
 
 ## Complete Working FastAPI Application Example
 
@@ -538,7 +516,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await service.shutdown()
 
 
-app = FastAPI(title="KitKat Production API", lifespan=lifespan)
+app = FastAPI(title="Kitkat Production API", lifespan=lifespan)
 
 
 # ── 2. Dependency ─────────────────────────────────────────────────────────
@@ -586,8 +564,6 @@ async def health(service: LLMService = Depends(get_llm_service)) -> dict:
     return {"status": "healthy"}
 ```
 
----
-
 ## Production Deployment & Best Practices
 
 1. **Uvicorn / Gunicorn Command**:
@@ -597,8 +573,6 @@ async def health(service: LLMService = Depends(get_llm_service)) -> dict:
 2. **Connection Pooling**: Re-use the `LLMService` stored in `app.state`. Creating a new `LLMService` per HTTP request causes severe socket exhaustion.
 3. **Graceful Shutdown**: Always allow active requests to finish during deployments by configuring `--timeout-graceful-shutdown 30` in Uvicorn.
 4. **SSE Headers**: When serving streaming responses through proxies like NGINX or Cloudflare, ensure response headers include `X-Accel-Buffering: no` to prevent proxy buffering.
-
----
 
 ## Further Reading
 

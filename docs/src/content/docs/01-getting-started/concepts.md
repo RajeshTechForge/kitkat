@@ -1,16 +1,14 @@
 ---
 title: Concepts
-description: The fundamental building blocks of KitKat, including request/response types, service paths, and provider capabilities.
+description: The fundamental building blocks of Kitkat, including request/response types, service paths, and provider capabilities.
 order: 3
 ---
 
-This page explains the fundamental building blocks of KitKat: what each type is, why it exists, and how the pieces fit together at runtime. Reading this page is not required to follow the Quick Start, but it will make every other page in the documentation much easier to understand.
-
----
+This page explains the fundamental building blocks of Kitkat: what each type is, why it exists, and how the pieces fit together at runtime. Reading this page is not required to follow the Quick Start, but it will make every other page in the documentation much easier to understand.
 
 ## The Two Service Paths
 
-Every KitKat application uses one of two service paths. Understanding the distinction upfront prevents confusion when choosing which classes to instantiate.
+Every Kitkat application uses one of two service paths. Understanding the distinction upfront prevents confusion when choosing which classes to instantiate.
 
 ### Managed path
 
@@ -22,6 +20,7 @@ Your code
 ```
 
 Use the managed path when:
+
 - Your application calls LLMs on behalf of the user using your own API account.
 - You want centralized rate-limit handling, caching, and routing.
 
@@ -35,10 +34,9 @@ User request + user API key
 ```
 
 Use the BYOK path when:
+
 - You are building a multi-tenant SaaS product where users connect their own LLM accounts.
 - You must never store or share a user's API key beyond the request boundary.
-
----
 
 ## Core Types
 
@@ -48,10 +46,10 @@ This section covers every type exported from the top-level `kitkat` namespace. A
 
 `Role` is a `StrEnum` that identifies the participant in a conversation turn. It has exactly three values:
 
-| Value | String | Meaning |
-|---|---|---|
-| `Role.SYSTEM` | `"system"` | Instructions that condition the model's behaviour for the entire conversation |
-| `Role.USER` | `"user"` | A message from the human participant |
+| Value            | String        | Meaning                                                                       |
+| ---------------- | ------------- | ----------------------------------------------------------------------------- |
+| `Role.SYSTEM`    | `"system"`    | Instructions that condition the model's behaviour for the entire conversation |
+| `Role.USER`      | `"user"`      | A message from the human participant                                          |
 | `Role.ASSISTANT` | `"assistant"` | A message from the model (used when replying with prior conversation history) |
 
 ```python
@@ -64,8 +62,6 @@ assert Role.ASSISTANT == "assistant"
 ```
 
 `Role` has no dependencies and is importable without any extras installed.
-
----
 
 ### `Message`
 
@@ -80,10 +76,10 @@ user_msg   = Message(role=Role.USER,   content="What is the capital of France?")
 
 **Fields:**
 
-| Field | Type | Description |
-|---|---|---|
-| `role` | `Role` | The participant role for this message |
-| `content` | `str` | The text content of the message |
+| Field     | Type   | Description                           |
+| --------- | ------ | ------------------------------------- |
+| `role`    | `Role` | The participant role for this message |
+| `content` | `str`  | The text content of the message       |
 
 **Methods:**
 
@@ -95,8 +91,6 @@ user_msg.to_dict()
 ```
 
 > **📝 Note:** `Message` is frozen (`frozen=True`), which means its fields cannot be changed after construction and the object is hashable. This ensures that message lists passed to `LLMRequest` cannot be mutated by accident.
-
----
 
 ### `LLMRequest`
 
@@ -134,8 +128,6 @@ request = LLMRequest(
 - `timeout=30.0` — A 30-second ceiling prevents indefinitely stalled requests from blocking event-loop tasks.
 - `model=""` — An empty string signals "use the provider's default model", which each provider implementation resolves.
 
----
-
 ### `ThinkingConfig`
 
 `ThinkingConfig` is a frozen dataclass that enables and configures extended reasoning for providers that support it (currently Anthropic Claude and OpenAI o-series models).
@@ -154,15 +146,13 @@ request = LLMRequest(
 
 **Fields:**
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `enabled` | `bool` | `False` | Whether to activate extended reasoning for this request |
-| `effort` | `str \| None` | `None` | Normalized effort level. Providers map this to their native vocabulary. `None` defers to the provider's default effort |
-| `provider_options` | `dict[str, str \| int \| None] \| None` | `None` | Raw provider-specific overrides. When set, takes precedence over `effort` |
+| Field              | Type                                    | Default | Description                                                                                                            |
+| ------------------ | --------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `enabled`          | `bool`                                  | `False` | Whether to activate extended reasoning for this request                                                                |
+| `effort`           | `str \| None`                           | `None`  | Normalized effort level. Providers map this to their native vocabulary. `None` defers to the provider's default effort |
+| `provider_options` | `dict[str, str \| int \| None] \| None` | `None`  | Raw provider-specific overrides. When set, takes precedence over `effort`                                              |
 
 > **📝 Note:** When both `effort` and `provider_options` are set, `provider_options` takes precedence. Use `provider_options` only when you need settings that the normalized `effort` field cannot express.
-
----
 
 ### `LLMResponse`
 
@@ -185,22 +175,20 @@ print(response.was_truncated)     # True if finish_reason == FinishReason.LENGTH
 
 **Fields:**
 
-| Field | Type | Description |
-|---|---|---|
-| `content` | `str` | The model's answer text |
-| `finish_reason` | `FinishReason` | Why the model stopped generating |
-| `usage` | `TokenUsage` | Token counts for the request |
-| `model` | `str` | Model identifier as reported by the provider |
-| `provider` | `ProviderType` | Which provider fulfilled the request |
-| `thinking_content` | `str` | Extended-reasoning trace; `""` when thinking was disabled |
-| `latency_ms` | `float` | Wall-clock request duration in milliseconds |
-| `raw_response` | `Any` | Unmodified SDK response object; excluded from `repr()` |
+| Field              | Type           | Description                                               |
+| ------------------ | -------------- | --------------------------------------------------------- |
+| `content`          | `str`          | The model's answer text                                   |
+| `finish_reason`    | `FinishReason` | Why the model stopped generating                          |
+| `usage`            | `TokenUsage`   | Token counts for the request                              |
+| `model`            | `str`          | Model identifier as reported by the provider              |
+| `provider`         | `ProviderType` | Which provider fulfilled the request                      |
+| `thinking_content` | `str`          | Extended-reasoning trace; `""` when thinking was disabled |
+| `latency_ms`       | `float`        | Wall-clock request duration in milliseconds               |
+| `raw_response`     | `Any`          | Unmodified SDK response object; excluded from `repr()`    |
 
 **Properties:**
 
 `was_truncated -> bool` — Returns `True` when `finish_reason` is `FinishReason.LENGTH`, indicating the output was cut short by the `max_tokens` limit.
-
----
 
 ### `StreamChunk`
 
@@ -220,12 +208,11 @@ async for chunk in service.stream(request, ProviderType.ANTHROPIC):
 ```
 
 **Ordering contract:**
+
 1. All thinking chunks (`is_thinking=True`) are emitted first.
 2. Answer chunks (`is_thinking=False`) follow.
 3. The transition from thinking to answer is one-way and never interleaved.
 4. The very last chunk always has `is_final=True` and `is_thinking=False`.
-
----
 
 ### `TokenUsage`
 
@@ -248,8 +235,6 @@ print(total.total_tokens)  # 308
 ```
 
 > **📝 Note:** `completion_tokens` counts answer tokens only. It excludes thinking tokens even when extended reasoning is enabled. `total_tokens` always equals `prompt_tokens + completion_tokens + thinking_tokens`.
-
----
 
 ### `RetryPolicy`
 
@@ -275,8 +260,6 @@ delay = min(base_delay_s × exponential_base^n, max_delay_s)
 ```
 
 The default retryable HTTP status codes are: `408`, `429`, `500`, `502`, `503`, `504`. Errors with other status codes (e.g. `401`, `400`) are not retried.
-
----
 
 ### `ProviderCapabilities`
 
@@ -305,68 +288,64 @@ if caps.supports_streaming:
         ...
 ```
 
----
-
 ## Enums Reference
 
-KitKat uses `StrEnum` throughout. All enum values are plain strings, so they serialize cleanly to JSON and compare equal to their string equivalents.
+Kitkat uses `StrEnum` throughout. All enum values are plain strings, so they serialize cleanly to JSON and compare equal to their string equivalents.
 
 ### `ProviderType`
 
-| Member | Value | Meaning |
-|---|---|---|
-| `ANTHROPIC` | `"anthropic"` | Anthropic Claude models |
-| `OPENAI` | `"openai"` | OpenAI GPT models and OpenAI-compatible endpoints |
-| `GEMINI` | `"gemini"` | Google Gemini models and Vertex AI |
+| Member      | Value         | Meaning                                           |
+| ----------- | ------------- | ------------------------------------------------- |
+| `ANTHROPIC` | `"anthropic"` | Anthropic Claude models                           |
+| `OPENAI`    | `"openai"`    | OpenAI GPT models and OpenAI-compatible endpoints |
+| `GEMINI`    | `"gemini"`    | Google Gemini models and Vertex AI                |
 
 ### `FinishReason`
 
-| Member | Value | Meaning |
-|---|---|---|
-| `STOP` | `"stop"` | Model reached a natural stopping point |
-| `LENGTH` | `"length"` | Output was truncated by `max_tokens` |
-| `TOOL_CALL` | `"tool_call"` | Model is requesting a tool execution |
-| `CONTENT_FILTER` | `"content_filter"` | Response was blocked by a safety filter |
-| `ERROR` | `"error"` | Provider-side generation failure |
-| `UNKNOWN` | `"unknown"` | Fallback for unmapped or unexpected values |
+| Member           | Value              | Meaning                                    |
+| ---------------- | ------------------ | ------------------------------------------ |
+| `STOP`           | `"stop"`           | Model reached a natural stopping point     |
+| `LENGTH`         | `"length"`         | Output was truncated by `max_tokens`       |
+| `TOOL_CALL`      | `"tool_call"`      | Model is requesting a tool execution       |
+| `CONTENT_FILTER` | `"content_filter"` | Response was blocked by a safety filter    |
+| `ERROR`          | `"error"`          | Provider-side generation failure           |
+| `UNKNOWN`        | `"unknown"`        | Fallback for unmapped or unexpected values |
 
 ### `RoutingStrategy`
 
-| Member | Value | Meaning |
-|---|---|---|
-| `FAILOVER` | `"failover"` | Always try providers in priority order; advance only on error |
-| `ROUND_ROBIN` | `"round_robin"` | Cycle through healthy providers in insertion order |
-| `LEAST_LATENCY` | `"least_latency"` | Pick the provider with the lowest average response latency |
-| `RANDOM` | `"random"` | Uniformly random selection from the healthy provider pool |
+| Member          | Value             | Meaning                                                       |
+| --------------- | ----------------- | ------------------------------------------------------------- |
+| `FAILOVER`      | `"failover"`      | Always try providers in priority order; advance only on error |
+| `ROUND_ROBIN`   | `"round_robin"`   | Cycle through healthy providers in insertion order            |
+| `LEAST_LATENCY` | `"least_latency"` | Pick the provider with the lowest average response latency    |
+| `RANDOM`        | `"random"`        | Uniformly random selection from the healthy provider pool     |
 
 ### `CircuitState`
 
-| Member | Value | Meaning |
-|---|---|---|
-| `CLOSED` | `"CLOSED"` | Normal operation — requests are forwarded |
-| `OPEN` | `"OPEN"` | Provider is considered unhealthy; requests are blocked |
+| Member      | Value         | Meaning                                                          |
+| ----------- | ------------- | ---------------------------------------------------------------- |
+| `CLOSED`    | `"CLOSED"`    | Normal operation — requests are forwarded                        |
+| `OPEN`      | `"OPEN"`      | Provider is considered unhealthy; requests are blocked           |
 | `HALF_OPEN` | `"HALF_OPEN"` | One test probe is allowed to check if the provider has recovered |
 
 ### `CacheBackendType`
 
-| Member | Value | Meaning |
-|---|---|---|
-| `MEMORY` | `"memory"` | In-process LRU cache — suitable for single-process deployments |
-| `REDIS` | `"redis"` | Async Redis — suitable for multi-process or multi-instance deployments |
+| Member   | Value      | Meaning                                                                |
+| -------- | ---------- | ---------------------------------------------------------------------- |
+| `MEMORY` | `"memory"` | In-process LRU cache — suitable for single-process deployments         |
+| `REDIS`  | `"redis"`  | Async Redis — suitable for multi-process or multi-instance deployments |
 
 ### `RoutingTier`
 
-| Member | Value | Meaning |
-|---|---|---|
-| `MANAGED` | `"managed"` | Agent uses the managed service path with server-side API keys |
-| `BYOK` | `"byok"` | Agent uses `BYOKLLMService` with a per-request user-supplied key |
-| `ENTERPRISE` | `"enterprise"` | Managed path with a priority queue (reserved for future use) |
-
----
+| Member       | Value          | Meaning                                                          |
+| ------------ | -------------- | ---------------------------------------------------------------- |
+| `MANAGED`    | `"managed"`    | Agent uses the managed service path with server-side API keys    |
+| `BYOK`       | `"byok"`       | Agent uses `BYOKLLMService` with a per-request user-supplied key |
+| `ENTERPRISE` | `"enterprise"` | Managed path with a priority queue (reserved for future use)     |
 
 ## Exception Hierarchy
 
-All KitKat exceptions inherit from a single base so you can write catch-all handlers or narrow handlers as needed.
+All Kitkat exceptions inherit from a single base so you can write catch-all handlers or narrow handlers as needed.
 
 ```
 KitkatError
@@ -382,13 +361,11 @@ KitkatError
 
 Every exception carries `.message`, `.status_code`, and `.provider` attributes. Some subclasses carry additional fields:
 
-| Exception | Extra fields |
-|---|---|
-| `LLMRateLimitError` | `retry_after_s: float \| None` — seconds to wait, if provided by the API |
-| `LLMTimeoutError` | `elapsed_s: float \| None` — how long the request ran before timing out |
-| `LLMTokenLimitError` | `token_count: int \| None`, `context_limit: int \| None` |
-
----
+| Exception            | Extra fields                                                             |
+| -------------------- | ------------------------------------------------------------------------ |
+| `LLMRateLimitError`  | `retry_after_s: float \| None` — seconds to wait, if provided by the API |
+| `LLMTimeoutError`    | `elapsed_s: float \| None` — how long the request ran before timing out  |
+| `LLMTokenLimitError` | `token_count: int \| None`, `context_limit: int \| None`                 |
 
 ## The Request / Response Lifecycle
 
@@ -414,8 +391,6 @@ Here is the complete path a request takes from your code to the LLM API and back
 ```
 
 For streaming, step 6 returns an `AsyncIterator[StreamChunk]` instead of a single `LLMResponse`. The caller pulls from that iterator token by token.
-
----
 
 ## Further Reading
 
