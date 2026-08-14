@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -53,7 +53,7 @@ class ThinkingConfig:
     """
 
     enabled: bool = False
-    effort: str | None = None
+    effort: Literal["low", "medium", "high"] | None = None
     provider_options: dict[str, str | int | None] | None = None
 
 

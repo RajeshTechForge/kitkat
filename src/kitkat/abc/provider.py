@@ -220,11 +220,8 @@ class LLMProvider(ABC):
             LLMTokenLimitError: If the context window is exceeded.
             LLMProviderError: On any other streaming error.
         """
-        # The ``yield`` below satisfies the type-checker's requirement that an
-        # ``@abstractmethod`` decorated as ``AsyncIterator`` is a generator.
-        # Concrete providers should replace the entire body.
-        raise NotImplementedError  # pragma: no cover
-        yield  # type: ignore[misc]  # makes this an async generator
+        raise NotImplementedError
+        yield
 
     # -- Health & introspection (abstract) --------------------------------
 
@@ -284,7 +281,7 @@ class LLMProvider(ABC):
 
     def _build_base_response_kwargs(
         self,
-        request: LLMRequest,  # noqa: ARG002  (kept for API compatibility)
+        request: LLMRequest,  # kept for API compatibility
         start_time: float,
     ) -> dict[str, Any]:
         """Build common tracing fields for every response.
@@ -326,7 +323,7 @@ class LLMProvider(ABC):
             LLMRateLimitError: If all rate-limit retries are exhausted.
             LLMProviderError: On unrecoverable provider errors.
         """
-        p = policy or getattr(self, "RETRY_POLICY", RetryPolicy())
+        p = policy or self.RETRY_POLICY
         return await execute_with_retry(
             func=lambda: self.complete(request),
             policy=p,

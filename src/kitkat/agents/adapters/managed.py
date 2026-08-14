@@ -111,11 +111,15 @@ def _to_llm_request(
                     Message(role=Role.USER, content=f"[tool_result:{part.tool_name}] {result}")
                 )
 
+    model_val = settings.get("model") if settings else None
+    max_tokens_val = settings.get("max_tokens") if settings else None
+    temp_val = settings.get("temperature") if settings else None
+
     return LLMRequest(
         messages=domain_messages,
-        model=settings.get("model", "") if settings else "",  # type: ignore[typeddict-item]
-        max_tokens=settings.get("max_tokens", 2048) if settings else 2048,  # type: ignore[typeddict-item]
-        temperature=settings.get("temperature", 0.1) if settings else 0.1,  # type: ignore[typeddict-item]
+        model=model_val if isinstance(model_val, str) else "",
+        max_tokens=max_tokens_val if isinstance(max_tokens_val, int) else 2048,
+        temperature=float(temp_val) if isinstance(temp_val, (int, float)) else 0.1,
         stream=stream,
     )
 

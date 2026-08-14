@@ -1,7 +1,7 @@
 """Shared token-counting utilities.
 
 Provides a tiktoken-based counter with a conservative character-ratio
-fallback for models not yet supported by tiktoken (e.g. Gemini variants).
+fallback for models not yet supported by tiktoken.
 
 All provider ``count_tokens()`` implementations should delegate here so the
 behaviour is consistent across the library.
@@ -10,19 +10,19 @@ behaviour is consistent across the library.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# Conservative approximation: 4 chars ≈ 1 token (valid for most Latin-script
-# text with GPT-style BPE tokenisers).
+# Conservative approximation: 4 chars ≈ 1 token
 _CHARS_PER_TOKEN: float = 4.0
 
 # Sentinel that is stored on first failed tiktoken load so we never try again
 # in the same process (avoids repeated BPE-download attempts in air-gapped envs).
-_TIKTOKEN_UNAVAILABLE = object()
+_TIKTOKEN_UNAVAILABLE: Any = object()
 
 # Cache per encoding name so we only call get_encoding() once.
-_ENCODER_CACHE: dict[str, object] = {}
+_ENCODER_CACHE: dict[str, Any] = {}  # Store tiktoken.Encoding instance
 
 
 def count_tokens_tiktoken(text: str, encoding_name: str = "cl100k_base") -> int:
@@ -59,7 +59,7 @@ def count_tokens_tiktoken(text: str, encoding_name: str = "cl100k_base") -> int:
     if enc is _TIKTOKEN_UNAVAILABLE:
         return count_tokens_fallback(text)
 
-    return max(1, len(enc.encode(text)))  # type: ignore[union-attr]
+    return max(1, len(enc.encode(text)))
 
 
 def count_tokens_fallback(text: str) -> int:

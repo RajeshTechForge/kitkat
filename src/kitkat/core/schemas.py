@@ -7,7 +7,7 @@ boundaries and specific structural constraints.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Annotated, Any, Literal
 
@@ -426,7 +426,7 @@ class LLMResponseSchema(BaseModel):
         description="True if this response was served from cache.",
     )
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(datetime.UTC),
+        default_factory=lambda: datetime.now(UTC),
         description="UTC timestamp when the response was produced.",
     )
 
@@ -581,7 +581,7 @@ class StreamErrorPayload(BaseModel):
 
     code: str = Field(..., description="Machine-readable error code. (e.g. 'AUTH_ERROR')")
     message: str = Field(..., description="Human-readable error description.")
-    details: dict | None = Field(
+    details: dict[str, Any] | None = Field(
         default=None,
         description="Optional structured context. None when unavailable.",
     )
@@ -650,7 +650,7 @@ class RouterStatusSchema(BaseModel):
     providers: list[ProviderStatusSchema] = Field(description="Per-provider detail.")
     cache_enabled: bool = Field(description="Whether the LLM response cache is active.")
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(datetime.UTC),
+        default_factory=lambda: datetime.now(UTC),
         description="UTC timestamp when this snapshot was taken.",
     )
 

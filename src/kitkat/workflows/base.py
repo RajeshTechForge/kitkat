@@ -22,7 +22,7 @@ class BaseWorkflow(ABC, Generic[S]):
     """
 
     @abstractmethod
-    def build_graph(self) -> CompiledStateGraph:
+    def build_graph(self) -> CompiledStateGraph[Any, Any, Any, Any]:
         """Construct and return the compiled state graph.
 
         Returns:

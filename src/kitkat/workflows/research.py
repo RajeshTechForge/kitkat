@@ -77,9 +77,9 @@ class ResearchWorkflow(BaseWorkflow[ResearchState]):
     """Concrete implementation of a multi-step research workflow."""
 
     def __init__(self) -> None:
-        self._graph: CompiledStateGraph = self.build_graph()
+        self._graph: CompiledStateGraph[Any, Any, Any, Any] = self.build_graph()
 
-    def build_graph(self) -> CompiledStateGraph:
+    def build_graph(self) -> CompiledStateGraph[Any, Any, Any, Any]:
         """Constructs the LangGraph state graph."""
         g = StateGraph(ResearchState)
 

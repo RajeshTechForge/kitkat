@@ -15,6 +15,8 @@ class for a broad handler or specific subclasses for fine-grained handling.
 
 from __future__ import annotations
 
+from typing import Any
+
 
 class KitkatError(Exception):
     """Base exception for all kitkat library errors."""
@@ -23,12 +25,12 @@ class KitkatError(Exception):
         self,
         message: str,
         code: str = "KITKAT_ERROR",
-        details: dict | None = None,
+        details: dict[str, Any] | None = None,  # Arbitrary structured metadata for error context
         status_code: int = 500,
     ) -> None:
         self.message = message
         self.code = code
-        self.details: dict | None = details
+        self.details: dict[str, Any] | None = details
         self.status_code = status_code
         super().__init__(self.message)
 
