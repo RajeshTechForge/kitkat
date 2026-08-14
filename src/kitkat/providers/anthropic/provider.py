@@ -22,16 +22,24 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import anthropic
 import tiktoken
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock, ThinkingBlock
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import AsyncIterator, Awaitable
 
+    from anthropic import Omit
     from anthropic.types import Message as AnthropicMessage
+    from anthropic.types import (
+        MessageParam,
+        OutputConfigParam,
+        ThinkingConfigAdaptiveParam,
+        ThinkingConfigEnabledParam,
+    )
 
 
 from ...abc.provider import LLMProvider
@@ -279,7 +287,7 @@ class AnthropicProvider(LLMProvider):
 
         model = request.model or self._cfg.model
         system_prompt, messages = self._split_messages(request.messages)
-        thinking_kwargs = self._build_thinking_params(request.thinking)
+        thinking_param, output_config_param = self._build_thinking_params(request.thinking)
         timeout = request.timeout if request.timeout is not None else self._cfg.timeout_s
         start = time.monotonic()
 
@@ -287,27 +295,33 @@ class AnthropicProvider(LLMProvider):
             "Anthropic complete | model=%s messages=%d thinking=%s",
             model,
             len(messages),
-            bool(thinking_kwargs),
+            thinking_param is not anthropic.omit,
         )
 
         try:
             raw: AnthropicMessage = await asyncio.wait_for(
-                self._client.messages.create(
-                    model=model,
-                    messages=messages,
-                    max_tokens=request.max_tokens,
-                    system=system_prompt if system_prompt else anthropic.NOT_GIVEN,
-                    temperature=(
-                        request.temperature if not thinking_kwargs else anthropic.NOT_GIVEN
+                cast(
+                    "Awaitable[AnthropicMessage]",
+                    self._client.messages.create(
+                        model=model,
+                        messages=messages,
+                        max_tokens=request.max_tokens,
+                        system=system_prompt if system_prompt else anthropic.omit,
+                        temperature=(
+                            request.temperature
+                            if thinking_param is anthropic.omit
+                            else anthropic.omit
+                        ),
+                        top_p=(
+                            request.top_p
+                            if request.top_p != 1.0 and thinking_param is anthropic.omit
+                            else anthropic.omit
+                        ),
+                        stop_sequences=request.stop_sequences or anthropic.omit,
+                        stream=False,
+                        thinking=thinking_param,
+                        output_config=output_config_param,
                     ),
-                    top_p=(
-                        request.top_p
-                        if request.top_p != 1.0 and not thinking_kwargs
-                        else anthropic.NOT_GIVEN
-                    ),
-                    stop_sequences=request.stop_sequences or anthropic.NOT_GIVEN,
-                    stream=False,
-                    **thinking_kwargs,
                 ),
                 timeout=timeout,
             )
@@ -341,14 +355,14 @@ class AnthropicProvider(LLMProvider):
 
         model = request.model or self._cfg.model
         system_prompt, messages = self._split_messages(request.messages)
-        thinking_kwargs = self._build_thinking_params(request.thinking)
+        thinking_param, output_config_param = self._build_thinking_params(request.thinking)
         timeout = request.timeout if request.timeout is not None else self._cfg.timeout_s
         start = time.monotonic()
 
         logger.debug(
             "Anthropic stream | model=%s thinking=%s",
             model,
-            bool(thinking_kwargs),
+            thinking_param is not anthropic.omit,
         )
 
         try:
@@ -356,16 +370,19 @@ class AnthropicProvider(LLMProvider):
                 model=model,
                 messages=messages,
                 max_tokens=request.max_tokens,
-                system=system_prompt if system_prompt else anthropic.NOT_GIVEN,
-                temperature=(request.temperature if not thinking_kwargs else anthropic.NOT_GIVEN),
+                system=system_prompt if system_prompt else anthropic.omit,
+                temperature=(
+                    request.temperature if thinking_param is anthropic.omit else anthropic.omit
+                ),
                 top_p=(
                     request.top_p
-                    if request.top_p != 1.0 and not thinking_kwargs
-                    else anthropic.NOT_GIVEN
+                    if request.top_p != 1.0 and thinking_param is anthropic.omit
+                    else anthropic.omit
                 ),
-                stop_sequences=request.stop_sequences or anthropic.NOT_GIVEN,
+                stop_sequences=request.stop_sequences or anthropic.omit,
                 timeout=timeout,
-                **thinking_kwargs,
+                thinking=thinking_param,
+                output_config=output_config_param,
             ) as stream_mgr:
                 async for event in stream_mgr:
                     if hasattr(event, "type") and event.type == "content_block_delta":
@@ -485,7 +502,7 @@ class AnthropicProvider(LLMProvider):
             result = await self._client.messages.count_tokens(
                 model=request.model or self._cfg.model,
                 messages=messages,
-                system=system_prompt if system_prompt else anthropic.NOT_GIVEN,
+                system=system_prompt if system_prompt else anthropic.omit,
             )
         except Exception as exc:
             raise LLMProviderError("Anthropic count_tokens failed.", provider="anthropic") from exc
@@ -498,7 +515,7 @@ class AnthropicProvider(LLMProvider):
     @staticmethod
     def _split_messages(
         messages: list[Message],
-    ) -> tuple[str, list[dict[str, str]]]:
+    ) -> tuple[str, list[MessageParam]]:
         """Separate the system prompt from the conversation turns.
 
         Args:
@@ -508,13 +525,13 @@ class AnthropicProvider(LLMProvider):
             A tuple of the separated system prompt and list of remainder messages.
         """
         system_parts: list[str] = []
-        conversation: list[dict[str, str]] = []
+        conversation: list[MessageParam] = []
 
         for msg in messages:
             if msg.role == Role.SYSTEM:
                 system_parts.append(msg.content)
             else:
-                conversation.append(msg.to_dict())
+                conversation.append(cast("MessageParam", msg.to_dict()))
 
         # Separates multi-system messages with clear boundary rules.
         return "\n\n---\n\n".join(system_parts), conversation
@@ -539,10 +556,9 @@ class AnthropicProvider(LLMProvider):
         thinking_parts: list[str] = []
 
         for block in raw.content:
-            block_type = getattr(block, "type", None)
-            if block_type == "text" and hasattr(block, "text"):
+            if isinstance(block, TextBlock):
                 content_parts.append(block.text)
-            elif block_type == "thinking" and hasattr(block, "thinking"):
+            elif isinstance(block, ThinkingBlock):
                 thinking_parts.append(block.thinking)
 
         # Anthropic does not provide a separate thinking token count.
@@ -566,44 +582,49 @@ class AnthropicProvider(LLMProvider):
     @staticmethod
     def _build_thinking_params(
         thinking: ThinkingConfig | None,
-    ) -> dict[str, object]:
-        """Map a domain ThinkingConfig to Anthropic SDK keyword arguments.
+    ) -> tuple[
+        ThinkingConfigEnabledParam | ThinkingConfigAdaptiveParam | Omit,
+        OutputConfigParam | Omit,
+    ]:
+        """Resolve Anthropic SDK ``thinking`` and ``output_config`` parameter values.
 
-        Produces the "thinking" and "output_config" kwargs accepted by
-        "messages.create()" / "messages.stream()". Returns an empty
-        dict when thinking is disabled or not requested, so the caller
-        can unpack with "**".
+        Returns a typed 2-tuple of ``(thinking_param, output_config_param)`` ready
+        to be passed as explicit keyword arguments to ``messages.create()`` /
+        ``messages.stream()``. Both elements are ``anthropic.omit`` when thinking
+        is disabled, instructing the SDK to omit those fields from the request.
 
         Precedence:
-            1. "provider_options" fields (thinking_type, effort, budget_tokens)
-            2. Normalized "thinking.effort"
+            1. ``provider_options`` fields (thinking_type, effort, budget_tokens)
+            2. Normalized ``thinking.effort``
             3. Provider defaults (adaptive mode, effort="high")
 
         Args:
-            thinking: The domain thinking configuration, or None.
+            thinking: The domain thinking configuration, or ``None``.
 
         Returns:
-            A dict of SDK keyword arguments (may be empty).
+            A 2-tuple of ``(thinking_param, output_config_param)``. When thinking
+            is disabled both elements are ``anthropic.omit``.
         """
         if thinking is None or not thinking.enabled:
-            return {}
+            return anthropic.omit, anthropic.omit
 
         opts = thinking.provider_options or {}
         thinking_type = opts.get("thinking_type", "adaptive")
-
-        result: dict[str, object] = {}
 
         if thinking_type == "enabled":
             budget = opts.get("budget_tokens")
             if budget is None:
                 budget = 10_000
-            result["thinking"] = {"type": "enabled", "budget_tokens": int(budget)}
+            thinking_param: ThinkingConfigEnabledParam | ThinkingConfigAdaptiveParam = {
+                "type": "enabled",
+                "budget_tokens": int(budget),
+            }
+            return thinking_param, anthropic.omit
         else:
-            result["thinking"] = {"type": "adaptive"}
+            thinking_param = {"type": "adaptive"}
             effort = opts.get("effort") or thinking.effort or "high"
-            result["output_config"] = {"effort": effort}
-
-        return result
+            output_config_param: OutputConfigParam = {"effort": str(effort)}  # type: ignore[typeddict-item]  # effort values always match Literal; str() result satisfies the constraint at runtime
+            return thinking_param, output_config_param
 
     @staticmethod
     def _map_anthropic_error(exc: Exception) -> LLMError:
@@ -628,7 +649,7 @@ class AnthropicProvider(LLMProvider):
             )
             return LLMAuthenticationError(
                 "Anthropic API credentials are invalid or have been revoked.",
-                status_code=status_code,
+                status_code=status_code if isinstance(status_code, int) else 401,
                 provider="anthropic",
             )
 
@@ -671,7 +692,7 @@ class AnthropicProvider(LLMProvider):
             )
             return LLMAuthenticationError(
                 "Access denied by Anthropic. The API key lacks permission for this operation.",
-                status_code=status_code,
+                status_code=status_code if isinstance(status_code, int) else 401,
                 provider="anthropic",
             )
 

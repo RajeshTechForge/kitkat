@@ -430,14 +430,16 @@ class GeminiProvider(LLMProvider):
 
                     # Distinguish thinking parts from answer parts.
                     if chunk.candidates:
-                        for part in chunk.candidates[0].content.parts:
-                            if hasattr(part, "thought") and part.thought:
-                                if part.text:
+                        content = chunk.candidates[0].content
+                        if content is not None and content.parts is not None:
+                            for part in content.parts:
+                                if hasattr(part, "thought") and part.thought:
+                                    if part.text:
+                                        any_chunk_yielded = True
+                                        yield StreamChunk(delta=part.text, is_thinking=True)
+                                elif part.text:
                                     any_chunk_yielded = True
-                                    yield StreamChunk(delta=part.text, is_thinking=True)
-                            elif part.text:
-                                any_chunk_yielded = True
-                                yield StreamChunk(delta=part.text, is_thinking=False)
+                                    yield StreamChunk(delta=part.text, is_thinking=False)
 
         except TimeoutError as exc:
             elapsed = time.monotonic() - start
@@ -626,7 +628,7 @@ class GeminiProvider(LLMProvider):
 
             if level:
                 thinking_config = genai_types.ThinkingConfig(
-                    thinking_level=level,
+                    thinking_level=genai_types.ThinkingLevel(level),
                     include_thoughts=True,
                 )
             else:
@@ -666,12 +668,14 @@ class GeminiProvider(LLMProvider):
         thinking_parts: list[str] = []
 
         if raw.candidates:
-            for part in raw.candidates[0].content.parts:
-                if hasattr(part, "thought") and part.thought:
-                    if part.text:
-                        thinking_parts.append(part.text)
-                elif part.text:
-                    content_parts.append(part.text)
+            candidate_content = raw.candidates[0].content
+            if candidate_content is not None and candidate_content.parts is not None:
+                for part in candidate_content.parts:
+                    if hasattr(part, "thought") and part.thought:
+                        if part.text:
+                            thinking_parts.append(part.text)
+                    elif part.text:
+                        content_parts.append(part.text)
 
         content = "".join(content_parts) if content_parts else ""
 
@@ -731,7 +735,8 @@ class GeminiProvider(LLMProvider):
             return LLMAuthenticationError("Gemini authentication failed.", provider="gemini")
         if code == 429:
             return LLMRateLimitError("Gemini rate limit exceeded.", provider="gemini")
-        if code == 400 and ("token" in message.lower() or "context" in message.lower()):
+        msg_lower = (message or "").lower()
+        if code == 400 and ("token" in msg_lower or "context" in msg_lower):
             return LLMTokenLimitError(
                 "Prompt exceeds Gemini context window.",
                 context_limit=_MAX_CONTEXT_TOKENS,

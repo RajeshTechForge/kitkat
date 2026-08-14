@@ -22,7 +22,7 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import tiktoken
 from openai import (
@@ -43,9 +43,11 @@ from openai import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
+    from collections.abc import AsyncIterator, Awaitable
 
+    from openai import AsyncStream
     from openai.types.chat import ChatCompletion, ChatCompletionChunk
+    from openai.types.chat.chat_completion_message_param import ChatCompletionMessageParam
 
 from ...abc.provider import LLMProvider
 from ...core.enums import FinishReason, ProviderType
@@ -352,7 +354,7 @@ class OpenAIProvider(LLMProvider):
 
         model = request.model or self._cfg.model
         messages = self._build_message_list(request.messages)
-        thinking_kwargs = self._build_thinking_params(request.thinking)
+        reasoning_effort = self._build_thinking_params(request.thinking)
         timeout = request.timeout if request.timeout is not None else self._cfg.timeout_s
         start = time.monotonic()
 
@@ -360,21 +362,24 @@ class OpenAIProvider(LLMProvider):
             "OpenAI complete | model=%s messages=%d thinking=%s",
             model,
             len(messages),
-            bool(thinking_kwargs),
+            bool(reasoning_effort),
         )
 
         try:
             raw: ChatCompletion = await asyncio.wait_for(
-                self._client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    # reasoning models require max_completion_tokens.
-                    max_completion_tokens=request.max_tokens,
-                    temperature=request.temperature,
-                    top_p=request.top_p,
-                    stop=request.stop_sequences or None,
-                    stream=False,
-                    **thinking_kwargs,
+                cast(
+                    "Awaitable[ChatCompletion]",
+                    self._client.chat.completions.create(
+                        model=model,
+                        messages=messages,
+                        # reasoning models require max_completion_tokens.
+                        max_completion_tokens=request.max_tokens,
+                        temperature=request.temperature,
+                        top_p=request.top_p,
+                        stop=request.stop_sequences or None,
+                        stream=False,
+                        reasoning_effort=reasoning_effort,  # type: ignore[arg-type]
+                    ),
                 ),
                 timeout=timeout,
             )
@@ -413,14 +418,14 @@ class OpenAIProvider(LLMProvider):
 
         model = request.model or self._cfg.model
         messages = self._build_message_list(request.messages)
-        thinking_kwargs = self._build_thinking_params(request.thinking)
+        reasoning_effort = self._build_thinking_params(request.thinking)
         timeout = request.timeout if request.timeout is not None else self._cfg.timeout_s
         start = time.monotonic()
 
         logger.debug(
             "OpenAI stream | model=%s thinking=%s",
             model,
-            bool(thinking_kwargs),
+            bool(reasoning_effort),
         )
 
         finish_reason = FinishReason.UNKNOWN
@@ -429,53 +434,56 @@ class OpenAIProvider(LLMProvider):
 
         try:
             async with asyncio.timeout(timeout):
-                async with self._client.chat.completions.stream(
-                    model=model,
-                    messages=messages,
-                    # reasoning models require max_completion_tokens.
-                    max_completion_tokens=request.max_tokens,
-                    temperature=request.temperature,
-                    top_p=request.top_p,
-                    stop=request.stop_sequences or None,
-                    **thinking_kwargs,
-                ) as stream_mgr:
-                    async for chunk in stream_mgr:
-                        chunk: ChatCompletionChunk
-                        if not chunk.choices:
-                            continue
+                raw_stream = cast(
+                    "AsyncStream[ChatCompletionChunk]",
+                    await self._client.chat.completions.create(
+                        model=model,
+                        messages=messages,
+                        # reasoning models require max_completion_tokens.
+                        max_completion_tokens=request.max_tokens,
+                        temperature=request.temperature,
+                        top_p=request.top_p,
+                        stop=request.stop_sequences or None,
+                        stream=True,
+                        reasoning_effort=reasoning_effort,  # type: ignore[arg-type]
+                    ),
+                )
+                async for chunk in raw_stream:
+                    if not chunk.choices:
+                        continue
 
-                        choice = chunk.choices[0]
-                        delta_text = (
-                            choice.delta.content if choice.delta and choice.delta.content else ""
+                    choice = chunk.choices[0]
+                    delta_text = (
+                        choice.delta.content if choice.delta and choice.delta.content else ""
+                    )
+
+                    # Resolve finish_reason from the last chunk that carries it.
+                    if choice.finish_reason is not None:
+                        finish_reason = _FINISH_REASON_MAP.get(
+                            choice.finish_reason, FinishReason.UNKNOWN
                         )
 
-                        # Resolve finish_reason from the last chunk that carries it.
-                        if choice.finish_reason is not None:
-                            finish_reason = _FINISH_REASON_MAP.get(
-                                choice.finish_reason, FinishReason.UNKNOWN
-                            )
+                    # Stream-level usage arrives in the final chunk's usage field.
+                    if chunk.usage is not None:
+                        thinking_toks = 0
+                        comp_toks = chunk.usage.completion_tokens or 0
+                        if hasattr(chunk.usage, "completion_tokens_details"):
+                            details = chunk.usage.completion_tokens_details
+                            if details and hasattr(details, "reasoning_tokens"):
+                                thinking_toks = details.reasoning_tokens or 0
+                                comp_toks = comp_toks - thinking_toks
+                        usage = TokenUsage(
+                            prompt_tokens=chunk.usage.prompt_tokens or 0,
+                            completion_tokens=comp_toks,
+                            thinking_tokens=thinking_toks,
+                            total_tokens=chunk.usage.total_tokens or 0,
+                        )
 
-                        # Stream-level usage arrives in the final chunk's usage field.
-                        if chunk.usage is not None:
-                            thinking_toks = 0
-                            comp_toks = chunk.usage.completion_tokens or 0
-                            if hasattr(chunk.usage, "completion_tokens_details"):
-                                details = chunk.usage.completion_tokens_details
-                                if details and hasattr(details, "reasoning_tokens"):
-                                    thinking_toks = details.reasoning_tokens or 0
-                                    comp_toks = comp_toks - thinking_toks
-                            usage = TokenUsage(
-                                prompt_tokens=chunk.usage.prompt_tokens or 0,
-                                completion_tokens=comp_toks,
-                                thinking_tokens=thinking_toks,
-                                total_tokens=chunk.usage.total_tokens or 0,
-                            )
+                    if chunk.model:
+                        model_version = chunk.model
 
-                        if chunk.model:
-                            model_version = chunk.model
-
-                        if delta_text:
-                            yield StreamChunk(delta=delta_text)
+                    if delta_text:
+                        yield StreamChunk(delta=delta_text)
 
         except TimeoutError as exc:
             elapsed = time.monotonic() - start
@@ -558,7 +566,7 @@ class OpenAIProvider(LLMProvider):
     @staticmethod
     def _build_message_list(
         messages: list[Message],
-    ) -> list[dict[str, str]]:
+    ) -> list[ChatCompletionMessageParam]:
         """Serialize :class:'Message' objects to the OpenAI wire format.
 
         OpenAI's Chat Completions API accepts system prompts inline as
@@ -569,39 +577,39 @@ class OpenAIProvider(LLMProvider):
             messages: The list of conversation messages.
 
         Returns:
-            A list of role/content dictionaries ready for the SDK.
+            A list of :class:'ChatCompletionMessageParam' dictionaries
+            ready for the SDK.
         """
-        return [msg.to_dict() for msg in messages]
+        return [cast("ChatCompletionMessageParam", msg.to_dict()) for msg in messages]
 
     @staticmethod
     def _build_thinking_params(
         thinking: ThinkingConfig | None,
-    ) -> dict[str, str]:
-        """Map a domain ThinkingConfig to OpenAI SDK keyword arguments.
+    ) -> str | None:
+        """Resolve the OpenAI ``reasoning_effort`` parameter value from a domain config.
 
         OpenAI models are always reasoning-capable — there is no on/off
         toggle. This method maps the thinking config to the
-        "reasoning_effort" parameter.
+        ``reasoning_effort`` parameter accepted by ``create()``.
 
         Precedence:
-            1. "provider_options["effort"]"
-            2. Normalized "thinking.effort"
-            3. Omitted (let the model decide)
+            1. ``provider_options["effort"]``
+            2. Normalized ``thinking.effort``
+            3. ``None`` (let the model decide)
 
         Args:
-            thinking: The domain thinking configuration, or None.
+            thinking: The domain thinking configuration, or ``None``.
 
         Returns:
-            A dict of SDK keyword arguments (may be empty).
+            The resolved effort string to pass as ``reasoning_effort=``,
+            or ``None`` to omit the parameter (model default).
         """
         if thinking is None or not thinking.enabled:
-            return {}
+            return None
 
         opts = thinking.provider_options or {}
         effort = opts.get("effort") or thinking.effort
-        if effort:
-            return {"reasoning_effort": str(effort)}
-        return {}
+        return str(effort) if effort else None
 
     @staticmethod
     def _build_response(
@@ -672,7 +680,7 @@ class OpenAIProvider(LLMProvider):
             )
             return LLMAuthenticationError(
                 "OpenAI API credentials are invalid or revoked.",
-                status_code=status_code,
+                status_code=status_code if isinstance(status_code, int) else 401,
                 provider="openai",
             )
 
@@ -715,7 +723,7 @@ class OpenAIProvider(LLMProvider):
             )
             return LLMAuthenticationError(
                 "Access denied by OpenAI. The API key lacks permission for this operation.",
-                status_code=status_code,
+                status_code=status_code if isinstance(status_code, int) else 401,
                 provider="openai",
             )
 
