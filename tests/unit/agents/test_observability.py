@@ -43,7 +43,9 @@ class TestConfigureObservability:
 
     def test_configure_observability_with_langfuse(self) -> None:
         """Langfuse OTel exporter and client should be configured when keys are supplied."""
-        mock_provider = MagicMock()
+        from opentelemetry.sdk.trace import TracerProvider as SDKTracerProvider
+
+        mock_provider = MagicMock(spec=SDKTracerProvider)
 
         with (
             patch("kitkat.agents.observability.logfire"),
