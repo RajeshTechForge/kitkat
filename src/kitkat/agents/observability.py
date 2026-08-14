@@ -28,6 +28,7 @@ import logfire
 from langfuse import Langfuse
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace import TracerProvider as SDKTracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from pydantic_ai import Agent as _Agent
 
@@ -86,7 +87,7 @@ def configure_observability(
             langfuse_exporter = OTLPSpanExporter(endpoint=endpoint, headers=headers)
             provider = trace.get_tracer_provider()
 
-            if hasattr(provider, "add_span_processor"):
+            if isinstance(provider, SDKTracerProvider):
                 provider.add_span_processor(BatchSpanProcessor(langfuse_exporter))
         except Exception as exc:
             logger.warning("Failed to configure Langfuse OpenTelemetry exporter: %s", exc)

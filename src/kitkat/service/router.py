@@ -36,7 +36,7 @@ import logging
 import random
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from ..core.enums import CircuitState, RoutingStrategy
@@ -347,9 +347,7 @@ class LLMRouter:
             LLMAuthenticationError: If API credentials fail.
             LLMError: If all providers are exhausted.
         """
-        use_cache = self._cache is not None and not request.stream
-
-        if use_cache:
+        if self._cache is not None and not request.stream:
             cached = await self._cache.get(request)
             if cached is not None:
                 logger.info("LLMRouter cache HIT")
@@ -357,7 +355,7 @@ class LLMRouter:
 
         response, _ = await self._route_complete(request)
 
-        if use_cache:
+        if self._cache is not None and not request.stream:
             should_cache = self._cfg.cache_on_truncated or not response.was_truncated
             if should_cache:
                 await self._cache.set(request, response)
@@ -620,7 +618,7 @@ class LLMRouter:
             rate_until_dt: datetime | None = None
             if rate_until is not None and now_mono < rate_until:
                 wall_offset = rate_until - now_mono
-                rate_until_dt = datetime.fromtimestamp(now_wall + wall_offset, tz=datetime.UTC)
+                rate_until_dt = datetime.fromtimestamp(now_wall + wall_offset, tz=UTC)
 
             providers_status.append(
                 {
