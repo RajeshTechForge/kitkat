@@ -101,18 +101,6 @@ markers = [
     "slow: takes >2s",
 ]
 
-[tool.basepyright]
-typeCheckingMode = "recommended"
-pythonVersion = "3.11"
-include = ["src/kitkat", "tests"]
-exclude = ["**/__pycache__", ".venv"]
-reportAny = false
-
-[tool.pyright]
-pythonVersion = "3.11"
-typeCheckingMode = "standard"
-reportAny = "none"
-
 [tool.mypy]
 strict         = true
 python_version = "3.11"
