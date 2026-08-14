@@ -67,6 +67,7 @@ dev = [
     "kitkat[all]",
     "pytest>=9.0.3",
     "pyright>=1.1.411",
+    "basedpyright>=1.39.10",
     "mypy>=1.20.0",
     "ruff>=0.15.0",
     "pytest-asyncio>=1.4.0",
@@ -100,11 +101,17 @@ markers = [
     "slow: takes >2s",
 ]
 
-[tool.pyright]
+[tool.basepyright]
 typeCheckingMode = "recommended"
 pythonVersion = "3.11"
-include = ["src/kitkat",]
-exclude = ["**/__pycache__"]
+include = ["src/kitkat", "tests"]
+exclude = ["**/__pycache__", ".venv"]
+reportAny = false
+
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "standard"
+reportAny = "none"
 
 [tool.mypy]
 strict         = true
