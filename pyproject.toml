@@ -15,7 +15,6 @@ classifiers     = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -67,6 +66,7 @@ all = [
 dev = [
     "kitkat[all]",
     "pytest>=9.0.3",
+    "pyright>=1.1.411",
     "mypy>=1.20.0",
     "ruff>=0.15.0",
     "pytest-asyncio>=1.4.0",
@@ -99,6 +99,12 @@ markers = [
     "integration: hits real APIs — run with INTEGRATION_TESTS=1",
     "slow: takes >2s",
 ]
+
+[tool.pyright]
+typeCheckingMode = "recommended"
+pythonVersion = "3.11"
+include = ["src/kitkat",]
+exclude = ["**/__pycache__"]
 
 [tool.mypy]
 strict         = true
