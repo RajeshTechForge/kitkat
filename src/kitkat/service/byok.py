@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     )
 from ..core.enums import ProviderType
 from ..providers.anthropic.provider import AnthropicConfig, AnthropicProvider
-from ..providers.gemini.provider import GeminiConfig, GeminiProvider
+from ..providers.google.provider import GoogleConfig, GoogleProvider
 from ..providers.openai.provider import OpenAIConfig, OpenAIProvider
 
 logger = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ class BYOKLLMService:
     or :meth:'stream' call, which the route handler maps to HTTP 401.
 
     Args:
-        provider_type: The target provider (Anthropic, OpenAI, or Gemini).
+        provider_type: The target provider (Anthropic, OpenAI, or Google).
         api_key: The caller-supplied API key for the chosen provider.
         model: The model identifier to use for inference. An empty string
             causes each provider to fall back to its configured default model.
@@ -211,5 +211,5 @@ class BYOKLLMService:
             return AnthropicProvider(AnthropicConfig(api_key=api_key, model=model))
         if provider_type == ProviderType.OPENAI:
             return OpenAIProvider(OpenAIConfig(api_key=api_key, model=model))
-        if provider_type == ProviderType.GEMINI:
-            return GeminiProvider(GeminiConfig(api_key=api_key, model=model))
+        if provider_type == ProviderType.GOOGLE:
+            return GoogleProvider(GoogleConfig(api_key=api_key, model=model))

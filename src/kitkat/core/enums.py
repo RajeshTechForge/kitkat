@@ -33,7 +33,7 @@ class ProviderType(StrEnum):
 
     ANTHROPIC = "anthropic"
     OPENAI = "openai"
-    GEMINI = "gemini"
+    GOOGLE = "google"
 
 
 class RoutingStrategy(StrEnum):

@@ -29,7 +29,7 @@ It provides a single, strongly typed interface to major LLM providers with zero 
 
 ## Key Features
 
-- **Unified Async Multi-Provider API**: Interact with Anthropic Claude, OpenAI, and Google Gemini through a single, consistent interface. Switch provider or model by changing a single parameter while keeping your request, streaming, and error handling identical.
+- **Unified Async Multi-Provider API**: Interact with Anthropic Claude, OpenAI, and Google Gemini/Vertex AI through a single, consistent interface. Switch provider or model by changing a single parameter while keeping your request, streaming, and error handling identical.
 
 - **Dual-Mode Architecture (Managed & BYOK)**  
   - **Managed Mode:** Application-wide pooled provider registry with automatic connection pooling and pre-flight health checks.
@@ -65,7 +65,7 @@ It provides a single, strongly typed interface to major LLM providers with zero 
 
 3. **Enterprise Resilience out of the Box:** Kitkat handles production failure modes natively through circuit breakers, multi-tier fallback routers, and customizable retry policies before errors hit your users.
 
-4. **Provider Neutrality Without Losing Vendor Features:** Easily switch between Claude, GPT, and Gemini while retaining access to provider-specific features like extended thinking budgets and structured JSON modes.
+4. **Provider Neutrality Without Losing Vendor Features:** Easily switch between Claude, GPT and Gemini while retaining access to provider-specific features like extended thinking budgets and structured JSON modes.
 
 
 ## Installation
@@ -79,7 +79,7 @@ pip install kitkat
 # Provider extras
 pip install kitkat[anthropic]   # Anthropic Claude
 pip install kitkat[openai]      # OpenAI & OpenAI-compatible APIs
-pip install kitkat[gemini]      # Google Gemini / Vertex AI
+pip install kitkat[google]      # Google Gemini / Vertex AI
 pip install kitkat[all-providers]
 
 # Feature extras

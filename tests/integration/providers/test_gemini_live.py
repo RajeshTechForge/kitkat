@@ -1,6 +1,6 @@
-"""Live integration tests for GeminiProvider against real API endpoints.
+"""Live integration tests for GoogleProvider against real API endpoints.
 
-Must be run with INTEGRATION_TESTS=1 GEMINI_API_KEY=AIzaSy... pytest tests/integration
+Must be run with INTEGRATION_TESTS=1 GOOGLE_API_KEY=AIzaSy... pytest tests/integration
 """
 
 from __future__ import annotations
@@ -15,26 +15,26 @@ from kitkat.core import (
     Message,
     Role,
 )
-from kitkat.providers.gemini import GeminiConfig, GeminiProvider
+from kitkat.providers.google import GoogleConfig, GoogleProvider
 
 pytestmark = pytest.mark.integration
 
 
 @pytest.fixture(autouse=True)
-def check_gemini_key() -> None:
-    """Ensure GEMINI_API_KEY environment variable is present."""
-    if not os.getenv("GEMINI_API_KEY"):
-        pytest.skip("GEMINI_API_KEY not set in environment.")
+def check_google_key() -> None:
+    """Ensure GOOGLE_API_KEY environment variable is present."""
+    if not os.getenv("GOOGLE_API_KEY"):
+        pytest.skip("GOOGLE_API_KEY not set in environment.")
 
 
 @pytest.mark.asyncio
-async def test_gemini_live_complete() -> None:
-    """Verify live non-streaming completion call against Gemini API."""
-    config = GeminiConfig(api_key=os.environ["GEMINI_API_KEY"])
-    async with GeminiProvider(config) as provider:
+async def test_google_live_complete() -> None:
+    """Verify live non-streaming completion call against Google API."""
+    config = GoogleConfig(api_key=os.environ["GOOGLE_API_KEY"])
+    async with GoogleProvider(config) as provider:
         request = LLMRequest(
             messages=[Message(role=Role.USER, content="Reply with: OK")],
-            model="gemini-2.5-flash",
+            model="google-2.5-flash",
             max_tokens=10,
         )
         response = await provider.complete_with_retry(request)
@@ -46,13 +46,13 @@ async def test_gemini_live_complete() -> None:
 
 
 @pytest.mark.asyncio
-async def test_gemini_live_stream() -> None:
-    """Verify live streaming token deltas against Gemini API."""
-    config = GeminiConfig(api_key=os.environ["GEMINI_API_KEY"])
-    async with GeminiProvider(config) as provider:
+async def test_google_live_stream() -> None:
+    """Verify live streaming token deltas against Google API."""
+    config = GoogleConfig(api_key=os.environ["GOOGLE_API_KEY"])
+    async with GoogleProvider(config) as provider:
         request = LLMRequest(
             messages=[Message(role=Role.USER, content="Count 1 to 3.")],
-            model="gemini-2.5-flash",
+            model="google-2.5-flash",
             max_tokens=20,
         )
         chunks = []
@@ -64,10 +64,10 @@ async def test_gemini_live_stream() -> None:
 
 
 @pytest.mark.asyncio
-async def test_gemini_invalid_key_raises_auth_error() -> None:
+async def test_google_invalid_key_raises_auth_error() -> None:
     """Verify invalid API key raises LLMAuthenticationError."""
-    config = GeminiConfig(api_key="AIzaSyInvalidTestKey123456789")
-    provider = GeminiProvider(config)
+    config = GoogleConfig(api_key="AIzaSyInvalidTestKey123456789")
+    provider = GoogleProvider(config)
     await provider._init_client_only()
     try:
         request = LLMRequest(

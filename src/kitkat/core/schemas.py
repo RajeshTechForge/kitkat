@@ -118,18 +118,18 @@ class OpenAIThinkingOptions(BaseModel):
     )
 
 
-class GeminiThinkingOptions(BaseModel):
-    """Gemini-specific thinking overrides."""
+class GoogleThinkingOptions(BaseModel):
+    """Google-specific thinking overrides."""
 
-    provider: Literal["gemini"] = "gemini"
+    provider: Literal["google"] = "google"
     level: Literal["MINIMAL", "LOW", "MEDIUM", "HIGH"] | None = Field(
         default=None,
-        description="Gemini thinking level.",
+        description="Google thinking level.",
     )
 
 
 ProviderThinkingOptions = Annotated[
-    AnthropicThinkingOptions | OpenAIThinkingOptions | GeminiThinkingOptions,
+    AnthropicThinkingOptions | OpenAIThinkingOptions | GoogleThinkingOptions,
     Field(discriminator="provider"),
 ]
 """Discriminated union of provider-specific thinking option models."""

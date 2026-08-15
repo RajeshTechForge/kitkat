@@ -189,11 +189,11 @@ def test_build_provider_openai() -> None:
     assert isinstance(provider, OpenAIProvider)
 
 
-def test_build_provider_gemini() -> None:
-    provider = BYOKLLMService._build_provider(ProviderType.GEMINI, "AIza", "gemini-2")
-    from kitkat.providers.gemini.provider import GeminiProvider
+def test_build_provider_google() -> None:
+    provider = BYOKLLMService._build_provider(ProviderType.GOOGLE, "AIza", "google-2")
+    from kitkat.providers.google.provider import GoogleProvider
 
-    assert isinstance(provider, GeminiProvider)
+    assert isinstance(provider, GoogleProvider)
 
 
 def test_build_provider_empty_api_key_raises() -> None:

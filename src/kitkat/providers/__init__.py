@@ -4,7 +4,7 @@ Import providers directly from their subpackage::
 
     from kitkat.providers.anthropic import AnthropicProvider, AnthropicConfig
     from kitkat.providers.openai import OpenAIProvider, OpenAIConfig
-    from kitkat.providers.gemini import GeminiProvider, GeminiConfig
+    from kitkat.providers.google import GoogleProvider, GoogleConfig
 
 Do not import concrete providers from this top-level package — doing so
 would force all provider SDK dependencies to be installed regardless of which

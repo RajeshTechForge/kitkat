@@ -1,4 +1,4 @@
-"""Unit tests for GeminiProvider._build_generation_config thinking-path.
+"""Unit tests for GoogleProvider._build_generation_config thinking-path.
 
 Validates that ThinkingConfig domain objects are correctly translated to
 ``genai_types.ThinkingConfig`` at the ``GenerateContentConfig.thinking_config``
@@ -11,7 +11,7 @@ from google.genai import types as genai_types
 
 from kitkat.core.enums import Role
 from kitkat.core.models import LLMRequest, Message, ThinkingConfig
-from kitkat.providers.gemini.provider import GeminiProvider
+from kitkat.providers.google.provider import GoogleProvider
 
 
 def _make_request() -> LLMRequest:
@@ -21,18 +21,18 @@ def _make_request() -> LLMRequest:
 
 class TestBuildGenerationConfigThinking:
     def test_none_config(self) -> None:
-        tc = GeminiProvider._build_generation_config(_make_request(), "", None)
+        tc = GoogleProvider._build_generation_config(_make_request(), "", None)
         assert tc.thinking_config is None
 
     def test_disabled_config(self) -> None:
         thinking = ThinkingConfig(enabled=False)
-        tc = GeminiProvider._build_generation_config(_make_request(), "", thinking)
+        tc = GoogleProvider._build_generation_config(_make_request(), "", thinking)
         assert tc.thinking_config is None
 
     def test_enabled_no_effort(self) -> None:
         """enabled=True with no effort → ThinkingConfig with include_thoughts only."""
         thinking = ThinkingConfig(enabled=True)
-        tc = GeminiProvider._build_generation_config(_make_request(), "", thinking)
+        tc = GoogleProvider._build_generation_config(_make_request(), "", thinking)
 
         assert tc.thinking_config is not None
         assert tc.thinking_config.include_thoughts is True
@@ -40,21 +40,21 @@ class TestBuildGenerationConfigThinking:
 
     def test_enabled_low_effort(self) -> None:
         thinking = ThinkingConfig(enabled=True, effort="low")
-        tc = GeminiProvider._build_generation_config(_make_request(), "", thinking)
+        tc = GoogleProvider._build_generation_config(_make_request(), "", thinking)
 
         assert tc.thinking_config is not None
         assert tc.thinking_config.thinking_level == genai_types.ThinkingLevel.LOW
 
     def test_enabled_medium_effort(self) -> None:
         thinking = ThinkingConfig(enabled=True, effort="medium")
-        tc = GeminiProvider._build_generation_config(_make_request(), "", thinking)
+        tc = GoogleProvider._build_generation_config(_make_request(), "", thinking)
 
         assert tc.thinking_config is not None
         assert tc.thinking_config.thinking_level == genai_types.ThinkingLevel.MEDIUM
 
     def test_enabled_high_effort(self) -> None:
         thinking = ThinkingConfig(enabled=True, effort="high")
-        tc = GeminiProvider._build_generation_config(_make_request(), "", thinking)
+        tc = GoogleProvider._build_generation_config(_make_request(), "", thinking)
 
         assert tc.thinking_config is not None
         assert tc.thinking_config.thinking_level == genai_types.ThinkingLevel.HIGH
@@ -66,7 +66,7 @@ class TestBuildGenerationConfigThinking:
             effort="low",
             provider_options={"level": "HIGH"},
         )
-        tc = GeminiProvider._build_generation_config(_make_request(), "", thinking)
+        tc = GoogleProvider._build_generation_config(_make_request(), "", thinking)
 
         assert tc.thinking_config is not None
         assert tc.thinking_config.thinking_level == genai_types.ThinkingLevel.HIGH
@@ -76,12 +76,12 @@ class TestBuildGenerationConfigThinking:
             enabled=True,
             provider_options={"level": "MEDIUM"},
         )
-        tc = GeminiProvider._build_generation_config(_make_request(), "", thinking)
+        tc = GoogleProvider._build_generation_config(_make_request(), "", thinking)
 
         assert tc.thinking_config is not None
         assert tc.thinking_config.thinking_level == genai_types.ThinkingLevel.MEDIUM
 
     def test_return_type(self) -> None:
         thinking = ThinkingConfig(enabled=True)
-        tc = GeminiProvider._build_generation_config(_make_request(), "", thinking)
+        tc = GoogleProvider._build_generation_config(_make_request(), "", thinking)
         assert isinstance(tc, genai_types.GenerateContentConfig)

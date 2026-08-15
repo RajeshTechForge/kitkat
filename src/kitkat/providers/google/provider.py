@@ -1,4 +1,4 @@
-"""Google Gemini provider for the Sentinel RAG LLM service layer.
+"""Google provider for the Kitkat service layer.
 
 This module integrates the official google-genai SDK, supporting both synchronized
 and asynchronous (streaming) LLM calls, robust error mapping, and specialized Vertex AI
@@ -10,8 +10,8 @@ Supported features
  - True async streaming via aio.models.generate_content_stream
  - Pre-flight token counting via aio.models.count_tokens (async)
  - Sync approximation via tiktoken cl100k_base (count_tokens)
- - Automatic system_instruction extraction (Gemini top-level param)
- - Full Gemini FinishReason → our FinishReason mapping (SAFETY, RECITATION…)
+ - Automatic system_instruction extraction (Google top-level param)
+ - Full Google FinishReason → our FinishReason mapping (SAFETY, RECITATION…)
  - Health-check via zero-cost count_tokens probe
  - Vertex AI support via vertexai=True + project/location config
 """
@@ -61,7 +61,7 @@ _DEFAULT_MODEL = "gemini-3-flash-preview"
 _MAX_CONTEXT_TOKENS = 1_048_576
 _HEALTH_CHECK_TIMEOUT_S = 5.0
 
-# Translates Gemini finish reasons to internal FinishReason enum.
+# Translates Google finish reasons to internal FinishReason enum.
 _FINISH_REASON_MAP: dict[str, FinishReason] = {
     "STOP": FinishReason.STOP,
     "MAX_TOKENS": FinishReason.LENGTH,
@@ -89,8 +89,8 @@ _TIKTOKEN_UNAVAILABLE = object()
 
 
 @dataclass
-class GeminiConfig:
-    """Typed configuration for the Gemini provider."""
+class GoogleConfig:
+    """Typed configuration for the Google provider."""
 
     api_key: str = ""
     model: str = _DEFAULT_MODEL
@@ -104,31 +104,31 @@ class GeminiConfig:
         if not self.vertexai and not self.api_key.strip():
             raise LLMProviderInitError(
                 (
-                    "GeminiConfig.api_key must be a non-empty string when not using "
-                    "Vertex AI. Set GEMINI_API_KEY (or GOOGLE_API_KEY) in your env."
+                    "GoogleConfig.api_key must be a non-empty string when not using "
+                    "Vertex AI. Set GOOGLE_API_KEY in your env."
                 ),
-                provider="gemini",
+                provider="google",
             )
         if self.vertexai and (not self.project or not self.location):
             raise LLMProviderInitError(
-                ("GeminiConfig.project and GeminiConfig.location are required when vertexai=True."),
-                provider="gemini",
+                ("GoogleConfig.project and GoogleConfig.location are required when vertexai=True."),
+                provider="google",
             )
         if self.timeout_s <= 0:
             raise LLMProviderInitError(
-                f"GeminiConfig.timeout_s must be positive, got {self.timeout_s}",
-                provider="gemini",
+                f"GoogleConfig.timeout_s must be positive, got {self.timeout_s}",
+                provider="google",
             )
 
     @classmethod
-    def from_dict(cls, cfg: dict[str, Any]) -> GeminiConfig:
+    def from_dict(cls, cfg: dict[str, Any]) -> GoogleConfig:
         """Build from the raw config slice.
 
         Args:
             cfg: The configuration dictionary.
 
         Returns:
-            A GeminiConfig instance.
+            A GoogleConfig instance.
         """
         return cls(
             api_key=cfg.get("api_key", ""),
@@ -146,10 +146,10 @@ class GeminiConfig:
 # ===========================================================================
 
 
-class GeminiProvider(LLMProvider):
-    """Google Gemini provider implementation."""
+class GoogleProvider(LLMProvider):
+    """Google Google provider implementation."""
 
-    PROVIDER_TYPE = ProviderType.GEMINI
+    PROVIDER_TYPE = ProviderType.GOOGLE
     DEFAULT_MODEL = _DEFAULT_MODEL
     CAPABILITIES = ProviderCapabilities(
         supports_streaming=True,
@@ -158,7 +158,7 @@ class GeminiProvider(LLMProvider):
         supports_vision=True,
         supports_thinking=True,
         max_context_tokens=_MAX_CONTEXT_TOKENS,
-        provider_type=ProviderType.GEMINI,
+        provider_type=ProviderType.GOOGLE,
     )
     RETRY_POLICY = RetryPolicy(
         max_attempts=3,
@@ -169,17 +169,17 @@ class GeminiProvider(LLMProvider):
         retryable_status_codes=frozenset({408, 429, 500, 502, 503, 504}),
     )
 
-    def __init__(self, config: GeminiConfig | dict[str, Any]) -> None:
-        """Initialize the GeminiProvider.
+    def __init__(self, config: GoogleConfig | dict[str, Any]) -> None:
+        """Initialize the GoogleProvider.
 
         Args:
             config: The endpoint configuration.
         """
         if isinstance(config, dict):
-            config = GeminiConfig.from_dict(config)
+            config = GoogleConfig.from_dict(config)
 
         super().__init__(config.__dict__)
-        self._cfg: GeminiConfig = config
+        self._cfg: GoogleConfig = config
         self._client: Client | None = None
         self._encoder: Any = None
 
@@ -194,11 +194,11 @@ class GeminiProvider(LLMProvider):
             LLMProviderInitError: If credentials or network communication fail.
         """
         if self._initialized:
-            logger.debug("GeminiProvider already initialised — skipping.")
+            logger.debug("GoogleProvider already initialised — skipping.")
             return
 
         logger.info(
-            "Initialising GeminiProvider (model=%r, vertexai=%s).",
+            "Initialising GoogleProvider (model=%r, vertexai=%s).",
             self._cfg.model,
             self._cfg.vertexai,
         )
@@ -218,7 +218,7 @@ class GeminiProvider(LLMProvider):
                 )
         except Exception as exc:
             raise LLMProviderInitError(
-                "Failed to create google-genai Client.", provider="gemini"
+                "Failed to create google-genai Client.", provider="google"
             ) from exc
 
         # Probes credentials via zero-inference token check.
@@ -233,32 +233,32 @@ class GeminiProvider(LLMProvider):
         except genai_errors.ClientError as exc:
             if exc.code in {401, 403}:
                 raise LLMProviderInitError(
-                    f"Gemini API key is invalid or lacks permission: {exc.message}",
-                    provider="gemini",
+                    f"Google API key is invalid or lacks permission: {exc.message}",
+                    provider="google",
                 ) from exc
             logger.warning(
-                "GeminiProvider credential probe returned %s (non-fatal): %s",
+                "GoogleProvider credential probe returned %s (non-fatal): %s",
                 exc.code,
                 exc.message,
             )
         except Exception as exc:
-            logger.warning("GeminiProvider credential probe failed (non-fatal): %s", exc)
+            logger.warning("GoogleProvider credential probe failed (non-fatal): %s", exc)
 
         self._initialized = True
-        logger.info("GeminiProvider initialised successfully.")
+        logger.info("GoogleProvider initialised successfully.")
 
     async def shutdown(self) -> None:
-        """Close the Gemini SDK client."""
+        """Close the Google SDK client."""
         if self._client is not None:
             try:
                 await self._client.aio.aclose()
                 self._client.close()
             except Exception as exc:
-                logger.warning("Error closing Gemini client: %s", exc)
+                logger.warning("Error closing Google client: %s", exc)
             finally:
                 self._client = None
                 self._initialized = False
-                logger.debug("GeminiProvider shut down.")
+                logger.debug("GoogleProvider shut down.")
 
     async def _init_client_only(self) -> None:
         """Create the google-genai Client without running a credential probe.
@@ -293,11 +293,11 @@ class GeminiProvider(LLMProvider):
                 )
         except Exception as exc:
             raise LLMProviderInitError(
-                "Failed to create google-genai Client.", provider="gemini"
+                "Failed to create google-genai Client.", provider="google"
             ) from exc
 
         self._initialized = True
-        logger.debug("GeminiProvider client created (credential probe skipped).")
+        logger.debug("GoogleProvider client created (credential probe skipped).")
 
     # ------------------------------------------------------------------
     # Core inference methods
@@ -327,7 +327,7 @@ class GeminiProvider(LLMProvider):
         start = time.monotonic()
 
         logger.debug(
-            "Gemini complete | model=%s turns=%d thinking=%s",
+            "Google complete | model=%s turns=%d thinking=%s",
             model,
             len(contents),
             request.thinking.enabled if request.thinking else False,
@@ -345,29 +345,29 @@ class GeminiProvider(LLMProvider):
         except TimeoutError as exc:
             elapsed = time.monotonic() - start
             raise LLMTimeoutError(
-                f"Gemini request timed out after {elapsed:.1f}s (limit={timeout}s)",
+                f"Google request timed out after {elapsed:.1f}s (limit={timeout}s)",
                 elapsed_s=elapsed,
-                provider="gemini",
+                provider="google",
             ) from exc
         except genai_errors.ClientError as exc:
             raise self._map_client_error(exc) from exc
         except genai_errors.ServerError as exc:
             raise LLMProviderError(
-                f"Gemini server error: {exc.message}",
+                f"Google server error: {exc.message}",
                 status_code=exc.code,
-                provider="gemini",
+                provider="google",
             ) from exc
         except genai_errors.APIError as exc:
             raise LLMProviderError(
-                f"Gemini API error: {exc.message}",
+                f"Google API error: {exc.message}",
                 status_code=exc.code,
-                provider="gemini",
+                provider="google",
             ) from exc
 
         return self._build_response(raw, request, start)
 
     async def stream(self, request: LLMRequest) -> AsyncIterator[StreamChunk]:
-        """Yield token deltas as an async stream from the Gemini API.
+        """Yield token deltas as an async stream from the Google API.
 
         Args:
             request: The streaming generation request.
@@ -390,7 +390,7 @@ class GeminiProvider(LLMProvider):
         start = time.monotonic()
 
         logger.debug(
-            "Gemini stream | model=%s thinking=%s",
+            "Google stream | model=%s thinking=%s",
             model,
             request.thinking.enabled if request.thinking else False,
         )
@@ -444,30 +444,30 @@ class GeminiProvider(LLMProvider):
         except TimeoutError as exc:
             elapsed = time.monotonic() - start
             raise LLMTimeoutError(
-                f"Gemini stream timed out after {elapsed:.1f}s",
+                f"Google stream timed out after {elapsed:.1f}s",
                 elapsed_s=elapsed,
-                provider="gemini",
+                provider="google",
             ) from exc
         except genai_errors.ClientError as exc:
             raise self._map_client_error(exc) from exc
         except genai_errors.ServerError as exc:
             raise LLMProviderError(
-                f"Gemini server error (stream): {exc.message}",
+                f"Google server error (stream): {exc.message}",
                 status_code=exc.code,
-                provider="gemini",
+                provider="google",
             ) from exc
         except genai_errors.APIError as exc:
             raise LLMProviderError(
-                f"Gemini API error (stream): {exc.message}",
+                f"Google API error (stream): {exc.message}",
                 status_code=exc.code,
-                provider="gemini",
+                provider="google",
             ) from exc
 
         # Raises content-filter error after stream if safety policies block all output.
         if finish_reason == FinishReason.CONTENT_FILTER:
             raise LLMContentFilterError(
-                "Gemini stream blocked by content/safety filter.",
-                provider="gemini",
+                "Google stream blocked by content/safety filter.",
+                provider="google",
             )
 
         # Guarantees minimum one chunk yield for empty responses.
@@ -481,7 +481,7 @@ class GeminiProvider(LLMProvider):
             finish_reason=finish_reason,
             usage=usage,
             model=model_version,
-            provider=ProviderType.GEMINI,
+            provider=ProviderType.GOOGLE,
             latency_ms=(time.monotonic() - start) * 1_000,
         )
 
@@ -507,7 +507,7 @@ class GeminiProvider(LLMProvider):
             )
             return True
         except Exception as exc:
-            logger.warning("GeminiProvider health_check failed: %s", exc)
+            logger.warning("GoogleProvider health_check failed: %s", exc)
             return False
 
     def count_tokens(self, text: str) -> int:
@@ -535,13 +535,13 @@ class GeminiProvider(LLMProvider):
         return len(self._encoder.encode(text))
 
     async def async_count_tokens(self, request: LLMRequest) -> int:
-        """Return the exact prompt token count via the Gemini API.
+        """Return the exact prompt token count via the Google API.
 
         Args:
             request: The generation request carrying target text.
 
         Returns:
-            The specific token count according to Gemini's models.
+            The specific token count according to Google's models.
         """
         self._assert_initialized()
         assert self._client is not None
@@ -587,10 +587,10 @@ class GeminiProvider(LLMProvider):
             if msg.role == Role.SYSTEM:
                 system_parts.append(msg.content)
             else:
-                gemini_role = "model" if msg.role == Role.ASSISTANT else "user"
+                google_role = "model" if msg.role == Role.ASSISTANT else "user"
                 contents.append(
                     genai_types.Content(
-                        role=gemini_role,
+                        role=google_role,
                         parts=[genai_types.Part(text=msg.content)],
                     )
                 )
@@ -689,8 +689,8 @@ class GeminiProvider(LLMProvider):
 
         if finish_reason == FinishReason.CONTENT_FILTER:
             raise LLMContentFilterError(
-                "Gemini response blocked by content/safety filter.",
-                provider="gemini",
+                "Google response blocked by content/safety filter.",
+                provider="google",
             )
 
         usage = TokenUsage.empty()
@@ -711,7 +711,7 @@ class GeminiProvider(LLMProvider):
             finish_reason=finish_reason,
             usage=usage,
             model=model_version,
-            provider=ProviderType.GEMINI,
+            provider=ProviderType.GOOGLE,
             latency_ms=(time.monotonic() - start) * 1_000,
             raw_response=raw,
         )
@@ -720,7 +720,7 @@ class GeminiProvider(LLMProvider):
         self,
         exc: genai_errors.ClientError,
     ) -> Exception:
-        """Map a Gemini ClientError to the most specific LLMError.
+        """Map a Google ClientError to the most specific LLMError.
 
         Args:
             exc: The native client error.
@@ -732,16 +732,16 @@ class GeminiProvider(LLMProvider):
         message = exc.message
 
         if code in {401, 403}:
-            return LLMAuthenticationError("Gemini authentication failed.", provider="gemini")
+            return LLMAuthenticationError("Google authentication failed.", provider="google")
         if code == 429:
-            return LLMRateLimitError("Gemini rate limit exceeded.", provider="gemini")
+            return LLMRateLimitError("Google rate limit exceeded.", provider="google")
         msg_lower = (message or "").lower()
         if code == 400 and ("token" in msg_lower or "context" in msg_lower):
             return LLMTokenLimitError(
-                "Prompt exceeds Gemini context window.",
+                "Prompt exceeds Google context window.",
                 context_limit=_MAX_CONTEXT_TOKENS,
-                provider="gemini",
+                provider="google",
             )
         return LLMProviderError(
-            f"Gemini client error: {message}", status_code=code, provider="gemini"
+            f"Google client error: {message}", status_code=code, provider="google"
         )

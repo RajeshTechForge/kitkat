@@ -1264,7 +1264,7 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "ruff" },
 ]
-gemini = [
+google = [
     { name = "google-genai" },
 ]
 observability = [
@@ -1284,14 +1284,14 @@ workflows = [
 requires-dist = [
     { name = "anthropic", marker = "extra == 'anthropic'", specifier = ">=0.76.0" },
     { name = "basedpyright", marker = "extra == 'dev'", specifier = ">=1.39.10" },
-    { name = "google-genai", marker = "extra == 'gemini'", specifier = ">=1.57.0" },
+    { name = "google-genai", marker = "extra == 'google'", specifier = ">=1.57.0" },
     { name = "hatch", marker = "extra == 'dev'" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "kitkat", extras = ["agents"], marker = "extra == 'all'" },
     { name = "kitkat", extras = ["all"], marker = "extra == 'dev'" },
     { name = "kitkat", extras = ["all-providers"], marker = "extra == 'all'" },
     { name = "kitkat", extras = ["anthropic"], marker = "extra == 'all-providers'" },
-    { name = "kitkat", extras = ["gemini"], marker = "extra == 'all-providers'" },
+    { name = "kitkat", extras = ["google"], marker = "extra == 'all-providers'" },
     { name = "kitkat", extras = ["observability"], marker = "extra == 'all'" },
     { name = "kitkat", extras = ["openai"], marker = "extra == 'all-providers'" },
     { name = "kitkat", extras = ["workflows"], marker = "extra == 'all'" },
@@ -1312,7 +1312,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.0" },
     { name = "tiktoken", specifier = ">=0.13.0" },
 ]
-provides-extras = ["anthropic", "openai", "gemini", "all-providers", "agents", "workflows", "observability", "all", "dev"]
+provides-extras = ["anthropic", "openai", "google", "all-providers", "agents", "workflows", "observability", "all", "dev"]
 
 [[package]]
 name = "langchain-core"

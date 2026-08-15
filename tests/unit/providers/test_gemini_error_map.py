@@ -1,4 +1,4 @@
-"""Unit tests for GeminiProvider._map_client_error.
+"""Unit tests for GoogleProvider._map_client_error.
 
 Tests every branch of the error mapping without making network calls.
 The ``google.genai.errors.ClientError`` exceptions are constructed via
@@ -16,16 +16,16 @@ from kitkat.core.exceptions import (
     LLMRateLimitError,
     LLMTokenLimitError,
 )
-from kitkat.providers.gemini.provider import GeminiConfig, GeminiProvider
+from kitkat.providers.google.provider import GoogleConfig, GoogleProvider
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
 
-def _provider() -> GeminiProvider:
-    """Return a GeminiProvider with a dummy config (no real API calls)."""
-    return GeminiProvider(GeminiConfig(api_key="test"))
+def _provider() -> GoogleProvider:
+    """Return a GoogleProvider with a dummy config (no real API calls)."""
+    return GoogleProvider(GoogleConfig(api_key="test"))
 
 
 def _client_error(
@@ -47,52 +47,52 @@ class TestMapClientError:
         exc = _client_error(401, "API key invalid")
         result = _provider()._map_client_error(exc)
         assert isinstance(result, LLMAuthenticationError)
-        assert result.provider == "gemini"
+        assert result.provider == "google"
 
     def test_authentication_error_403(self) -> None:
         exc = _client_error(403, "permission denied")
         result = _provider()._map_client_error(exc)
         assert isinstance(result, LLMAuthenticationError)
-        assert result.provider == "gemini"
+        assert result.provider == "google"
 
     def test_rate_limit_error(self) -> None:
         exc = _client_error(429, "rate limit exceeded")
         result = _provider()._map_client_error(exc)
         assert isinstance(result, LLMRateLimitError)
-        assert result.provider == "gemini"
+        assert result.provider == "google"
 
     def test_token_limit_error_token_in_message(self) -> None:
         exc = _client_error(400, "token limit exceeded")
         result = _provider()._map_client_error(exc)
         assert isinstance(result, LLMTokenLimitError)
-        assert result.provider == "gemini"
+        assert result.provider == "google"
 
     def test_token_limit_error_context_in_message(self) -> None:
         exc = _client_error(400, "context length exceeded")
         result = _provider()._map_client_error(exc)
         assert isinstance(result, LLMTokenLimitError)
-        assert result.provider == "gemini"
+        assert result.provider == "google"
 
     def test_bad_request_generic(self) -> None:
         exc = _client_error(400, "bad request")
         result = _provider()._map_client_error(exc)
         assert isinstance(result, LLMProviderError)
         assert result.status_code == 400
-        assert result.provider == "gemini"
+        assert result.provider == "google"
 
     def test_not_found_error(self) -> None:
         exc = _client_error(404, "model not found")
         result = _provider()._map_client_error(exc)
         assert isinstance(result, LLMProviderError)
         assert result.status_code == 404
-        assert result.provider == "gemini"
+        assert result.provider == "google"
 
     def test_code_zero_falls_through(self) -> None:
         exc = _client_error(0, "unexpected error")
         result = _provider()._map_client_error(exc)
         assert isinstance(result, LLMProviderError)
         assert result.status_code == 0
-        assert result.provider == "gemini"
+        assert result.provider == "google"
 
     def test_all_results_are_llm_errors(self) -> None:
         """Every mapped exception must be an LLMError subclass."""

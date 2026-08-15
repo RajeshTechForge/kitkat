@@ -52,7 +52,7 @@ class TestEnums:
     def test_provider_type_values(self) -> None:
         assert ProviderType.ANTHROPIC.value == "anthropic"
         assert ProviderType.OPENAI.value == "openai"
-        assert ProviderType.GEMINI.value == "gemini"
+        assert ProviderType.GOOGLE.value == "google"
 
     def test_enums_are_str_subclass(self) -> None:
         """str-enum values compare equal to their string equivalents."""
@@ -299,7 +299,7 @@ class TestExceptionHierarchy:
         assert exc.status_code == 401
 
     def test_rate_limit_error_carries_retry_after(self) -> None:
-        exc = LLMRateLimitError("rate limited", retry_after_s=30.0, provider="gemini")
+        exc = LLMRateLimitError("rate limited", retry_after_s=30.0, provider="google")
         assert isinstance(exc, LLMError)
         assert exc.retry_after_s == 30.0
 

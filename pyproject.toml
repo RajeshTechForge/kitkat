@@ -37,11 +37,11 @@ dependencies = [
 [project.optional-dependencies]
 anthropic     = ["anthropic>=0.76.0"]
 openai        = ["openai>=2.15"]
-gemini        = ["google-genai>=1.57.0"]
+google        = ["google-genai>=1.57.0"]
 all-providers = [
     "kitkat[anthropic]",
     "kitkat[openai]",
-    "kitkat[gemini]",
+    "kitkat[google]",
 ]
 
 # ── Feature extras ────────────────────────────────────────────────────────
@@ -83,7 +83,7 @@ Changelog     = "https://github.com/RajeshTechForge/kitkat/blob/main/CHANGELOG.m
 [project.entry-points."kitkat.providers"]
 anthropic = "kitkat.providers.anthropic:AnthropicProvider"
 openai    = "kitkat.providers.openai:OpenAIProvider"
-gemini    = "kitkat.providers.gemini:GeminiProvider"
+google    = "kitkat.providers.google:GoogleProvider"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/kitkat"]

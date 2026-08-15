@@ -1,6 +1,6 @@
 """The LLMProvider abstract base class.
 
-Every concrete provider (Anthropic, OpenAI, Gemini, or a custom third-party
+Every concrete provider (Anthropic, OpenAI, Google or a custom third-party
 provider) must sub-class :class:`LLMProvider` and implement all abstract
 methods.  The library's service layer works exclusively with this ABC — it
 never imports concrete provider classes directly.
