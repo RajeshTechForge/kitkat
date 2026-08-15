@@ -730,12 +730,14 @@ class GoogleProvider(LLMProvider):
         """
         code = exc.code or 0
         message = exc.message
+        msg_lower = (message or "").lower()
 
-        if code in {401, 403}:
-            return LLMAuthenticationError("Google authentication failed.", provider="google")
+        if code in {401, 403} or "api key" in msg_lower or "api_key" in msg_lower:
+            return LLMAuthenticationError(
+                "Google authentication failed.", status_code=code, provider="google"
+            )
         if code == 429:
             return LLMRateLimitError("Google rate limit exceeded.", provider="google")
-        msg_lower = (message or "").lower()
         if code == 400 and ("token" in msg_lower or "context" in msg_lower):
             return LLMTokenLimitError(
                 "Prompt exceeds Google context window.",

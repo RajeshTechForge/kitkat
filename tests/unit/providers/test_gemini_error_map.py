@@ -55,6 +55,12 @@ class TestMapClientError:
         assert isinstance(result, LLMAuthenticationError)
         assert result.provider == "google"
 
+    def test_authentication_error_400_invalid_key(self) -> None:
+        exc = _client_error(400, "API key not valid. Please pass a valid API key.")
+        result = _provider()._map_client_error(exc)
+        assert isinstance(result, LLMAuthenticationError)
+        assert result.provider == "google"
+
     def test_rate_limit_error(self) -> None:
         exc = _client_error(429, "rate limit exceeded")
         result = _provider()._map_client_error(exc)

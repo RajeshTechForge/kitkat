@@ -1,6 +1,6 @@
-"""Live integration tests for OpenAIProvider against real API endpoints.
+"""Live integration tests for OpenAIProvider using OpenAI & OpenAI-compatible endpoints.
 
-Must be run with INTEGRATION_TESTS=1 OPENAI_API_KEY=sk-proj-... pytest tests/integration
+Must be run with INTEGRATION_TESTS=1 OPENAI_API_KEY=nvapi-... pytest tests/integration
 """
 
 from __future__ import annotations
@@ -19,6 +19,9 @@ from kitkat.providers.openai import OpenAIConfig, OpenAIProvider
 
 pytestmark = pytest.mark.integration
 
+_DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
+_DEFAULT_MODEL = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"
+
 
 @pytest.fixture(autouse=True)
 def check_openai_key() -> None:
@@ -27,14 +30,22 @@ def check_openai_key() -> None:
         pytest.skip("OPENAI_API_KEY not set in environment.")
 
 
+def _get_config() -> OpenAIConfig:
+    """Return OpenAIConfig configured for the target endpoint."""
+    api_key = os.environ["OPENAI_API_KEY"]
+    base_url = os.getenv("OPENAI_BASE_URL", _DEFAULT_BASE_URL)
+    model = os.getenv("OPENAI_MODEL", _DEFAULT_MODEL)
+    return OpenAIConfig(api_key=api_key, base_url=base_url, model=model)
+
+
 @pytest.mark.asyncio
 async def test_openai_live_complete() -> None:
-    """Verify live non-streaming completion call against OpenAI API."""
-    config = OpenAIConfig(api_key=os.environ["OPENAI_API_KEY"])
+    """Verify live non-streaming completion call against OpenAI-compatible endpoint."""
+    config = _get_config()
     async with OpenAIProvider(config) as provider:
         request = LLMRequest(
             messages=[Message(role=Role.USER, content="Reply with: OK")],
-            model="gpt-4o-mini",
+            model=config.model,
             max_tokens=10,
         )
         response = await provider.complete_with_retry(request)
@@ -47,12 +58,12 @@ async def test_openai_live_complete() -> None:
 
 @pytest.mark.asyncio
 async def test_openai_live_stream() -> None:
-    """Verify live streaming token deltas against OpenAI API."""
-    config = OpenAIConfig(api_key=os.environ["OPENAI_API_KEY"])
+    """Verify live streaming token deltas against OpenAI-compatible endpoint."""
+    config = _get_config()
     async with OpenAIProvider(config) as provider:
         request = LLMRequest(
             messages=[Message(role=Role.USER, content="Count 1 to 3.")],
-            model="gpt-4o-mini",
+            model=config.model,
             max_tokens=20,
         )
         chunks = []
@@ -66,12 +77,19 @@ async def test_openai_live_stream() -> None:
 @pytest.mark.asyncio
 async def test_openai_invalid_key_raises_auth_error() -> None:
     """Verify invalid API key raises LLMAuthenticationError."""
-    config = OpenAIConfig(api_key="sk-invalid-test-key-12345")
+    base_url = os.getenv("OPENAI_BASE_URL", _DEFAULT_BASE_URL)
+    model = os.getenv("OPENAI_MODEL", _DEFAULT_MODEL)
+    config = OpenAIConfig(
+        api_key="nvapi-invalid-test-key-12345",
+        base_url=base_url,
+        model=model,
+    )
     provider = OpenAIProvider(config)
     await provider._init_client_only()
     try:
         request = LLMRequest(
             messages=[Message(role=Role.USER, content="Hi")],
+            model=model,
             max_tokens=5,
         )
         with pytest.raises(LLMAuthenticationError):

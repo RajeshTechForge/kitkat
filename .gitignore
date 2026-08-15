@@ -35,3 +35,6 @@ AGENTS.md
 node_modules/
 .wrangler/
 .astro/
+
+# secret variables
+.env*

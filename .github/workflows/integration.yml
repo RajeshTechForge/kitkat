@@ -1,8 +1,8 @@
 name: Integration Tests (Nightly)
 
 on:
-  # schedule:
-  #   - cron: "0 3 * * *" # 3:00 AM UTC daily
+  schedule:
+    - cron: "0 3 * * *" # 3:00 AM UTC daily
   workflow_dispatch: # Manual execution trigger from GitHub UI
 
 jobs:
@@ -24,6 +24,6 @@ jobs:
         run: uv run pytest tests/integration/ tests/e2e/ -m integration
         env:
           INTEGRATION_TESTS: "1"
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}

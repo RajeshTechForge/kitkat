@@ -7,6 +7,13 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
+
 from kitkat.core.enums import FinishReason, ProviderType, Role
 from kitkat.core.models import (
     LLMRequest,

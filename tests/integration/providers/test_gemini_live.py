@@ -22,7 +22,7 @@ pytestmark = pytest.mark.integration
 
 @pytest.fixture(autouse=True)
 def check_google_key() -> None:
-    """Ensure GOOGLE_API_KEY environment variable is present."""
+    """Ensure API KEY environment variable is present."""
     if not os.getenv("GOOGLE_API_KEY"):
         pytest.skip("GOOGLE_API_KEY not set in environment.")
 
@@ -34,7 +34,7 @@ async def test_google_live_complete() -> None:
     async with GoogleProvider(config) as provider:
         request = LLMRequest(
             messages=[Message(role=Role.USER, content="Reply with: OK")],
-            model="google-2.5-flash",
+            model="gemini-3.1-flash-lite",
             max_tokens=10,
         )
         response = await provider.complete_with_retry(request)
@@ -52,7 +52,7 @@ async def test_google_live_stream() -> None:
     async with GoogleProvider(config) as provider:
         request = LLMRequest(
             messages=[Message(role=Role.USER, content="Count 1 to 3.")],
-            model="google-2.5-flash",
+            model="gemini-3.1-flash-lite",
             max_tokens=20,
         )
         chunks = []
