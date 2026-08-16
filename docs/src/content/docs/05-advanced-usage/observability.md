@@ -269,7 +269,7 @@ PydanticAI's `Agent.instrument_all()` automatically captures the following attri
 
 | Attribute                        | Description                                                 |
 | -------------------------------- | ----------------------------------------------------------- |
-| `gen_ai.system`                  | Provider identifier (`"anthropic"`, `"openai"`, `"gemini"`) |
+| `gen_ai.system`                  | Provider identifier (`"anthropic"`, `"openai"`, `"google"`) |
 | `gen_ai.request.model`           | Model identifier used for the request                       |
 | `gen_ai.usage.input_tokens`      | Number of prompt tokens                                     |
 | `gen_ai.usage.output_tokens`     | Number of completion tokens                                 |

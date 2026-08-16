@@ -193,7 +193,7 @@ BYOKLLMService(
 
 | Parameter       | Type           | Description                                                                                            |
 | --------------- | -------------- | ------------------------------------------------------------------------------------------------------ |
-| `provider_type` | `ProviderType` | Target provider. Supported: `ANTHROPIC`, `OPENAI`, `GEMINI`.                                           |
+| `provider_type` | `ProviderType` | Target provider. Supported: `ANTHROPIC`, `OPENAI`, `GOOGLE`.                                           |
 | `api_key`       | `str`          | Caller-supplied API key. Validated by the provider config; empty string raises `LLMProviderInitError`. |
 | `model`         | `str`          | Model identifier. Empty string falls back to each provider's `DEFAULT_MODEL`.                          |
 

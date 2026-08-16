@@ -69,7 +69,7 @@ from kitkat.service import create_llm_service
 from kitkat import ProviderType, LLMRequest, Message, Role
 from kitkat.providers.anthropic import AnthropicProvider, AnthropicConfig
 from kitkat.providers.openai import OpenAIProvider, OpenAIConfig
-from kitkat.providers.gemini import GeminiProvider, GeminiConfig
+from kitkat.providers.google import GoogleProvider, GoogleConfig
 
 
 def parse_args() -> argparse.Namespace:
@@ -78,7 +78,7 @@ def parse_args() -> argparse.Namespace:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("prompt", type=str, help="Prompt string or query for the model")
-    parser.add_argument("-p", "--provider", choices=["anthropic", "openai", "gemini"], default="anthropic", help="LLM Provider")
+    parser.add_argument("-p", "--provider", choices=["anthropic", "openai", "google"], default="anthropic", help="LLM Provider")
     parser.add_argument("-m", "--model", type=str, default="", help="Model name (empty for provider default)")
     parser.add_argument("-s", "--system", type=str, default="You are a helpful CLI assistant.", help="System prompt")
     parser.add_argument("-t", "--temperature", type=float, default=0.2, help="Sampling temperature")
@@ -102,8 +102,8 @@ async def run_cli() -> None:
             OpenAIConfig(api_key=os.environ["OPENAI_API_KEY"])
         )
     if "GOOGLE_API_KEY" in os.environ:
-        providers[ProviderType.GEMINI] = GeminiProvider(
-            GeminiConfig(api_key=os.environ["GOOGLE_API_KEY"])
+        providers[ProviderType.GOOGLE] = GoogleProvider(
+            GoogleConfig(api_key=os.environ["GOOGLE_API_KEY"])
         )
 
     if provider_type not in providers:

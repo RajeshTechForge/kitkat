@@ -11,7 +11,7 @@ This page documents the three built-in provider classes, their configuration dat
 ```python
 from kitkat.providers.anthropic import AnthropicProvider, AnthropicConfig
 from kitkat.providers.openai import OpenAIProvider, OpenAIConfig
-from kitkat.providers.gemini import GeminiProvider, GeminiConfig
+from kitkat.providers.google import GoogleProvider, GoogleConfig
 from kitkat.abc import LLMProvider
 ```
 
@@ -124,15 +124,15 @@ from kitkat.providers.openai import OpenAIProvider, OpenAIConfig
 - **OpenAI-compatible endpoints**: Set `base_url` to point at any Chat Completions-compatible API (Azure, Ollama, LM Studio, vLLM).
 - `LLMContentFilterError` is raised when `finish_reason == "content_filter"`.
 
-## `GeminiProvider`
+## `GoogleProvider`
 
 ```python
-from kitkat.providers.gemini import GeminiProvider, GeminiConfig
+from kitkat.providers.google import GoogleProvider, GoogleConfig
 ```
 
-**Extras required:** `pip install kitkat[gemini]`
+**Extras required:** `pip install kitkat[google]`
 
-### `GeminiConfig`
+### `GoogleConfig`
 
 | Field     | Type    | Default              | Description                                                                     |
 | --------- | ------- | -------------------- | ------------------------------------------------------------------------------- |
@@ -154,13 +154,13 @@ from kitkat.providers.gemini import GeminiProvider, GeminiConfig
 ### Notable Behaviour
 
 - **Safety categories** mapped to `LLMContentFilterError`: `SAFETY`, `RECITATION`, `BLOCKLIST`, `PROHIBITED_CONTENT`, `SPII`, `IMAGE_SAFETY`.
-- **Thinking mode**: Use `GeminiConfig.model = "gemini-2.5-flash"` or `"gemini-2.5-pro"` and set `LLMRequest.thinking = ThinkingConfig(enabled=True)`.
-- **System prompt**: Passed as `system_instruction` in the Gemini API. Extracted automatically from `Role.SYSTEM` messages.
-- Token counting uses the Gemini `count_tokens` API for accurate counts (not a local estimate).
+- **Thinking mode**: Use `GoogleConfig.model = "gemini-2.5-flash"` or `"gemini-2.5-pro"` and set `LLMRequest.thinking = ThinkingConfig(enabled=True)`.
+- **System prompt**: Passed as `system_instruction` in the Google API. Extracted automatically from `Role.SYSTEM` messages.
+- Token counting uses the Google `count_tokens` API for accurate counts (not a local estimate).
 
 ## Further Reading
 
 - [Providers Overview](../providers.md) — Configuration guide and model tables for all providers
-- [Anthropic](../anthropic.md) · [OpenAI](../openai.md) · [Gemini](../gemini.md) — Per-provider deep-dives
+- [Anthropic](../anthropic.md) · [OpenAI](../openai.md) · [Google](../google.md) — Per-provider deep-dives
 - [Custom Providers](../custom-provider.md) — Implementing `LLMProvider` for a new API
 - [API Reference — Service](./service.md) — `LLMService`, `LLMRouter`, `BYOKLLMService`

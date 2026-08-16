@@ -12,7 +12,7 @@ In the managed service path, API keys live on your server and are shared across 
 
 BYOK is the right architecture when:
 
-- You are building a multi-tenant SaaS product where each user has their own Anthropic, OpenAI, or Gemini account.
+- You are building a multi-tenant SaaS product where each user has their own Anthropic, OpenAI, or Google account.
 - You want to avoid accumulating provider spend on behalf of users.
 - Your product's value is the experience around LLM calls, not the LLM access itself.
 - You need to guarantee that one user's key can never be used to serve another user's request.
@@ -58,7 +58,7 @@ asyncio.run(handle_user_request(
 
 ```python
 BYOKLLMService(
-    provider_type: ProviderType,  # Which provider to use (ANTHROPIC, OPENAI, or GEMINI)
+    provider_type: ProviderType,  # Which provider to use (ANTHROPIC, OPENAI, or GOOGLE)
     api_key: str,                  # The caller-supplied API key
     model: str,                    # Model identifier. Empty string falls back to each provider's default.
 )
@@ -98,7 +98,7 @@ async with BYOKLLMService(ProviderType.ANTHROPIC, user_key, "claude-opus-4-5") a
 ## Stream (token-by-token)
 
 ```python
-async with BYOKLLMService(ProviderType.GEMINI, user_key, "gemini-3-flash-preview") as svc:
+async with BYOKLLMService(ProviderType.GOOGLE, user_key, "gemini-3-flash-preview") as svc:
     request = LLMRequest(
         messages=[Message(role=Role.USER, content="Write a haiku about async programming.")],
         stream=True,
@@ -183,7 +183,7 @@ from kitkat import (
 app = FastAPI()
 
 class CompletionRequest(BaseModel):
-    provider: str   # "anthropic", "openai", or "gemini"
+    provider: str   # "anthropic", "openai", or "google"
     model: str
     message: str
     max_tokens: int = 512
@@ -235,11 +235,11 @@ async def complete(
 | ------------------------ | ------------------- | ------------------------ |
 | `ProviderType.ANTHROPIC` | `kitkat[anthropic]` | `ANTHROPIC_API_KEY`      |
 | `ProviderType.OPENAI`    | `kitkat[openai]`    | `OPENAI_API_KEY`         |
-| `ProviderType.GEMINI`    | `kitkat[gemini]`    | `GOOGLE_API_KEY`         |
+| `ProviderType.GOOGLE`    | `kitkat[google]`    | `GOOGLE_API_KEY`         |
 
 Passing an unrecognized `provider_type` raises `LLMProviderError` at construction time.
 
-> **📝 Note:** `BYOKLLMService` does not support Vertex AI mode for the Gemini provider. Vertex AI uses Application Default Credentials (ADC) rather than a user-supplied API key, which is incompatible with the BYOK model. Use the managed service path with `GeminiConfig(vertexai=True)` for Vertex AI.
+> **📝 Note:** `BYOKLLMService` does not support Vertex AI mode for the Google provider. Vertex AI uses Application Default Credentials (ADC) rather than a user-supplied API key, which is incompatible with the BYOK model. Use the managed service path with `GoogleConfig(vertexai=True)` for Vertex AI.
 
 ## BYOK vs Managed: Decision Guide
 

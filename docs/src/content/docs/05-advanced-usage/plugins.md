@@ -23,7 +23,7 @@ Built-in providers are declared in Kitkat's own `pyproject.toml` using the same 
 [project.entry-points."kitkat.providers"]
 anthropic = "kitkat.providers.anthropic:AnthropicProvider"
 openai    = "kitkat.providers.openai:OpenAIProvider"
-gemini    = "kitkat.providers.gemini:GeminiProvider"
+google    = "kitkat.providers.google:GoogleProvider"
 ```
 
 ## Plugin Registry API
@@ -48,7 +48,7 @@ from kitkat.plugins import list_providers
 
 names = list_providers()
 print(names)
-# ['anthropic', 'gemini', 'my-llm', 'openai']
+# ['anthropic', 'google', 'my-llm', 'openai']
 ```
 
 ### `get_provider_class(name: str) -> type[LLMProvider]`
@@ -70,7 +70,7 @@ try:
 except KeyError as exc:
     print(exc)
     # No provider registered for 'my-llm'.
-    # Available: ['anthropic', 'gemini', 'openai'].
+    # Available: ['anthropic', 'google', 'openai'].
     # Install the provider extra (e.g. 'pip install kitkat[my-llm]')
     # or call register_provider() before using this function.
 ```
@@ -283,7 +283,7 @@ After installation, the provider is automatically discovered the next time `kitk
 from kitkat.plugins import list_providers, get_provider_class
 
 print(list_providers())
-# ['anthropic', 'gemini', 'my-llm', 'openai']
+# ['anthropic', 'google', 'my-llm', 'openai']
 
 cls = get_provider_class("my-llm")
 provider = cls({"api_key": "my-secret-key"})

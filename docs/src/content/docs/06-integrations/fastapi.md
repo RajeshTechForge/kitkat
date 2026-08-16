@@ -170,7 +170,7 @@ router = APIRouter(prefix="/v1", tags=["Completions"])
 
 
 class CompletionRequest(BaseModel):
-    provider: str = Field(default="anthropic", description="Provider name: 'anthropic', 'openai', or 'gemini'")
+    provider: str = Field(default="anthropic", description="Provider name: 'anthropic', 'openai', or 'google'")
     model: str = Field(default="", description="Model ID or empty string for provider default")
     prompt: str = Field(min_length=1, max_length=10000, description="User prompt text")
     max_tokens: int = Field(default=512, ge=1, le=4096)
@@ -319,7 +319,7 @@ byok_router = APIRouter(prefix="/v1/byok", tags=["BYOK"])
 
 
 class BYOKRequest(BaseModel):
-    provider: str = Field(description="'anthropic', 'openai', or 'gemini'")
+    provider: str = Field(description="'anthropic', 'openai' or 'google'")
     model: str = Field(default="gpt-4o-mini")
     message: str = Field(min_length=1)
 

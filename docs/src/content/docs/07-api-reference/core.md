@@ -22,7 +22,7 @@ from kitkat import ProviderType
 | ----------- | ------------- | ------------------------- |
 | `ANTHROPIC` | `"anthropic"` | Anthropic (Claude models) |
 | `OPENAI`    | `"openai"`    | OpenAI (GPT models)       |
-| `GEMINI`    | `"gemini"`    | Google Gemini             |
+| `GOOGLE`    | `"google"`    | Google Gemini / Vertex AI |
 
 ### `Role`
 

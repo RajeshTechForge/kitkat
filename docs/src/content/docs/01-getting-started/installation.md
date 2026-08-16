@@ -44,7 +44,7 @@ pip install kitkat[anthropic]
 pip install kitkat[openai]
 
 # Google Gemini (including Vertex AI)
-pip install kitkat[gemini]
+pip install kitkat[google]
 
 # All three providers at once
 pip install kitkat[all-providers]
@@ -147,7 +147,7 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 # For the OpenAI provider
 export OPENAI_API_KEY="sk-..."
 
-# For the Gemini provider
+# For the Google provider
 export GOOGLE_API_KEY="AIza..."
 ```
 

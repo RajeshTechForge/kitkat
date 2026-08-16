@@ -1,17 +1,17 @@
 ---
-title: Gemini
-description: Complete reference for Kitkat's Gemini provider, including installation, configuration, model selection, system prompt handling, streaming, extended thinking, token counting, error mapping, and retry policy.
+title: Google
+description: Complete reference for Kitkat's Google provider, including installation, configuration, model selection, system prompt handling, streaming, extended thinking, token counting, error mapping, and retry policy.
 order: 3
 ---
 
-This page is the complete reference for Kitkat's Gemini provider. It covers installation, every configuration field, both API-key and Vertex AI modes, model selection, system prompt handling, streaming, extended thinking, exact token counting, the full error mapping, and the retry policy.
+This page is the complete reference for Kitkat's Google provider. It covers installation, every configuration field, both API-key and Vertex AI modes, model selection, system prompt handling, streaming, extended thinking, exact token counting, the full error mapping, and the retry policy.
 
 > **📝 Note:** This page assumes you have read [Concepts](../concepts.md). If not, start there first.
 
 ## Installation
 
 ```bash
-pip install kitkat[gemini]
+pip install kitkat[google]
 ```
 
 This installs the `google-genai` Python SDK (≥ 1.57.0) alongside Kitkat's core package.
@@ -24,11 +24,11 @@ import os
 
 from kitkat.service import create_llm_service
 from kitkat import ProviderType, LLMRequest, Message, Role
-from kitkat.providers.gemini import GeminiProvider, GeminiConfig
+from kitkat.providers.google import GoogleProvider, GoogleConfig
 
 async def main() -> None:
-    config = GeminiConfig(api_key=os.environ["GOOGLE_API_KEY"])
-    service = create_llm_service({ProviderType.GEMINI: GeminiProvider(config)})
+    config = GoogleConfig(api_key=os.environ["GOOGLE_API_KEY"])
+    service = create_llm_service({ProviderType.GOOGLE: GoogleProvider(config)})
     await service.initialize()
 
     response = await service.complete(
@@ -37,24 +37,24 @@ async def main() -> None:
             model="gemini-3-flash-preview",
             max_tokens=256,
         ),
-        ProviderType.GEMINI,
+        ProviderType.GOOGLE,
     )
     print(response.content)
 
 asyncio.run(main())
 ```
 
-## `GeminiConfig`
+## `GoogleConfig`
 
-`GeminiConfig` is a dataclass that holds all configuration for the Gemini provider. It supports two distinct authentication modes: **API key** (standard) and **Vertex AI**. All fields are validated in `__post_init__`.
+`GoogleConfig` is a dataclass that holds all configuration for the Google provider. It supports two distinct authentication modes: **API key** (standard) and **Vertex AI**. All fields are validated in `__post_init__`.
 
 ### API key mode (standard)
 
 ```python
-from kitkat.providers.gemini import GeminiConfig
+from kitkat.providers.google import GoogleConfig
 import os
 
-config = GeminiConfig(
+config = GoogleConfig(
     api_key=os.environ["GOOGLE_API_KEY"],  # Required when vertexai=False
     model="gemini-3-flash-preview",         # Default: "gemini-3-flash-preview"
     vertexai=False,                         # Default: False
@@ -66,7 +66,7 @@ config = GeminiConfig(
 ### Vertex AI mode
 
 ```python
-vertex_config = GeminiConfig(
+vertex_config = GoogleConfig(
     vertexai=True,
     project=os.environ["GOOGLE_CLOUD_PROJECT"],  # Required when vertexai=True
     location="us-central1",                       # Required when vertexai=True
@@ -98,31 +98,31 @@ vertex_config = GeminiConfig(
 ### Building from a dictionary
 
 ```python
-config = GeminiConfig.from_dict({
+config = GoogleConfig.from_dict({
     "api_key": os.environ["GOOGLE_API_KEY"],
     "model": "gemini-2.5-pro",
     "timeout_s": 90.0,
 })
 ```
 
-## `GeminiProvider`
+## `GoogleProvider`
 
-`GeminiProvider` wraps `GeminiConfig` and implements the `LLMProvider` ABC using the official `google.genai.Client`.
+`GoogleProvider` wraps `GoogleConfig` and implements the `LLMProvider` ABC using the official `google.genai.Client`.
 
 ```python
-from kitkat.providers.gemini import GeminiProvider, GeminiConfig
+from kitkat.providers.google import GoogleProvider, GoogleConfig
 import os
 
-provider = GeminiProvider(GeminiConfig(api_key=os.environ["GOOGLE_API_KEY"]))
+provider = GoogleProvider(GoogleConfig(api_key=os.environ["GOOGLE_API_KEY"]))
 # Or pass a dict directly:
-provider = GeminiProvider({"api_key": os.environ["GOOGLE_API_KEY"]})
+provider = GoogleProvider({"api_key": os.environ["GOOGLE_API_KEY"]})
 ```
 
 ### Class-level attributes
 
 | Attribute                             | Value                      |
 | ------------------------------------- | -------------------------- |
-| `PROVIDER_TYPE`                       | `ProviderType.GEMINI`      |
+| `PROVIDER_TYPE`                       | `ProviderType.GOOGLE`      |
 | `DEFAULT_MODEL`                       | `"gemini-3-flash-preview"` |
 | `CAPABILITIES.supports_streaming`     | `True`                     |
 | `CAPABILITIES.supports_system_prompt` | `True`                     |
@@ -133,7 +133,7 @@ provider = GeminiProvider({"api_key": os.environ["GOOGLE_API_KEY"]})
 
 ## Vertex AI Support
 
-Kitkat's Gemini provider supports Vertex AI deployments transparently. When `vertexai=True`, the `google-genai` SDK uses Application Default Credentials (ADC) rather than an API key.
+Kitkat's Google provider supports Vertex AI deployments transparently. When `vertexai=True`, the `google-genai` SDK uses Application Default Credentials (ADC) rather than an API key.
 
 **Setting up ADC:**
 
@@ -150,23 +150,23 @@ export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-key.json"
 ```python
 import os
 import asyncio
-from kitkat.providers.gemini import GeminiProvider, GeminiConfig
+from kitkat.providers.google import GoogleProvider, GoogleConfig
 from kitkat import ProviderType, LLMRequest, Message, Role
 from kitkat.service import create_llm_service
 
 async def main() -> None:
-    config = GeminiConfig(
+    config = GoogleConfig(
         vertexai=True,
         project=os.environ["GOOGLE_CLOUD_PROJECT"],
         location="us-central1",
         model="gemini-3-flash-preview",
     )
-    service = create_llm_service({ProviderType.GEMINI: GeminiProvider(config)})
+    service = create_llm_service({ProviderType.GOOGLE: GoogleProvider(config)})
     await service.initialize()
 
     response = await service.complete(
         LLMRequest(messages=[Message(role=Role.USER, content="Hello from Vertex AI!")]),
-        ProviderType.GEMINI,
+        ProviderType.GOOGLE,
     )
     print(response.content)
 
@@ -181,7 +181,7 @@ asyncio.run(main())
 
 Constructs the `google.genai.Client` and runs a credential probe via `aio.models.count_tokens(model=..., contents="ping")`. The probe consumes no inference tokens and times out after 5 seconds.
 
-**Authentication error handling:** If the probe returns HTTP 401 or 403, `LLMProviderInitError` is raised immediately. Other probe errors (network issues, etc.) are logged as warnings but do not block initialization — Gemini's API can be temporarily inconsistent during startup.
+**Authentication error handling:** If the probe returns HTTP 401 or 403, `LLMProviderInitError` is raised immediately. Other probe errors (network issues, etc.) are logged as warnings but do not block initialization — Google's API can be temporarily inconsistent during startup.
 
 - Raises `LLMProviderInitError` if the client cannot be created or credentials fail.
 - Is idempotent: calling it twice on an already-initialized provider is a no-op.
@@ -189,13 +189,13 @@ Constructs the `google.genai.Client` and runs a credential probe via `aio.models
 ### Using as an async context manager
 
 ```python
-async with GeminiProvider(config) as provider:
+async with GoogleProvider(config) as provider:
     response = await provider.complete(request)
 ```
 
 ### `async shutdown()`
 
-Closes both the async and sync Gemini client connections, releasing the underlying HTTP connection pool.
+Closes both the async and sync Google client connections, releasing the underlying HTTP connection pool.
 
 ## Completions
 
@@ -205,11 +205,11 @@ Closes both the async and sync Gemini client connections, releasing the underlyi
 import asyncio
 import os
 
-from kitkat.providers.gemini import GeminiProvider, GeminiConfig
+from kitkat.providers.google import GoogleProvider, GoogleConfig
 from kitkat import LLMRequest, Message, Role
 
 async def main() -> None:
-    async with GeminiProvider(GeminiConfig(api_key=os.environ["GOOGLE_API_KEY"])) as provider:
+    async with GoogleProvider(GoogleConfig(api_key=os.environ["GOOGLE_API_KEY"])) as provider:
         request = LLMRequest(
             messages=[
                 Message(role=Role.SYSTEM, content="Answer concisely in one paragraph."),
@@ -235,7 +235,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-> **📝 Note:** `top_p` is only sent to the Gemini API when it differs from `1.0`. When `top_p=1.0` (the default), Kitkat omits it from the API call to avoid overriding Gemini's own default nucleus sampling settings.
+> **📝 Note:** `top_p` is only sent to the Google API when it differs from `1.0`. When `top_p=1.0` (the default), Kitkat omits it from the API call to avoid overriding Google's own default nucleus sampling settings.
 
 ### Streaming
 
@@ -243,11 +243,11 @@ asyncio.run(main())
 import asyncio
 import os
 
-from kitkat.providers.gemini import GeminiProvider, GeminiConfig
+from kitkat.providers.google import GoogleProvider, GoogleConfig
 from kitkat import LLMRequest, Message, Role
 
 async def main() -> None:
-    async with GeminiProvider(GeminiConfig(api_key=os.environ["GOOGLE_API_KEY"])) as provider:
+    async with GoogleProvider(GoogleConfig(api_key=os.environ["GOOGLE_API_KEY"])) as provider:
         request = LLMRequest(
             messages=[Message(role=Role.USER, content="Tell me a short story about a robot.")],
             model="gemini-3-flash-preview",
@@ -271,18 +271,18 @@ asyncio.run(main())
 
 ## System Prompt Handling
 
-Gemini uses a dedicated `system_instruction` top-level parameter separate from the conversation turns. Kitkat handles the extraction automatically.
+Google uses a dedicated `system_instruction` top-level parameter separate from the conversation turns. Kitkat handles the extraction automatically.
 
 When you include `Message(role=Role.SYSTEM, ...)` objects in your message list, Kitkat:
 
 1. Extracts all system messages from the list.
 2. Concatenates their content with `\n\n---\n\n` as a separator.
 3. Passes the result as `system_instruction` in `GenerateContentConfig`.
-4. Maps remaining messages to `genai_types.Content` objects with Gemini's role vocabulary.
+4. Maps remaining messages to `genai_types.Content` objects with Google's role vocabulary.
 
 **Role mapping:**
 
-| Kitkat `Role`    | Gemini role                       |
+| Kitkat `Role`    | Google role                       |
 | ---------------- | --------------------------------- |
 | `Role.USER`      | `"user"`                          |
 | `Role.ASSISTANT` | `"model"`                         |
@@ -297,7 +297,7 @@ messages = [
     Message(role=Role.ASSISTANT, content="A tensor is a multi-dimensional array..."),
     Message(role=Role.USER, content="Give me an example in PyTorch."),
 ]
-# What Kitkat sends to Gemini:
+# What Kitkat sends to Google:
 # system_instruction="You are a concise technical assistant."
 # contents=[
 #   Content(role="user", parts=[Part(text="What is a tensor?")]),
@@ -308,12 +308,12 @@ messages = [
 
 ## Extended Thinking
 
-Gemini supports extended thinking via the `thinking_level` parameter (`"LOW"`, `"MEDIUM"`, `"HIGH"`). Kitkat maps the normalized `ThinkingConfig.effort` field to Gemini's vocabulary.
+Google supports extended thinking via the `thinking_level` parameter (`"LOW"`, `"MEDIUM"`, `"HIGH"`). Kitkat maps the normalized `ThinkingConfig.effort` field to Google's vocabulary.
 
 ### Effort → thinking level mapping
 
-| `ThinkingConfig.effort` | Gemini `thinking_level` |
-| ----------------------- | ----------------------- |
+| `ThinkingConfig.effort` | Google `thinking_level` |
+| ----------------------- |-------------------------|
 | `"low"`                 | `"LOW"`                 |
 | `"medium"`              | `"MEDIUM"`              |
 | `"high"`                | `"HIGH"`                |
@@ -334,7 +334,7 @@ request = LLMRequest(
 
 ### Provider-level override
 
-Use `provider_options` to pass Gemini-specific parameters directly. The `level` key maps directly to `thinking_level`:
+Use `provider_options` to pass Google-specific parameters directly. The `level` key maps directly to `thinking_level`:
 
 ```python
 request = LLMRequest(
@@ -350,7 +350,7 @@ request = LLMRequest(
 
 ### Thinking in streaming
 
-Gemini streaming distinguishes thinking and answer parts via the `thought` attribute on `Part` objects. Kitkat maps this to `StreamChunk.is_thinking`:
+Google streaming distinguishes thinking and answer parts via the `thought` attribute on `Part` objects. Kitkat maps this to `StreamChunk.is_thinking`:
 
 ```python
 thinking_buf: list[str] = []
@@ -370,7 +370,7 @@ print("Answer:", "".join(answer_buf))
 
 ### Thinking token reporting
 
-Unlike Anthropic, Gemini reports thinking tokens separately in `usage_metadata.thoughts_token_count`. Kitkat maps this to `TokenUsage.thinking_tokens`:
+Unlike Anthropic, Google reports thinking tokens separately in `usage_metadata.thoughts_token_count`. Kitkat maps this to `TokenUsage.thinking_tokens`:
 
 ```python
 response = await provider.complete(thinking_request)
@@ -379,15 +379,15 @@ print(f"Answer tokens: {response.usage.completion_tokens}")
 print(f"Total: {response.usage.total_tokens}")
 ```
 
-> **📝 Note:** When `include_thoughts=True` (set automatically by Kitkat when thinking is enabled), Gemini includes the reasoning trace in both `thinking_content` (non-streaming) and as `is_thinking=True` stream chunks (streaming).
+> **📝 Note:** When `include_thoughts=True` (set automatically by Kitkat when thinking is enabled), Google includes the reasoning trace in both `thinking_content` (non-streaming) and as `is_thinking=True` stream chunks (streaming).
 
 ## Safety Filters
 
-Gemini applies safety filters across multiple categories. When a response is blocked, Kitkat raises `LLMContentFilterError`.
+Google applies safety filters across multiple categories. When a response is blocked, Kitkat raises `LLMContentFilterError`.
 
 ### Filter categories that trigger `LLMContentFilterError`
 
-| Gemini `finish_reason` | Category                                      |
+| Google `finish_reason` | Category                                      |
 | ---------------------- | --------------------------------------------- |
 | `SAFETY`               | General safety policy violation               |
 | `RECITATION`           | Copyright or recitation block                 |
@@ -421,7 +421,7 @@ except LLMContentFilterError as exc:
 `count_tokens(text)` uses tiktoken's `cl100k_base` BPE encoding as a fast approximation with no network call.
 
 ```python
-provider = GeminiProvider(config)
+provider = GoogleProvider(config)
 await provider.initialize()
 
 estimate = provider.count_tokens("What is deep learning?")
@@ -438,7 +438,7 @@ print(estimate)  # ~12
 
 **Fallback:** If tiktoken cannot load BPE data, the estimate falls back to `max(1, len(text) // 4)`.
 
-### Exact count via Gemini API
+### Exact count via Google API
 
 `async_count_tokens(request)` calls `aio.models.count_tokens` for the exact prompt token count. No inference tokens are consumed.
 
@@ -453,7 +453,7 @@ exact = await provider.async_count_tokens(
         ]
     )
 )
-print(exact)  # Exact value from Gemini
+print(exact)  # Exact value from Google
 ```
 
 > **💡 Tip:** With Gemini's 1M+ context window, token budget management is less critical than with Anthropic or OpenAI. However, `async_count_tokens` is still useful when processing very large documents to avoid unexpected truncation.
@@ -480,7 +480,7 @@ Returns `False` on any error rather than raising.
 | `jitter`           | `True`                           | ±50% random variation                              |
 | Retryable codes    | `{408, 429, 500, 502, 503, 504}` | Standard transient codes                           |
 
-> **📝 Note:** The Gemini provider's `base_delay_s` is `2.0` (vs `1.0` for Anthropic and OpenAI). Gemini quota limits are enforced on a per-minute basis, and a 2-second base delay gives the quota window more time to reset before the first retry.
+> **📝 Note:** The Google provider's `base_delay_s` is `2.0` (vs `1.0` for Anthropic and OpenAI). Google quota limits are enforced on a per-minute basis, and a 2-second base delay gives the quota window more time to reset before the first retry.
 
 The following errors are **not** retried:
 
@@ -490,21 +490,21 @@ The following errors are **not** retried:
 
 ## Error Mapping
 
-Gemini uses a three-tier SDK exception hierarchy: `ClientError`, `ServerError`, and `APIError`.
+Google uses a three-tier SDK exception hierarchy: `ClientError`, `ServerError`, and `APIError`.
 
-| Gemini error                                                    | Condition                      | Kitkat exception         |
+| Google error                                                    | Condition                      | Kitkat exception         |
 | --------------------------------------------------------------- | ------------------------------ | ------------------------ |
 | `ClientError` with code 401 or 403                              | Authentication failure         | `LLMAuthenticationError` |
 | `ClientError` with code 429                                     | Rate limit exceeded            | `LLMRateLimitError`      |
 | `ClientError` with code 400 and "token" or "context" in message | Prompt too long                | `LLMTokenLimitError`     |
 | Any other `ClientError`                                         | Client-side API error          | `LLMProviderError`       |
-| `ServerError`                                                   | Gemini server-side error (5xx) | `LLMProviderError`       |
-| `APIError`                                                      | Generic Gemini API error       | `LLMProviderError`       |
+| `ServerError`                                                   | Google server-side error (5xx) | `LLMProviderError`       |
+| `APIError`                                                      | Generic Google API error       | `LLMProviderError`       |
 | `asyncio.TimeoutError`                                          | `asyncio.timeout()` exceeded   | `LLMTimeoutError`        |
 
 ## `finish_reason` → `FinishReason` Mapping
 
-| Gemini `finish_reason`        | `FinishReason`   |
+| Google `finish_reason`        | `FinishReason`   |
 | ----------------------------- | ---------------- |
 | `"STOP"`                      | `STOP`           |
 | `"MAX_TOKENS"`                | `LENGTH`         |

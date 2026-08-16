@@ -128,7 +128,7 @@ def list_providers() -> list[str]
 Returns a sorted list of all currently registered provider names.
 
 ```python
-list_providers()  # ['anthropic', 'gemini', 'openai']
+list_providers()  # ['anthropic', 'google', 'openai']
 ```
 
 ### `get_provider_class`

@@ -16,7 +16,7 @@ In the managed path, API keys live on your server. You configure one or more pro
 
 ```
 Your code
-  └─→  LLMService  ──→  Provider (Anthropic / OpenAI / Gemini)  ──→  LLM API
+  └─→  LLMService  ──→  Provider (Anthropic / OpenAI / Google)  ──→  LLM API
 ```
 
 Use the managed path when:
@@ -298,7 +298,7 @@ Kitkat uses `StrEnum` throughout. All enum values are plain strings, so they ser
 | ----------- | ------------- | ------------------------------------------------- |
 | `ANTHROPIC` | `"anthropic"` | Anthropic Claude models                           |
 | `OPENAI`    | `"openai"`    | OpenAI GPT models and OpenAI-compatible endpoints |
-| `GEMINI`    | `"gemini"`    | Google Gemini models and Vertex AI                |
+| `GOOGLE`    | `"google"`    | Google Gemini models and Vertex AI                |
 
 ### `FinishReason`
 

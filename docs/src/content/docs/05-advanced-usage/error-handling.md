@@ -57,7 +57,7 @@ class KitkatError(Exception):
 ```python
 class LLMError(KitkatError):
     message: str
-    provider: str | None   # Which provider raised the error ("anthropic", "openai", "gemini")
+    provider: str | None   # Which provider raised the error ("anthropic", "openai", "google")
     status_code: int        # HTTP status code from the provider, or 500 if unknown
 ```
 
@@ -173,7 +173,7 @@ class LLMRateLimitError(LLMError):
 from kitkat import LLMRateLimitError
 
 try:
-    response = await service.complete(request, ProviderType.GEMINI)
+    response = await service.complete(request, ProviderType.GOOGLE)
 except LLMRateLimitError as exc:
     wait = exc.retry_after_s or 60.0
     print(f"Rate limited by {exc.provider}. Retry after {wait:.0f}s.")
@@ -227,7 +227,7 @@ class LLMTokenLimitError(LLMError):
 from kitkat import LLMTokenLimitError
 
 try:
-    response = await service.complete(request, ProviderType.GEMINI)
+    response = await service.complete(request, ProviderType.GOOGLE)
 except LLMTokenLimitError as exc:
     limit = exc.context_limit or "unknown"
     count = exc.token_count or "unknown"
@@ -250,7 +250,7 @@ if estimated > caps.max_context_tokens:
 
 ### `LLMContentFilterError`
 
-Raised when the provider's safety policy blocks a response. This applies to all Gemini safety categories (`SAFETY`, `RECITATION`, `BLOCKLIST`, `PROHIBITED_CONTENT`, `SPII`, `IMAGE_SAFETY`) and to OpenAI's `content_filter` finish reason.
+Raised when the provider's safety policy blocks a response. This applies to all Google safety categories (`SAFETY`, `RECITATION`, `BLOCKLIST`, `PROHIBITED_CONTENT`, `SPII`, `IMAGE_SAFETY`) and to OpenAI's `content_filter` finish reason.
 
 ```python
 class LLMContentFilterError(LLMError):
@@ -265,7 +265,7 @@ class LLMContentFilterError(LLMError):
 from kitkat import LLMContentFilterError
 
 try:
-    response = await service.complete(request, ProviderType.GEMINI)
+    response = await service.complete(request, ProviderType.GOOGLE)
 except LLMContentFilterError as exc:
     print(f"Content blocked by {exc.provider} safety policy.")
     # Return a user-facing message explaining that the request cannot be fulfilled.

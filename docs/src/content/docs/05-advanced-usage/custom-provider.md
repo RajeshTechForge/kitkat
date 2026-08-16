@@ -4,7 +4,7 @@ description: Learn how to implement a custom LLM provider for Kitkat by subclass
 order: 1
 ---
 
-Kitkat's provider system is open: any class that implements the `LLMProvider` abstract base class (ABC) is a first-class provider. You can wrap any LLM API — a proprietary internal model, an on-premises vLLM deployment, a custom inference server, or a provider that Kitkat doesn't ship with — and have it work identically to the built-in Anthropic, OpenAI, and Gemini providers.
+Kitkat's provider system is open: any class that implements the `LLMProvider` abstract base class (ABC) is a first-class provider. You can wrap any LLM API — a proprietary internal model, an on-premises vLLM deployment, a custom inference server, or a provider that Kitkat doesn't ship with — and have it work identically to the built-in Anthropic, OpenAI, and Google providers.
 
 This page walks through the complete `LLMProvider` contract, a full working implementation using `httpx`, BYOK compatibility, error mapping, streaming, token counting, health checks, retry configuration, testing, and shipping your provider as an installable plugin.
 

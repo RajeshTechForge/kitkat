@@ -77,7 +77,7 @@ Kitkat is organized into clearly separated layers. Each layer depends only on th
 │  LLMService · BYOKLLMService · LLMRouter · LLMCache     │
 ├─────────────────────────────────────────────────────────┤
 │  Provider Implementations                               │
-│  kitkat.providers.anthropic / openai / gemini           │
+│  kitkat.providers.anthropic / openai / google           │
 │  (requires provider extras)                             │
 ├─────────────────────────────────────────────────────────┤
 │  Abstract Provider (ABC)                                │

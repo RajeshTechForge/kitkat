@@ -286,7 +286,7 @@ You now know how to send completions, stream tokens, use BYOK, and handle errors
 | Goal                                                            | Guide                                 |
 | --------------------------------------------------------------- | ------------------------------------- |
 | Understand what `LLMRequest`, `Message`, and `ProviderType` are | [Concepts](./concepts.md)             |
-| Configure Anthropic, OpenAI, or Gemini in detail                | [Providers](./providers.md)           |
+| Configure Anthropic, OpenAI, or Google in detail                | [Providers](./providers.md)           |
 | Set up automatic failover between providers                     | [Routing & Cache](./routing-cache.md) |
 | Use per-user API keys in a SaaS product                         | [BYOK](./byok.md)                     |
 | Build a PydanticAI agent on top of Kitkat                       | [Agent Overview](./agents/index.md)   |

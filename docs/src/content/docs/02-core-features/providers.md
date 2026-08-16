@@ -4,9 +4,9 @@ description: This page explains every built-in provider, their configuration cla
 order: 1
 ---
 
-This page covers every built-in provider — Anthropic, OpenAI, and Gemini — their configuration classes, default models, capabilities, and provider-specific behaviours. It also explains the `LLMService` managed service that wraps them.
+This page covers every built-in provider — Anthropic, OpenAI, and Google — their configuration classes, default models, capabilities, and provider-specific behaviours. It also explains the `LLMService` managed service that wraps them.
 
-> **📝 Note:** Kitkat uses an opt-in extras model. Each provider requires its own extra to be installed (`kitkat[anthropic]`, `kitkat[openai]`, `kitkat[gemini]`). See [Installation](./installation.md) for details.
+> **📝 Note:** Kitkat uses an opt-in extras model. Each provider requires its own extra to be installed (`kitkat[anthropic]`, `kitkat[openai]`, `kitkat[google]`). See [Installation](./installation.md) for details.
 
 ## LLMService — the Managed Service
 
@@ -135,7 +135,7 @@ Estimates the total token count for a list of `Message` objects. Concatenates al
 Returns the static capabilities descriptor for a registered provider. Use this to check whether a provider supports streaming, thinking, tool calling, or vision before building a request.
 
 ```python
-caps = service.get_capabilities(ProviderType.GEMINI)
+caps = service.get_capabilities(ProviderType.GOOGLE)
 if caps.supports_thinking:
     request = LLMRequest(..., thinking=ThinkingConfig(enabled=True))
 ```
@@ -363,22 +363,22 @@ request = LLMRequest(
 | `jitter`           | `True`                       |
 | Retryable codes    | 408, 429, 500, 502, 503, 504 |
 
-## Gemini Provider
+## Google Provider
 
 ### Installation
 
 ```bash
-pip install kitkat[gemini]
+pip install kitkat[google]
 ```
 
-### Configuration: `GeminiConfig`
+### Configuration: `GoogleConfig`
 
 ```python
-from kitkat.providers.gemini import GeminiConfig
+from kitkat.providers.google import GoogleConfig
 import os
 
 # API key mode (standard)
-config = GeminiConfig(
+config = GoogleConfig(
     api_key=os.environ["GOOGLE_API_KEY"],  # Required when vertexai=False
     model="gemini-3-flash-preview",         # Default: "gemini-3-flash-preview"
     vertexai=False,                         # Set True to use Vertex AI instead
@@ -387,7 +387,7 @@ config = GeminiConfig(
 )
 
 # Vertex AI mode
-vertex_config = GeminiConfig(
+vertex_config = GoogleConfig(
     vertexai=True,
     project="my-gcp-project",   # Required when vertexai=True
     location="us-central1",     # Required when vertexai=True
@@ -415,32 +415,32 @@ vertex_config = GeminiConfig(
 
 ### Vertex AI support
 
-Kitkat's Gemini provider supports Vertex AI deployments transparently. Set `vertexai=True` and provide your GCP `project` and `location`. The google-genai SDK uses Application Default Credentials (ADC) in Vertex AI mode — no `api_key` is required.
+Kitkat's Google provider supports Vertex AI deployments transparently. Set `vertexai=True` and provide your GCP `project` and `location`. The google-genai SDK uses Application Default Credentials (ADC) in Vertex AI mode — no `api_key` is required.
 
 ```python
 import os
-from kitkat.providers.gemini import GeminiProvider, GeminiConfig
+from kitkat.providers.google import GoogleProvider, GoogleConfig
 from kitkat import ProviderType
 from kitkat.service import create_llm_service
 
-vertex_config = GeminiConfig(
+vertex_config = GoogleConfig(
     vertexai=True,
     project=os.environ["GOOGLE_CLOUD_PROJECT"],
     location="us-central1",
 )
 service = create_llm_service({
-    ProviderType.GEMINI: GeminiProvider(vertex_config)
+    ProviderType.GOOGLE: GoogleProvider(vertex_config)
 })
 await service.initialize()
 ```
 
 ### System prompt handling
 
-Gemini uses a top-level `system_instruction` parameter separate from the conversation turns. Kitkat extracts all `Role.SYSTEM` messages and concatenates them with `\n\n---\n\n` as the separator, then passes the result as `system_instruction`.
+Google uses a top-level `system_instruction` parameter separate from the conversation turns. Kitkat extracts all `Role.SYSTEM` messages and concatenates them with `\n\n---\n\n` as the separator, then passes the result as `system_instruction`.
 
-Gemini's role vocabulary differs from the standard: Kitkat maps `Role.ASSISTANT` → `"model"` and `Role.USER` → `"user"` automatically.
+Google's role vocabulary differs from the standard: Kitkat maps `Role.ASSISTANT` → `"model"` and `Role.USER` → `"user"` automatically.
 
-### Extended thinking (Gemini)
+### Extended thinking (Google)
 
 Gemini uses `thinking_level` (`"LOW"`, `"MEDIUM"`, `"HIGH"`) to control reasoning intensity:
 
@@ -456,11 +456,11 @@ request = LLMRequest(
 )
 ```
 
-> **📝 Note:** `TokenUsage.thinking_tokens` reflects `thoughts_token_count` from Gemini's `usage_metadata` when thinking is enabled.
+> **📝 Note:** `TokenUsage.thinking_tokens` reflects `thoughts_token_count` from Google's `usage_metadata` when thinking is enabled.
 
 ### Safety filter behaviour
 
-Gemini raises `LLMContentFilterError` when its safety policies block a response. This covers all Gemini safety categories including `SAFETY`, `RECITATION`, `BLOCKLIST`, `PROHIBITED_CONTENT`, `SPII`, and `IMAGE_SAFETY`. Unlike `LLMRateLimitError`, content filter errors are **not retried** — a different provider would produce the same outcome.
+Google raises `LLMContentFilterError` when its safety policies block a response. This covers all Google safety categories including `SAFETY`, `RECITATION`, `BLOCKLIST`, `PROHIBITED_CONTENT`, `SPII`, and `IMAGE_SAFETY`. Unlike `LLMRateLimitError`, content filter errors are **not retried** — a different provider would produce the same outcome.
 
 ### Retry policy
 
@@ -475,7 +475,7 @@ Gemini raises `LLMContentFilterError` when its safety policies block a response.
 
 ## Provider Comparison
 
-| Feature                  | Anthropic               | OpenAI               | Gemini                       |
+| Feature                  | Anthropic               | OpenAI               | Google                       |
 | ------------------------ | ----------------------- | -------------------- | ---------------------------- |
 | Default model            | `claude-sonnet-4-6`     | `gpt-4o-mini`        | `gemini-3-flash-preview`     |
 | Max context              | 200k tokens             | 128k tokens          | 1M+ tokens                   |
