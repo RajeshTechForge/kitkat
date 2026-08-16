@@ -37,7 +37,7 @@ It provides a single, strongly typed interface to major LLM providers with zero 
 
 - **Production Resilience & Smart Routing**: Built-in failover routing, latency/cost tiering, circuit breaking (`CircuitState`), response caching (In-Memory & Redis), and exponential backoff retry policies.
 
-- **Extended Thinking & Vendor-Specific Capabilities**: First-class `ThinkingConfig` support for reasoning models (Claude 3.7 Extended Thinking, OpenAI Reasoning), structured Pydantic outputs, streaming chunks, and runtime capability introspection.
+- **Extended Thinking & Vendor-Specific Capabilities**: First-class `ThinkingConfig` support for reasoning models, structured Pydantic outputs, streaming chunks, and runtime capability introspection.
 
 - **Normalized Error Hierarchy**: Translates vendor-specific HTTP and API errors into predictable, catchable exceptions (`LLMRateLimitError`, `LLMAuthenticationError`, `LLMTokenLimitError`, `LLMTimeoutError`, `LLMContentFilterError`).
 

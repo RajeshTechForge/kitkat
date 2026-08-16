@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kitkat"
-version = "0.6.0"
-description = "Your modern & minimal LLM-framework."
+version = "0.7.0"
+description = "A modern & minimal Python library for talking to LLMs."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"

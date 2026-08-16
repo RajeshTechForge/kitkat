@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-16
+
+### Changed
+- **Renamed Gemini Provider to Google (Breaking Change)**: Refactored the Gemini provider to `Google` for alignment with the official `google-genai` SDK and Vertex AI nomenclature.
+  - Package path updated from `kitkat.providers.gemini` to `kitkat.providers.google`.
+  - Class `GeminiProvider` renamed to `GoogleProvider`, and `ProviderType.GEMINI` changed to `ProviderType.GOOGLE`.
+  - Optional dependency extra changed from `kitkat[gemini]` to `kitkat[google]`.
+- **Made Redis a Core Dependency**: Promoted `redis>=7.1.1` from optional dependency extras (`kitkat[redis]`) to a mandatory core requirement to support async response caching out of the box.
+- **Typed Provider Thinking Parameters**: Updated Anthropic, Google, and OpenAI provider interfaces to replace generic keyword arguments with explicit, typed parameters for thinking and reasoning configurations.
+- **Router Strategy & Cache Type Safety**: Refactored `LLMRouter` internals and strategy contracts to use explicit return types and strict annotations.
+
+### Added
+- **PEP 561 Package Typing Marker (`py.typed`)**: Added `py.typed` marker file to package root to expose inline type annotations to downstream consumers.
+- **Strict Static Type Checking**: Integrated `mypy` and `pyright` / `basedpyright` (via `pyrightconfig.json`) into the repository and CI pipeline.
+- **Integration & End-to-End Test Suites**: Added E2E tests for agent execution and live provider integration test suites (`tests/integration/` and `tests/e2e/`).
+- **Documentation Site Overhaul**: Added comprehensive Astro-based documentation website under `docs/` covering architecture, core concepts, agent layers, BYOK, provider configuration and API reference.
+
+### Fixed
+- **OpenTelemetry Observability Type Check**: Resolved typing inconsistencies with `opentelemetry-sdk` in `kitkat.agents.observability` to ensure valid span creation and context propagation.
+
 ## [0.6.0] - 2026-08-11
 
 ### Added
