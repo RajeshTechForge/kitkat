@@ -90,21 +90,6 @@ Kitkat is organized into clearly separated layers. Each layer depends only on th
 
 **Core** (`kitkat.core`) holds models, enums, and exceptions with no provider SDK dependencies — it is importable with only the mandatory dependencies installed. The **ABC** (`kitkat.abc`) defines the interface every provider must implement. **Provider implementations** (`kitkat.providers`) contain the actual SDK calls, completely isolated behind the ABC. The **service layer** (`kitkat.service`) routes requests, manages caching, and handles retry loops. The **agent** and **workflow** layers are fully optional extras layered on top.
 
-## Quick Navigation
-
-| I want to…                        | Go to                                    |
-| --------------------------------- | ---------------------------------------- |
-| Install Kitkat                    | [Installation](./installation.md)        |
-| Run my first completion           | [Quick Start](./quickstart.md)           |
-| Understand the core model         | [Concepts](./concepts.md)                |
-| Configure a specific provider     | [Providers](./providers.md)              |
-| Set up routing and caching        | [Routing & Cache](./routing-cache.md)    |
-| Let users bring their own API key | [BYOK](./byok.md)                        |
-| Build agents with PydanticAI      | [Agent Overview](./agents/index.md)      |
-| Handle errors robustly            | [Error Handling](./error-handling.md)    |
-| Write a custom provider           | [Custom Providers](./custom-provider.md) |
-| Browse the full API surface       | [API Reference](./api-reference/core.md) |
-
 ## Project Links
 
 - **Source code:** [github.com/RajeshTechForge/kitkat](https://github.com/RajeshTechForge/kitkat)
