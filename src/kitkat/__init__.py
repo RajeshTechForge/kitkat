@@ -12,7 +12,7 @@ Quick start (managed path)::
     await service.initialize()
     response = await service.complete(
         LLMRequest(messages=[Message(role=Role.USER, content="Hello!")]),
-        ProviderType.ANTHROPIC,
+        ProviderType.ANTHROPIC
     )
 
 Quick start (BYOK path)::
@@ -38,6 +38,7 @@ Provider and feature extras must be installed separately::
 from __future__ import annotations
 
 from importlib.metadata import version
+from typing import TYPE_CHECKING, Any
 
 __version__ = version("kitkat")
 
@@ -78,6 +79,20 @@ from .core.models import (
     TokenUsage,
 )
 
+if TYPE_CHECKING:
+    from .agents.adapters.byok import BYOKKitkatStreamedResponse, BYOKModelAdapter
+    from .agents.adapters.managed import KitkatStreamedResponse, ManagedModelAdapter
+    from .agents.builders import build_chat_agent, build_structured_agent
+    from .agents.observability import configure_observability
+    from .agents.tools.registry import ToolRegistry
+    from .service.byok import BYOKLLMService
+    from .service.cache import CacheConfig, LLMCache
+    from .service.factory import create_llm_router, create_llm_service
+    from .service.managed import LLMService
+    from .service.router import LLMRouter, RouterConfig
+    from .workflows.base import BaseWorkflow
+    from .workflows.research import ResearchState, ResearchWorkflow
+
 __all__ = [
     "__version__",
     # Enums
@@ -110,4 +125,79 @@ __all__ = [
     "LLMProvider",
     # Agent context (always available)
     "BaseAgentContext",
+    # Agent adapters & builders (lazy)
+    "BYOKKitkatStreamedResponse",
+    "BYOKModelAdapter",
+    "KitkatStreamedResponse",
+    "ManagedModelAdapter",
+    "ToolRegistry",
+    "build_chat_agent",
+    "build_structured_agent",
+    "configure_observability",
+    # Workflows (lazy)
+    "BaseWorkflow",
+    "ResearchState",
+    "ResearchWorkflow",
+    # Service (lazy)
+    "BYOKLLMService",
+    "CacheConfig",
+    "LLMCache",
+    "LLMRouter",
+    "LLMService",
+    "RouterConfig",
+    "create_llm_router",
+    "create_llm_service",
 ]
+
+_LAZY_EXPORTS: dict[str, tuple[str, str]] = {
+    # Agents
+    "BYOKKitkatStreamedResponse": (".agents.adapters.byok", "BYOKKitkatStreamedResponse"),
+    "BYOKModelAdapter": (".agents.adapters.byok", "BYOKModelAdapter"),
+    "KitkatStreamedResponse": (".agents.adapters.managed", "KitkatStreamedResponse"),
+    "ManagedModelAdapter": (".agents.adapters.managed", "ManagedModelAdapter"),
+    "build_chat_agent": (".agents.builders", "build_chat_agent"),
+    "build_structured_agent": (".agents.builders", "build_structured_agent"),
+    "configure_observability": (".agents.observability", "configure_observability"),
+    "ToolRegistry": (".agents.tools.registry", "ToolRegistry"),
+    # Workflows
+    "BaseWorkflow": (".workflows.base", "BaseWorkflow"),
+    "ResearchState": (".workflows.research", "ResearchState"),
+    "ResearchWorkflow": (".workflows.research", "ResearchWorkflow"),
+    # Service
+    "BYOKLLMService": (".service.byok", "BYOKLLMService"),
+    "CacheConfig": (".service.cache", "CacheConfig"),
+    "LLMCache": (".service.cache", "LLMCache"),
+    "create_llm_router": (".service.factory", "create_llm_router"),
+    "create_llm_service": (".service.factory", "create_llm_service"),
+    "LLMService": (".service.managed", "LLMService"),
+    "LLMRouter": (".service.router", "LLMRouter"),
+    "RouterConfig": (".service.router", "RouterConfig"),
+}
+
+
+def __getattr__(name: str) -> Any:
+    """Lazily import optional and service attributes on first access.
+
+    Args:
+        name: Name of the attribute to look up.
+
+    Returns:
+        The requested attribute or class.
+
+    Raises:
+        AttributeError: If *name* is not an exported kitkat attribute.
+    """
+    if name in _LAZY_EXPORTS:
+        module_path, attr_name = _LAZY_EXPORTS[name]
+        import importlib
+
+        mod = importlib.import_module(module_path, __package__)
+        val = getattr(mod, attr_name)
+        globals()[name] = val
+        return val
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    """Return all public module attributes including lazy exports."""
+    return sorted(list(globals().keys()) + list(_LAZY_EXPORTS.keys()))

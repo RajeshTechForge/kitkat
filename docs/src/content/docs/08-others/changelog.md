@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-08-20
+
+### Fixed
+
+- **Resolved Eager Import of Optional Agent Dependencies**: Fixed an issue where importing the top-level `kitkat` package or `kitkat.agents.context` without `kitkat[agents]` installed raised an `ImportError` due to eager evaluation of `pydantic-ai` adapters in `kitkat.agents.__init__.py`.
+- **Implemented PEP 562 Lazy Attribute Resolution**: Refactored `kitkat.agents` to eagerly export only zero-dependency context symbols (`BaseAgentContext`, `RoutingTier`), deferring all `pydantic-ai` adapter and builder imports to module-level `__getattr__`.
+- **Workflows Missing Extra Message**: Corrected the installation extra name in the `kitkat.workflows` missing dependency error message to `kitkat[workflows]`.
+
 ## [0.7.0] - 2026-08-16
 
 ### Changed

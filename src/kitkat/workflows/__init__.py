@@ -17,7 +17,7 @@ import importlib.util
 
 if importlib.util.find_spec("langgraph") is None:
     raise ImportError(
-        "Workflow requires the 'langgraph' extra. Install with: pip install kitkat[langgraph]"
+        "Workflow requires the 'workflows' extra. Install with: pip install kitkat[workflows]"
     )
 
 from .base import BaseWorkflow
