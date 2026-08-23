@@ -1,8 +1,9 @@
-"""Google provider for the Kitkat service layer.
+"""Gemini API provider for the Kitkat service layer.
 
-This module integrates the official google-genai SDK, supporting both synchronized
-and asynchronous (streaming) LLM calls, robust error mapping, and specialized Vertex AI
-support for enterprise deployments.
+This module integrates the official google-genai SDK targeting Google's
+Generative Language API (Google AI Studio), supporting synchronized and
+asynchronous (streaming) LLM calls, robust error mapping, and Gemini-specific
+thinking-level configuration.
 
 Supported features
 ------------------
@@ -13,7 +14,7 @@ Supported features
  - Automatic system_instruction extraction (Google top-level param)
  - Full Google FinishReason → our FinishReason mapping (SAFETY, RECITATION…)
  - Health-check via zero-cost count_tokens probe
- - Vertex AI support via vertexai=True + project/location config
+ - Gemini thinking-level configuration (LOW / MEDIUM / HIGH)
 """
 
 from __future__ import annotations
@@ -57,7 +58,7 @@ from ...core.models import (
 logger = logging.getLogger(__name__)
 
 
-_DEFAULT_MODEL = "gemini-3-flash-preview"
+_DEFAULT_MODEL = "gemini-3.5-flash-lite"
 _MAX_CONTEXT_TOKENS = 1_048_576
 _HEALTH_CHECK_TIMEOUT_S = 5.0
 
@@ -66,7 +67,7 @@ _FINISH_REASON_MAP: dict[str, FinishReason] = {
     "STOP": FinishReason.STOP,
     "MAX_TOKENS": FinishReason.LENGTH,
     "SAFETY": FinishReason.CONTENT_FILTER,
-    "RECITATION": FinishReason.CONTENT_FILTER,  # Copyright / recitation block
+    "RECITATION": FinishReason.CONTENT_FILTER,
     "BLOCKLIST": FinishReason.CONTENT_FILTER,
     "PROHIBITED_CONTENT": FinishReason.CONTENT_FILTER,
     "SPII": FinishReason.CONTENT_FILTER,  # Sensitive PII detection
@@ -82,6 +83,12 @@ _FINISH_REASON_MAP: dict[str, FinishReason] = {
 # Guards against repeated tiktoken BPE download attempts in air-gapped environments.
 _TIKTOKEN_UNAVAILABLE = object()
 
+_EFFORT_TO_LEVEL: dict[str, str] = {
+    "low": "LOW",
+    "medium": "MEDIUM",
+    "high": "HIGH",
+}
+
 
 # ---------------------------------------------------------------------------
 # Provider configuration
@@ -89,53 +96,56 @@ _TIKTOKEN_UNAVAILABLE = object()
 
 
 @dataclass
-class GoogleConfig:
-    """Typed configuration for the Google provider."""
+class GeminiConfig:
+    """Typed configuration for the Gemini API provider.
+
+    This provider targets Google's Generative Language API (Google AI Studio)
+    and authenticates exclusively via an API key. For GCP-hosted Vertex AI
+    deployments, use :class:`~providers.google.vertex_ai.VertexAIProvider`
+    instead.
+
+    Attributes:
+        api_key: Google AI Studio API key (GOOGLE_API_KEY).
+        model: Default model identifier when ``LLMRequest.model`` is empty.
+        timeout_s: Per-request timeout in seconds.
+        extra_headers: Additional HTTP headers injected into every request.
+    """
 
     api_key: str = ""
     model: str = _DEFAULT_MODEL
-    vertexai: bool = False
-    project: str = ""
-    location: str = ""
     timeout_s: float = 60.0
     extra_headers: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if not self.vertexai and not self.api_key.strip():
+        if not self.api_key.strip():
             raise LLMProviderInitError(
-                (
-                    "GoogleConfig.api_key must be a non-empty string when not using "
-                    "Vertex AI. Set GOOGLE_API_KEY in your env."
-                ),
-                provider="google",
-            )
-        if self.vertexai and (not self.project or not self.location):
-            raise LLMProviderInitError(
-                ("GoogleConfig.project and GoogleConfig.location are required when vertexai=True."),
-                provider="google",
+                "GeminiConfig.api_key must be a non-empty string. "
+                "Set GOOGLE_API_KEY in your env, or use VertexAIProvider "
+                "for GCP-hosted deployments.",
+                provider="gemini",
             )
         if self.timeout_s <= 0:
             raise LLMProviderInitError(
-                f"GoogleConfig.timeout_s must be positive, got {self.timeout_s}",
-                provider="google",
+                f"GeminiConfig.timeout_s must be positive, got {self.timeout_s}",
+                provider="gemini",
             )
 
     @classmethod
-    def from_dict(cls, cfg: dict[str, Any]) -> GoogleConfig:
+    def from_dict(cls, cfg: dict[str, Any]) -> GeminiConfig:
         """Build from the raw config slice.
 
         Args:
-            cfg: The configuration dictionary.
+            cfg: The configuration dictionary. Recognised keys:
+                ``api_key``, ``model``, ``timeout_s``, ``extra_headers``.
+                Vertex-specific keys (``vertexai``, ``project``, ``location``)
+                are silently ignored — use :class:`VertexAIProvider` for those.
 
         Returns:
-            A GoogleConfig instance.
+            A :class:`GeminiConfig` instance.
         """
         return cls(
             api_key=cfg.get("api_key", ""),
             model=cfg.get("model", _DEFAULT_MODEL),
-            vertexai=bool(cfg.get("vertexai", False)),
-            project=cfg.get("project", ""),
-            location=cfg.get("location", ""),
             timeout_s=float(cfg.get("timeout_s", 60.0)),
             extra_headers=dict(cfg.get("extra_headers", {})),
         )
@@ -146,10 +156,19 @@ class GoogleConfig:
 # ===========================================================================
 
 
-class GoogleProvider(LLMProvider):
-    """Google Google provider implementation."""
+class GeminiProvider(LLMProvider):
+    """Google Gemini API provider implementation.
 
-    PROVIDER_TYPE = ProviderType.GOOGLE
+    Wraps the ``google-genai`` SDK in API-key mode, targeting the
+    Generative Language endpoint (Google AI Studio). Supports blocking
+    completions, true async streaming, token counting, health checks,
+    and Gemini-specific thinking-level configuration.
+
+    For GCP-hosted Vertex AI deployments, use
+    :class:`~providers.google.vertex_ai.VertexAIProvider`.
+    """
+
+    PROVIDER_TYPE = ProviderType.GEMINI
     DEFAULT_MODEL = _DEFAULT_MODEL
     CAPABILITIES = ProviderCapabilities(
         supports_streaming=True,
@@ -158,7 +177,7 @@ class GoogleProvider(LLMProvider):
         supports_vision=True,
         supports_thinking=True,
         max_context_tokens=_MAX_CONTEXT_TOKENS,
-        provider_type=ProviderType.GOOGLE,
+        provider_type=ProviderType.GEMINI,
     )
     RETRY_POLICY = RetryPolicy(
         max_attempts=3,
@@ -169,17 +188,18 @@ class GoogleProvider(LLMProvider):
         retryable_status_codes=frozenset({408, 429, 500, 502, 503, 504}),
     )
 
-    def __init__(self, config: GoogleConfig | dict[str, Any]) -> None:
-        """Initialize the GoogleProvider.
+    def __init__(self, config: GeminiConfig | dict[str, Any]) -> None:
+        """Initialize the GeminiProvider.
 
         Args:
-            config: The endpoint configuration.
+            config: A :class:`GeminiConfig` instance or a raw dict that
+                will be coerced via :meth:`GeminiConfig.from_dict`.
         """
         if isinstance(config, dict):
-            config = GoogleConfig.from_dict(config)
+            config = GeminiConfig.from_dict(config)
 
         super().__init__(config.__dict__)
-        self._cfg: GoogleConfig = config
+        self._cfg: GeminiConfig = config
         self._client: Client | None = None
         self._encoder: Any = None
 
@@ -194,31 +214,23 @@ class GoogleProvider(LLMProvider):
             LLMProviderInitError: If credentials or network communication fail.
         """
         if self._initialized:
-            logger.debug("GoogleProvider already initialised — skipping.")
+            logger.debug("GeminiProvider already initialised — skipping.")
             return
 
         logger.info(
-            "Initialising GoogleProvider (model=%r, vertexai=%s).",
+            "Initialising GeminiProvider (model=%r).",
             self._cfg.model,
-            self._cfg.vertexai,
         )
 
         try:
-            if self._cfg.vertexai:
-                self._client = Client(
-                    vertexai=True,
-                    project=self._cfg.project,
-                    location=self._cfg.location,
-                    http_options=self._build_http_options(),
-                )
-            else:
-                self._client = Client(
-                    api_key=self._cfg.api_key,
-                    http_options=self._build_http_options(),
-                )
+            self._client = Client(
+                api_key=self._cfg.api_key,
+                http_options=self._build_http_options(),
+            )
         except Exception as exc:
             raise LLMProviderInitError(
-                "Failed to create google-genai Client.", provider="google"
+                "Failed to create google-genai Client.",
+                provider="gemini",
             ) from exc
 
         # Probes credentials via zero-inference token check.
@@ -233,19 +245,19 @@ class GoogleProvider(LLMProvider):
         except genai_errors.ClientError as exc:
             if exc.code in {401, 403}:
                 raise LLMProviderInitError(
-                    f"Google API key is invalid or lacks permission: {exc.message}",
-                    provider="google",
+                    f"Gemini API key is invalid or lacks permission: {exc.message}",
+                    provider="gemini",
                 ) from exc
             logger.warning(
-                "GoogleProvider credential probe returned %s (non-fatal): %s",
+                "GeminiProvider credential probe returned %s (non-fatal): %s",
                 exc.code,
                 exc.message,
             )
         except Exception as exc:
-            logger.warning("GoogleProvider credential probe failed (non-fatal): %s", exc)
+            logger.warning("GeminiProvider credential probe failed (non-fatal): %s", exc)
 
         self._initialized = True
-        logger.info("GoogleProvider initialised successfully.")
+        logger.info("GeminiProvider initialised successfully.")
 
     async def shutdown(self) -> None:
         """Close the Google SDK client."""
@@ -254,23 +266,19 @@ class GoogleProvider(LLMProvider):
                 await self._client.aio.aclose()
                 self._client.close()
             except Exception as exc:
-                logger.warning("Error closing Google client: %s", exc)
+                logger.warning("Error closing Gemini client: %s", exc)
             finally:
                 self._client = None
                 self._initialized = False
-                logger.debug("GoogleProvider shut down.")
+                logger.debug("GeminiProvider shut down.")
 
     async def _init_client_only(self) -> None:
         """Create the google-genai Client without running a credential probe.
 
-        Intended for use by :class:'~src.services.llm.byok.BYOKLLMService' so that
-        authentication errors surface from the first inference call rather than
-        from a pre-flight "count_tokens" probe, avoiding extra latency and
-        billable probe requests for each BYOK user key.
-
-        Handles both API-key mode ("vertexai=False") and Vertex AI mode
-        ("vertexai=True"), mirroring the client construction logic in
-        :meth:'initialize' without the subsequent probe call.
+        Intended for use by :class:`~kitkat.services.llm.byok.BYOKLLMService`
+        so that authentication errors surface from the first inference call
+        rather than from a pre-flight ``count_tokens`` probe, avoiding extra
+        latency and billable probe requests for each BYOK user key.
 
         Raises:
             LLMProviderInitError: If the google-genai Client cannot be created.
@@ -279,25 +287,18 @@ class GoogleProvider(LLMProvider):
             return
 
         try:
-            if self._cfg.vertexai:
-                self._client = Client(
-                    vertexai=True,
-                    project=self._cfg.project,
-                    location=self._cfg.location,
-                    http_options=self._build_http_options(),
-                )
-            else:
-                self._client = Client(
-                    api_key=self._cfg.api_key,
-                    http_options=self._build_http_options(),
-                )
+            self._client = Client(
+                api_key=self._cfg.api_key,
+                http_options=self._build_http_options(),
+            )
         except Exception as exc:
             raise LLMProviderInitError(
-                "Failed to create google-genai Client.", provider="google"
+                "Failed to create google-genai Client.",
+                provider="gemini",
             ) from exc
 
         self._initialized = True
-        logger.debug("GoogleProvider client created (credential probe skipped).")
+        logger.debug("GeminiProvider client created (credential probe skipped).")
 
     # ------------------------------------------------------------------
     # Core inference methods
@@ -310,7 +311,7 @@ class GoogleProvider(LLMProvider):
             request: The generation request.
 
         Returns:
-            A populated LLMResponse.
+            A populated :class:`LLMResponse`.
 
         Raises:
             LLMTimeoutError: If the execution time limit is reached.
@@ -327,7 +328,7 @@ class GoogleProvider(LLMProvider):
         start = time.monotonic()
 
         logger.debug(
-            "Google complete | model=%s turns=%d thinking=%s",
+            "Gemini complete | model=%s turns=%d thinking=%s",
             model,
             len(contents),
             request.thinking.enabled if request.thinking else False,
@@ -345,35 +346,37 @@ class GoogleProvider(LLMProvider):
         except TimeoutError as exc:
             elapsed = time.monotonic() - start
             raise LLMTimeoutError(
-                f"Google request timed out after {elapsed:.1f}s (limit={timeout}s)",
+                f"Gemini request timed out after {elapsed:.1f}s (limit={timeout}s)",
                 elapsed_s=elapsed,
-                provider="google",
+                provider="gemini",
             ) from exc
         except genai_errors.ClientError as exc:
             raise self._map_client_error(exc) from exc
         except genai_errors.ServerError as exc:
             raise LLMProviderError(
-                f"Google server error: {exc.message}",
+                f"Gemini server error: {exc.message}",
                 status_code=exc.code,
-                provider="google",
+                provider="gemini",
             ) from exc
         except genai_errors.APIError as exc:
             raise LLMProviderError(
-                f"Google API error: {exc.message}",
+                f"Gemini API error: {exc.message}",
                 status_code=exc.code,
-                provider="google",
+                provider="gemini",
             ) from exc
 
         return self._build_response(raw, request, start)
 
     async def stream(self, request: LLMRequest) -> AsyncIterator[StreamChunk]:
-        """Yield token deltas as an async stream from the Google API.
+        """Yield token deltas as an async stream from the Gemini API.
 
         Args:
             request: The streaming generation request.
 
-        Returns:
-            An async iterator of stream chunks.
+        Yields:
+            :class:`StreamChunk` objects — one per token delta. The final
+            chunk has ``is_final=True`` and carries aggregated ``usage``,
+            ``model``, ``provider``, ``finish_reason``, and ``latency_ms``.
 
         Raises:
             LLMTimeoutError: If stream connection operations time out.
@@ -390,7 +393,7 @@ class GoogleProvider(LLMProvider):
         start = time.monotonic()
 
         logger.debug(
-            "Google stream | model=%s thinking=%s",
+            "Gemini stream | model=%s thinking=%s",
             model,
             request.thinking.enabled if request.thinking else False,
         )
@@ -444,30 +447,30 @@ class GoogleProvider(LLMProvider):
         except TimeoutError as exc:
             elapsed = time.monotonic() - start
             raise LLMTimeoutError(
-                f"Google stream timed out after {elapsed:.1f}s",
+                f"Gemini stream timed out after {elapsed:.1f}s",
                 elapsed_s=elapsed,
-                provider="google",
+                provider="gemini",
             ) from exc
         except genai_errors.ClientError as exc:
             raise self._map_client_error(exc) from exc
         except genai_errors.ServerError as exc:
             raise LLMProviderError(
-                f"Google server error (stream): {exc.message}",
+                f"Gemini server error (stream): {exc.message}",
                 status_code=exc.code,
-                provider="google",
+                provider="gemini",
             ) from exc
         except genai_errors.APIError as exc:
             raise LLMProviderError(
-                f"Google API error (stream): {exc.message}",
+                f"Gemini API error (stream): {exc.message}",
                 status_code=exc.code,
-                provider="google",
+                provider="gemini",
             ) from exc
 
         # Raises content-filter error after stream if safety policies block all output.
         if finish_reason == FinishReason.CONTENT_FILTER:
             raise LLMContentFilterError(
-                "Google stream blocked by content/safety filter.",
-                provider="google",
+                "Gemini stream blocked by content/safety filter.",
+                provider="gemini",
             )
 
         # Guarantees minimum one chunk yield for empty responses.
@@ -481,7 +484,7 @@ class GoogleProvider(LLMProvider):
             finish_reason=finish_reason,
             usage=usage,
             model=model_version,
-            provider=ProviderType.GOOGLE,
+            provider=ProviderType.GEMINI,
             latency_ms=(time.monotonic() - start) * 1_000,
         )
 
@@ -493,7 +496,7 @@ class GoogleProvider(LLMProvider):
         """Probe reachability via a lightweight token count call.
 
         Returns:
-            True if the provider is fully operational, False otherwise.
+            ``True`` if the provider is fully operational, ``False`` otherwise.
         """
         if self._client is None:
             return False
@@ -507,17 +510,21 @@ class GoogleProvider(LLMProvider):
             )
             return True
         except Exception as exc:
-            logger.warning("GoogleProvider health_check failed: %s", exc)
+            logger.warning("GeminiProvider health_check failed: %s", exc)
             return False
 
     def count_tokens(self, text: str) -> int:
         """Approximate the token count for a text sequence.
 
+        Uses tiktoken's ``cl100k_base`` encoding as a fast local estimator.
+        Falls back to a character-based heuristic (``len(text) // 4``) when
+        tiktoken is unavailable (e.g., air-gapped environments).
+
         Args:
             text: The targeted text string.
 
         Returns:
-            The number of tokens the string represents.
+            The estimated number of tokens (≥ 1 for non-empty input).
         """
         if self._encoder is None:
             try:
@@ -535,13 +542,17 @@ class GoogleProvider(LLMProvider):
         return len(self._encoder.encode(text))
 
     async def async_count_tokens(self, request: LLMRequest) -> int:
-        """Return the exact prompt token count via the Google API.
+        """Return the exact prompt token count via the Gemini API.
+
+        Delegates to the SDK's native ``count_tokens`` endpoint, which
+        accounts for model-specific tokenization, system instructions,
+        and multi-modal content.
 
         Args:
-            request: The generation request carrying target text.
+            request: The generation request carrying target messages.
 
         Returns:
-            The specific token count according to Google's models.
+            The exact token count according to the Gemini model.
         """
         self._assert_initialized()
         assert self._client is not None
@@ -558,10 +569,13 @@ class GoogleProvider(LLMProvider):
     # ------------------------------------------------------------------
 
     def _build_http_options(self) -> genai_types.HttpOptions:
-        """Build HttpOptions, injecting any extra headers from the config.
+        """Build :class:`genai_types.HttpOptions` from the provider config.
+
+        Injects any ``extra_headers`` from the config into every outbound
+        HTTP request.
 
         Returns:
-            The constructed HttpOptions.
+            The constructed ``HttpOptions`` instance.
         """
         kwargs: dict[str, Any] = {}
         if self._cfg.extra_headers:
@@ -574,11 +588,20 @@ class GoogleProvider(LLMProvider):
     ) -> tuple[str, list[genai_types.Content]]:
         """Separate the system instruction from conversation turns.
 
+        Google's API expects the system prompt as a top-level
+        ``system_instruction`` parameter rather than as a message in the
+        ``contents`` array. This method extracts all ``SYSTEM`` role
+        messages, concatenates them, and maps the remaining messages to
+        :class:`genai_types.Content` objects with appropriate Google roles
+        (``"user"`` for user/tool, ``"model"`` for assistant).
+
         Args:
             messages: The list of combined messages.
 
         Returns:
-            A tuple of the separated system instruction and list of Content objects.
+            A tuple of ``(system_instruction, contents)`` where
+            ``system_instruction`` is a joined string (possibly empty) and
+            ``contents`` is a list of ``Content`` objects.
         """
         system_parts: list[str] = []
         contents: list[genai_types.Content] = []
@@ -603,15 +626,29 @@ class GoogleProvider(LLMProvider):
         system_instruction: str,
         thinking: ThinkingConfig | None = None,
     ) -> genai_types.GenerateContentConfig:
-        """Build GenerateContentConfig from an LLMRequest.
+        """Build :class:`genai_types.GenerateContentConfig` from an :class:`LLMRequest`.
+
+        Gemini-specific thinking configuration
+        ---------------------------------------
+        The Gemini API supports discrete ``thinking_level`` values
+        (``LOW``, ``MEDIUM``, ``HIGH``) rather than a numeric token budget.
+        The level is resolved in priority order:
+
+        1. ``thinking.provider_options["level"]`` — explicit Gemini-level
+           override (must be one of ``"LOW"``, ``"MEDIUM"``, ``"HIGH"``).
+        2. ``thinking.effort`` — generic effort string (``"low"``,
+           ``"medium"``, ``"high"``) mapped to the corresponding level.
+        3. If neither is provided but thinking is enabled, a default
+           ``ThinkingConfig`` with ``include_thoughts=True`` is created
+           (Gemini picks the level automatically).
 
         Args:
             request: The generation request.
-            system_instruction: The separated system instruction.
+            system_instruction: The separated system instruction string.
             thinking: Optional thinking configuration.
 
         Returns:
-            The constructed generation config object.
+            The constructed ``GenerateContentConfig`` object.
         """
         thinking_config = None
         if thinking is not None and thinking.enabled:
@@ -619,12 +656,7 @@ class GoogleProvider(LLMProvider):
             level = opts.get("level")
 
             if not level and thinking.effort:
-                effort_to_level = {
-                    "low": "LOW",
-                    "medium": "MEDIUM",
-                    "high": "HIGH",
-                }
-                level = effort_to_level.get(thinking.effort)
+                level = _EFFORT_TO_LEVEL.get(thinking.effort)
 
             if level:
                 thinking_config = genai_types.ThinkingConfig(
@@ -651,15 +683,19 @@ class GoogleProvider(LLMProvider):
         request: LLMRequest,
         start: float,
     ) -> LLMResponse:
-        """Map a GenerateContentResponse to an LLMResponse.
+        """Map a :class:`genai_types.GenerateContentResponse` to an :class:`LLMResponse`.
+
+        Extracts text content and thinking content from the first candidate,
+        maps finish reasons, and builds token usage from the response's
+        ``usage_metadata``.
 
         Args:
             raw: The native generate content response.
             request: The originating generation request.
-            start: The performance start time.
+            start: The performance start time (monotonic).
 
         Returns:
-            The constructed LLMResponse domain object.
+            The constructed :class:`LLMResponse` domain object.
 
         Raises:
             LLMContentFilterError: If the response was blocked by safety filters.
@@ -689,8 +725,8 @@ class GoogleProvider(LLMProvider):
 
         if finish_reason == FinishReason.CONTENT_FILTER:
             raise LLMContentFilterError(
-                "Google response blocked by content/safety filter.",
-                provider="google",
+                "Gemini response blocked by content/safety filter.",
+                provider="gemini",
             )
 
         usage = TokenUsage.empty()
@@ -711,7 +747,7 @@ class GoogleProvider(LLMProvider):
             finish_reason=finish_reason,
             usage=usage,
             model=model_version,
-            provider=ProviderType.GOOGLE,
+            provider=ProviderType.GEMINI,
             latency_ms=(time.monotonic() - start) * 1_000,
             raw_response=raw,
         )
@@ -720,13 +756,19 @@ class GoogleProvider(LLMProvider):
         self,
         exc: genai_errors.ClientError,
     ) -> Exception:
-        """Map a Google ClientError to the most specific LLMError.
+        """Map a Google :class:`genai_errors.ClientError` to the most specific :class:`LLMError`.
+
+        Resolution order:
+        1. HTTP 401/403 or API-key-related messages → :class:`LLMAuthenticationError`
+        2. HTTP 429 → :class:`LLMRateLimitError`
+        3. HTTP 400 with token/context mentions → :class:`LLMTokenLimitError`
+        4. Fallback → :class:`LLMProviderError`
 
         Args:
             exc: The native client error.
 
         Returns:
-            The mapped domain exception.
+            The mapped domain exception ready to be raised.
         """
         code = exc.code or 0
         message = exc.message
@@ -734,16 +776,23 @@ class GoogleProvider(LLMProvider):
 
         if code in {401, 403} or "api key" in msg_lower or "api_key" in msg_lower:
             return LLMAuthenticationError(
-                "Google authentication failed.", status_code=code, provider="google"
+                "Gemini authentication failed.",
+                status_code=code,
+                provider="gemini",
             )
         if code == 429:
-            return LLMRateLimitError("Google rate limit exceeded.", provider="google")
+            return LLMRateLimitError(
+                "Gemini rate limit exceeded.",
+                provider="gemini",
+            )
         if code == 400 and ("token" in msg_lower or "context" in msg_lower):
             return LLMTokenLimitError(
-                "Prompt exceeds Google context window.",
+                "Prompt exceeds Gemini context window.",
                 context_limit=_MAX_CONTEXT_TOKENS,
-                provider="google",
+                provider="gemini",
             )
         return LLMProviderError(
-            f"Google client error: {message}", status_code=code, provider="google"
+            f"Gemini client error: {message}",
+            status_code=code,
+            provider="gemini",
         )

@@ -1,4 +1,4 @@
-"""Google provider for kitkat.
+"""Google provider package — split into Gemini API and Vertex AI sub-providers.
 
 Install the required extra before importing::
 
@@ -8,14 +8,9 @@ Install the required extra before importing::
 
 Usage::
 
-    from kitkat.providers.google import GoogleProvider, GoogleConfig
+    from kitkat.providers.google import GeminiProvider, GeminiConfig
+    from kitkat.providers.google import VertexAIProvider, VertexAIConfig
 
-    config = GoogleConfig(api_key="AIza...")
-    async with GoogleProvider(config) as provider:
-        response = await provider.complete(request)
-
-Vertex AI is also supported — set ``vertexai=True`` and provide
-``project`` and ``location`` in :class:`GoogleConfig`.
 """
 
 from __future__ import annotations
@@ -24,9 +19,10 @@ import importlib.util
 
 if importlib.util.find_spec("google.genai") is None:
     raise ImportError(
-        "GoogleProvider requires the 'google' extra. Install with: pip install kitkat[google]"
+        "Google Provider requires the 'google' extra. Install with: pip install kitkat[google]"
     )
 
-from .provider import GoogleConfig, GoogleProvider
+from .gemini import GeminiConfig, GeminiProvider
+from .vertex_ai import VertexAIConfig, VertexAIProvider
 
-__all__ = ["GoogleConfig", "GoogleProvider"]
+__all__ = ["GeminiConfig", "GeminiProvider", "VertexAIConfig", "VertexAIProvider"]
