@@ -7,6 +7,7 @@ library without restriction — they have no dependencies themselves.
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Literal
 
 
 class Role(StrEnum):
@@ -35,6 +36,13 @@ class ProviderType(StrEnum):
     OPENAI = "openai"
     GEMINI = "gemini"
     VERTEX_AI = "vertex_ai"
+
+
+ByokProviderType = Literal[
+    ProviderType.ANTHROPIC,
+    ProviderType.OPENAI,
+    ProviderType.GEMINI,
+]
 
 
 class RoutingStrategy(StrEnum):

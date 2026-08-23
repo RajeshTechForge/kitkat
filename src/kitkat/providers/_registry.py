@@ -5,7 +5,8 @@ Built-in providers are declared in ``pyproject.toml``::
     [project.entry-points."kitkat.providers"]
     anthropic = "kitkat.providers.anthropic:AnthropicProvider"
     openai    = "kitkat.providers.openai:OpenAIProvider"
-    google    = "kitkat.providers.google:GoogleProvider"
+    gemini    = "kitkat.providers.google.gemini:GeminiProvider"
+    vertex_ai = "kitkat.providers.google.vertex_ai:VertexAIProvider"
 
 Third-party packages ship custom providers using the same mechanism::
 

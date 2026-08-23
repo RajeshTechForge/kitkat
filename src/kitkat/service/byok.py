@@ -27,14 +27,12 @@ if TYPE_CHECKING:
         LLMResponse,
         StreamChunk,
     )
-from ..core.enums import ProviderType
+from ..core.enums import ByokProviderType, ProviderType
 from ..providers.anthropic.provider import AnthropicConfig, AnthropicProvider
-from ..providers.google.provider import GoogleConfig, GoogleProvider
+from ..providers.google.gemini import GeminiConfig, GeminiProvider
 from ..providers.openai.provider import OpenAIConfig, OpenAIProvider
 
 logger = logging.getLogger(__name__)
-
-_SUPPORTED_PROVIDERS = [p.value for p in ProviderType]
 
 
 class BYOKLLMService:
@@ -51,7 +49,7 @@ class BYOKLLMService:
     or :meth:'stream' call, which the route handler maps to HTTP 401.
 
     Args:
-        provider_type: The target provider (Anthropic, OpenAI, or Google).
+        provider_type: The target provider (Anthropic, OpenAI or Google Gemini).
         api_key: The caller-supplied API key for the chosen provider.
         model: The model identifier to use for inference. An empty string
             causes each provider to fall back to its configured default model.
@@ -64,7 +62,7 @@ class BYOKLLMService:
 
     def __init__(
         self,
-        provider_type: ProviderType,
+        provider_type: ByokProviderType,
         api_key: str,
         model: str,
     ) -> None:
@@ -181,7 +179,7 @@ class BYOKLLMService:
 
     @staticmethod
     def _build_provider(
-        provider_type: ProviderType,
+        provider_type: ByokProviderType,
         api_key: str,
         model: str,
     ) -> LLMProvider:
@@ -211,5 +209,5 @@ class BYOKLLMService:
             return AnthropicProvider(AnthropicConfig(api_key=api_key, model=model))
         if provider_type == ProviderType.OPENAI:
             return OpenAIProvider(OpenAIConfig(api_key=api_key, model=model))
-        if provider_type == ProviderType.GOOGLE:
-            return GoogleProvider(GoogleConfig(api_key=api_key, model=model))
+        if provider_type == ProviderType.GEMINI:
+            return GeminiProvider(GeminiConfig(api_key=api_key, model=model))
