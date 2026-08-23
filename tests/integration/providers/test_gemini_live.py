@@ -15,7 +15,7 @@ from kitkat.core import (
     Message,
     Role,
 )
-from kitkat.providers.google import GoogleConfig, GoogleProvider
+from kitkat.providers.google import GeminiConfig, GeminiProvider
 
 pytestmark = pytest.mark.integration
 
@@ -28,10 +28,10 @@ def check_google_key() -> None:
 
 
 @pytest.mark.asyncio
-async def test_google_live_complete() -> None:
-    """Verify live non-streaming completion call against Google API."""
-    config = GoogleConfig(api_key=os.environ["GOOGLE_API_KEY"])
-    async with GoogleProvider(config) as provider:
+async def test_gemini_live_complete() -> None:
+    """Verify live non-streaming completion call against Gemini API."""
+    config = GeminiConfig(api_key=os.environ["GOOGLE_API_KEY"])
+    async with GeminiProvider(config) as provider:
         request = LLMRequest(
             messages=[Message(role=Role.USER, content="Reply with: OK")],
             model="gemini-3.1-flash-lite",
@@ -48,8 +48,8 @@ async def test_google_live_complete() -> None:
 @pytest.mark.asyncio
 async def test_google_live_stream() -> None:
     """Verify live streaming token deltas against Google API."""
-    config = GoogleConfig(api_key=os.environ["GOOGLE_API_KEY"])
-    async with GoogleProvider(config) as provider:
+    config = GeminiConfig(api_key=os.environ["GOOGLE_API_KEY"])
+    async with GeminiProvider(config) as provider:
         request = LLMRequest(
             messages=[Message(role=Role.USER, content="Count 1 to 3.")],
             model="gemini-3.1-flash-lite",
@@ -66,8 +66,8 @@ async def test_google_live_stream() -> None:
 @pytest.mark.asyncio
 async def test_google_invalid_key_raises_auth_error() -> None:
     """Verify invalid API key raises LLMAuthenticationError."""
-    config = GoogleConfig(api_key="AIzaSyInvalidTestKey123456789")
-    provider = GoogleProvider(config)
+    config = GeminiConfig(api_key="AIzaSyInvalidTestKey123456789")
+    provider = GeminiProvider(config)
     await provider._init_client_only()
     try:
         request = LLMRequest(

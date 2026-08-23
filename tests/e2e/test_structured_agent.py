@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from kitkat.agents import BaseAgentContext, ManagedModelAdapter, build_structured_agent
 from kitkat.core import ProviderType
-from kitkat.providers.google import GoogleConfig, GoogleProvider
+from kitkat.providers.google import GeminiConfig, GeminiProvider
 from kitkat.service import create_llm_service
 
 pytestmark = pytest.mark.integration
@@ -32,14 +32,14 @@ def check_e2e_requirements() -> None:
 @pytest.mark.asyncio
 async def test_managed_structured_agent_e2e() -> None:
     """Verify end-to-end PydanticAI structured agent execution returning validated BaseModel."""
-    provider = GoogleProvider(GoogleConfig(api_key=os.environ["GOOGLE_API_KEY"]))
-    service = create_llm_service({ProviderType.GOOGLE: provider})
+    provider = GeminiProvider(GeminiConfig(api_key=os.environ["GOOGLE_API_KEY"]))
+    service = create_llm_service({ProviderType.GEMINI: provider})
     await service.initialize()
 
     try:
         adapter = ManagedModelAdapter(
             service=service,
-            provider_type=ProviderType.GOOGLE,
+            provider_type=ProviderType.GEMINI,
             default_model="gemini-3.1-flash-lite",
         )
         agent = build_structured_agent(
