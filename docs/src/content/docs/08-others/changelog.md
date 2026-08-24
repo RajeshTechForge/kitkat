@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-08-24
+
+### Changed
+
+- **Refactored Google Provider**: The single `GoogleProvider` has been split into two independent, swappable providers to accurately reflect Google's distinct APIs and capabilities:
+  - `GeminiProvider` (`kitkat.providers.google.gemini`): Targets Google AI Studio via API key.
+  - `VertexAIProvider` (`kitkat.providers.google.vertex_ai`): Targets Google Cloud Vertex AI via Service Account/ADC.
+- **Enum Update**: `ProviderType.GOOGLE` has been replaced by `ProviderType.GEMINI` and `ProviderType.VERTEX_AI`. Any code referencing the old enum must be updated.
+- **Configuration Update**: `GoogleConfig` is deprecated. Use `GeminiConfig` (requires `api_key`) or `VertexAIConfig` (requires `project`, `location`). The `vertexai=True` flag is no longer used.
+
+### Added
+
+- **Vertex AI Enterprise Support**: The `VertexAIProvider` is rebuilt from scratch to support enterprise GCP deployments, including:
+  - Authentication via Application Default Credentials (ADC) or explicit Service Account JSON (`credentials_path`).
+  - Regional model availability validation and IAM permission error mapping.
+- **Divergent Thinking Configurations**: Extended thinking is now handled natively for each API's specific contract:
+  - `GeminiProvider` maps effort to discrete `thinking_level` enums (`LOW`, `MEDIUM`, `HIGH`).
+  - `VertexAIProvider` introduces deterministic `thinking_budget` (token limit) support. Effort levels are mapped to safe enterprise token limits by default, but exact integer budgets can be passed via `ThinkingConfig.provider_options`.
+
 ## [0.7.1] - 2026-08-20
 
 ### Fixed
