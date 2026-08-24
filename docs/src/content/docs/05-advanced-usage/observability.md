@@ -267,11 +267,11 @@ app = FastAPI(lifespan=lifespan)
 
 PydanticAI's `Agent.instrument_all()` automatically captures the following attributes on every agent run span:
 
-| Attribute                        | Description                                                 |
-| -------------------------------- | ----------------------------------------------------------- |
-| `gen_ai.system`                  | Provider identifier (`"anthropic"`, `"openai"`, `"google"`) |
-| `gen_ai.request.model`           | Model identifier used for the request                       |
-| `gen_ai.usage.input_tokens`      | Number of prompt tokens                                     |
+| Attribute                        | Description                                                               |
+| -------------------------------- | ------------------------------------------------------------------------- |
+| `gen_ai.system`                  | Provider identifier (`"anthropic"`, `"openai"`, `"gemini"`, `"vertex_ai"`) |
+| `gen_ai.request.model`           | Model identifier used for the request                                     |
+| `gen_ai.usage.input_tokens`      | Number of prompt tokens                                                   |
 | `gen_ai.usage.output_tokens`     | Number of completion tokens                                 |
 | `gen_ai.response.finish_reasons` | List of finish reasons from all candidates                  |
 | `logfire.span_type`              | `"llm"` for model calls, `"tool"` for tool invocations      |

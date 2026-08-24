@@ -135,7 +135,7 @@ Estimates the total token count for a list of `Message` objects. Concatenates al
 Returns the static capabilities descriptor for a registered provider. Use this to check whether a provider supports streaming, thinking, tool calling, or vision before building a request.
 
 ```python
-caps = service.get_capabilities(ProviderType.GOOGLE)
+caps = service.get_capabilities(ProviderType.GEMINI)
 if caps.supports_thinking:
     request = LLMRequest(..., thinking=ThinkingConfig(enabled=True))
 ```
@@ -371,27 +371,18 @@ request = LLMRequest(
 pip install kitkat[google]
 ```
 
-### Configuration: `GoogleConfig`
+### Configuration: `GeminiConfig`
 
 ```python
-from kitkat.providers.google import GoogleConfig
+from kitkat.providers.google import GeminiConfig
 import os
 
 # API key mode (standard)
-config = GoogleConfig(
-    api_key=os.environ["GOOGLE_API_KEY"],  # Required when vertexai=False
-    model="gemini-3-flash-preview",         # Default: "gemini-3-flash-preview"
-    vertexai=False,                         # Set True to use Vertex AI instead
+config = GeminiConfig(
+    api_key=os.environ["GOOGLE_API_KEY"],
+    model="gemini-3-flash-preview",
     timeout_s=60.0,                         # Default: 60.0
     extra_headers={},                       # Default: {}
-)
-
-# Vertex AI mode
-vertex_config = GoogleConfig(
-    vertexai=True,
-    project="my-gcp-project",   # Required when vertexai=True
-    location="us-central1",     # Required when vertexai=True
-    model="gemini-3-flash-preview",
 )
 ```
 
@@ -405,7 +396,7 @@ vertex_config = GoogleConfig(
 
 | Capability         | Value                    |
 | ------------------ | ------------------------ |
-| Default model      | `gemini-3-flash-preview` |
+| Default model      | `gemini-3.5-flash-lite`  |
 | Max context tokens | 1,048,576 (1M+)          |
 | Streaming          | ✅                       |
 | System prompt      | ✅                       |
@@ -413,34 +404,13 @@ vertex_config = GoogleConfig(
 | Vision             | ✅                       |
 | Extended thinking  | ✅                       |
 
-### Vertex AI support
-
-Kitkat's Google provider supports Vertex AI deployments transparently. Set `vertexai=True` and provide your GCP `project` and `location`. The google-genai SDK uses Application Default Credentials (ADC) in Vertex AI mode — no `api_key` is required.
-
-```python
-import os
-from kitkat.providers.google import GoogleProvider, GoogleConfig
-from kitkat import ProviderType
-from kitkat.service import create_llm_service
-
-vertex_config = GoogleConfig(
-    vertexai=True,
-    project=os.environ["GOOGLE_CLOUD_PROJECT"],
-    location="us-central1",
-)
-service = create_llm_service({
-    ProviderType.GOOGLE: GoogleProvider(vertex_config)
-})
-await service.initialize()
-```
-
 ### System prompt handling
 
 Google uses a top-level `system_instruction` parameter separate from the conversation turns. Kitkat extracts all `Role.SYSTEM` messages and concatenates them with `\n\n---\n\n` as the separator, then passes the result as `system_instruction`.
 
 Google's role vocabulary differs from the standard: Kitkat maps `Role.ASSISTANT` → `"model"` and `Role.USER` → `"user"` automatically.
 
-### Extended thinking (Google)
+### Extended thinking (Gemini)
 
 Gemini uses `thinking_level` (`"LOW"`, `"MEDIUM"`, `"HIGH"`) to control reasoning intensity:
 
@@ -449,7 +419,7 @@ from kitkat import LLMRequest, Message, Role, ThinkingConfig
 
 request = LLMRequest(
     messages=[Message(role=Role.USER, content="Prove the Pythagorean theorem.")],
-    model="gemini-3-flash-preview",
+    model="gemini-3.5-flash-lite",
     thinking=ThinkingConfig(enabled=True, effort="high"),
     # Kitkat maps: effort="high" → thinking_level="HIGH"
     max_tokens=4096,
@@ -460,7 +430,7 @@ request = LLMRequest(
 
 ### Safety filter behaviour
 
-Google raises `LLMContentFilterError` when its safety policies block a response. This covers all Google safety categories including `SAFETY`, `RECITATION`, `BLOCKLIST`, `PROHIBITED_CONTENT`, `SPII`, and `IMAGE_SAFETY`. Unlike `LLMRateLimitError`, content filter errors are **not retried** — a different provider would produce the same outcome.
+Gemini raises `LLMContentFilterError` when its safety policies block a response. This covers all Google safety categories including `SAFETY`, `RECITATION`, `BLOCKLIST`, `PROHIBITED_CONTENT`, `SPII`, and `IMAGE_SAFETY`. Unlike `LLMRateLimitError`, content filter errors are **not retried** — a different provider would produce the same outcome.
 
 ### Retry policy
 
@@ -475,9 +445,9 @@ Google raises `LLMContentFilterError` when its safety policies block a response.
 
 ## Provider Comparison
 
-| Feature                  | Anthropic               | OpenAI               | Google                       |
+| Feature                  | Anthropic               | OpenAI               | Gemini                       |
 | ------------------------ | ----------------------- | -------------------- | ---------------------------- |
-| Default model            | `claude-sonnet-4-6`     | `gpt-4o-mini`        | `gemini-3-flash-preview`     |
+| Default model            | `claude-sonnet-4-6`     | `gpt-4o-mini`        | `gemini-3.5-flash-lite`      |
 | Max context              | 200k tokens             | 128k tokens          | 1M+ tokens                   |
 | System prompt            | Separate `system` param | Inline `role=system` | `system_instruction` param   |
 | Thinking tokens reported | No (merged with output) | Yes (o-series only)  | Yes (`thoughts_token_count`) |

@@ -58,7 +58,7 @@ asyncio.run(handle_user_request(
 
 ```python
 BYOKLLMService(
-    provider_type: ProviderType,  # Which provider to use (ANTHROPIC, OPENAI, or GOOGLE)
+    provider_type: ProviderType,  # Which provider to use (ANTHROPIC, OPENAI, GEMINI)
     api_key: str,                  # The caller-supplied API key
     model: str,                    # Model identifier. Empty string falls back to each provider's default.
 )
@@ -98,7 +98,7 @@ async with BYOKLLMService(ProviderType.ANTHROPIC, user_key, "claude-opus-4-5") a
 ## Stream (token-by-token)
 
 ```python
-async with BYOKLLMService(ProviderType.GOOGLE, user_key, "gemini-3-flash-preview") as svc:
+async with BYOKLLMService(ProviderType.GEMINI, user_key, "gemini-3-flash-preview") as svc:
     request = LLMRequest(
         messages=[Message(role=Role.USER, content="Write a haiku about async programming.")],
         stream=True,
@@ -183,7 +183,7 @@ from kitkat import (
 app = FastAPI()
 
 class CompletionRequest(BaseModel):
-    provider: str   # "anthropic", "openai", or "google"
+    provider: str   # "anthropic", "openai" or "gemini"
     model: str
     message: str
     max_tokens: int = 512
@@ -235,7 +235,7 @@ async def complete(
 | ------------------------ | ------------------- | ------------------------ |
 | `ProviderType.ANTHROPIC` | `kitkat[anthropic]` | `ANTHROPIC_API_KEY`      |
 | `ProviderType.OPENAI`    | `kitkat[openai]`    | `OPENAI_API_KEY`         |
-| `ProviderType.GOOGLE`    | `kitkat[google]`    | `GOOGLE_API_KEY`         |
+| `ProviderType.GEMINI`    | `kitkat[google]`    | `GOOGLE_API_KEY`         |
 
 Passing an unrecognized `provider_type` raises `LLMProviderError` at construction time.
 

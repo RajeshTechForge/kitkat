@@ -18,11 +18,12 @@ All enumerations extend `StrEnum`, so their values are plain strings and can be 
 from kitkat import ProviderType
 ```
 
-| Member      | Value         | Description               |
-| ----------- | ------------- | ------------------------- |
-| `ANTHROPIC` | `"anthropic"` | Anthropic (Claude models) |
-| `OPENAI`    | `"openai"`    | OpenAI (GPT models)       |
-| `GOOGLE`    | `"google"`    | Google Gemini / Vertex AI |
+| Member         | Value            | Description               |
+| -------------- | ---------------- | ------------------------- |
+| `ANTHROPIC`    | `"anthropic"`    | Anthropic (Claude models) |
+| `OPENAI`       | `"openai"`       | OpenAI (GPT models)       |
+| `GEMINI`       | `"gemini"`       | Google Gemini models      |
+| `VERTEX_AI`    | `"vertex_ai"`    | Google Vertex AI models   |
 
 ### `Role`
 

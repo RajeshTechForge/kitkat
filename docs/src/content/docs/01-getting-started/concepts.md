@@ -298,7 +298,8 @@ Kitkat uses `StrEnum` throughout. All enum values are plain strings, so they ser
 | ----------- | ------------- | ------------------------------------------------- |
 | `ANTHROPIC` | `"anthropic"` | Anthropic Claude models                           |
 | `OPENAI`    | `"openai"`    | OpenAI GPT models and OpenAI-compatible endpoints |
-| `GOOGLE`    | `"google"`    | Google Gemini models and Vertex AI                |
+| `GEMINI`    | `"gemini"`    | Google Gemini models                              |
+| `VERTEX_AI` | `"vertex_ai"` | Google Vertex AI models                           |
 
 ### `FinishReason`
 
