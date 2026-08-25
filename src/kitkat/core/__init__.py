@@ -9,7 +9,7 @@ Usage::
     from kitkat.core import LLMAuthenticationError, LLMRateLimitError
 """
 
-from .enums import FinishReason, ProviderType, Role
+from .enums import ByokProviderType, FinishReason, ProviderType, Role
 from .exceptions import (
     KitkatError,
     LLMAuthenticationError,
@@ -38,6 +38,7 @@ __all__ = [
     "Role",
     "FinishReason",
     "ProviderType",
+    "ByokProviderType",
     # Models
     "Message",
     "ThinkingConfig",
