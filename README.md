@@ -12,6 +12,8 @@
 
 [Documentation](https://kitkat.rajeshmondal.com/docs/) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Development Setup](#-development-setup)
 
+### Development Status : 4 - Beta
+
 </div>
 
 ---

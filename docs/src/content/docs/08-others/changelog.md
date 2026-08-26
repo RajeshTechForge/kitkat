@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-08-26
+
+### Fixed
+
+- **Export `ByokProviderType` in Core Module (`kitkat.core`)**: Exported the `ByokProviderType` type alias from `kitkat.core` and added it to `__all__`, allowing consumers and downstream modules to import `ByokProviderType` directly from the core package namespace.
+
 ## [0.8.0] — 2026-08-24
 
 ### Changed
