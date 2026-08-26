@@ -211,7 +211,7 @@ time.
 To cut a release, the version is set by creating an annotated git tag:
 
 ```bash
-git tag -a v1.2.0 -m "chore: release v1.2.0"
+git tag -a v1.2.0 -m "Release v1.2.0"
 git push origin v1.2.0
 ```
 
