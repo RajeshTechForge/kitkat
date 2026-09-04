@@ -1,4 +1,3 @@
-# src/kitkat/rag/chunkers/markdown.py
 """Markdown-aware text chunker."""
 
 from __future__ import annotations

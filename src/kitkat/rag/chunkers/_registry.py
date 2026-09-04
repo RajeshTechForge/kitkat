@@ -1,4 +1,3 @@
-# src/kitkat/rag/chunkers/_registry.py
 """Registry for custom chunkers."""
 
 from __future__ import annotations

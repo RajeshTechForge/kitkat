@@ -1,11 +1,12 @@
-# src/kitkat/rag/abc/chunker.py
 """Abstract contract for document chunking strategies."""
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
-from kitkat.rag.core.models import Chunk, Document
+if TYPE_CHECKING:
+    from kitkat.rag.core.models import Chunk, Document
 
 
 class Chunker(ABC):

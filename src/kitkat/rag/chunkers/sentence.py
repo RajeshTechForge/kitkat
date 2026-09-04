@@ -1,12 +1,14 @@
-# src/kitkat/rag/chunkers/sentence.py
 """Sentence-based text chunker."""
 
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from kitkat.rag.chunkers.base import BaseChunker
+
+if TYPE_CHECKING:
+    from kitkat.rag.core.models import Chunk, Document
 
 _SENTENCE_PATTERN = re.compile(r"(?<=[.!?])\s+")
 
@@ -20,8 +22,7 @@ class SentenceChunker(BaseChunker):
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
 
-    async def chunk(self, document) -> list:  # type: ignore[override]
-        from kitkat.rag.core.models import Chunk, Document
+    async def chunk(self, document) -> list:
 
         doc: Document = document
 

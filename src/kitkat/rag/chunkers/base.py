@@ -1,4 +1,3 @@
-# src/kitkat/rag/chunkers/base.py
 """Shared helpers for chunker implementations."""
 
 from __future__ import annotations

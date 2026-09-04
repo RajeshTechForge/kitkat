@@ -1,11 +1,12 @@
-# src/kitkat/rag/abc/reranker.py
 """Abstract contract for post-retrieval rerankers."""
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
-from kitkat.rag.core.models import RetrievalResult
+if TYPE_CHECKING:
+    from kitkat.rag.core.models import RetrievalResult
 
 
 class Reranker(ABC):

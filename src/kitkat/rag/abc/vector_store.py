@@ -4,10 +4,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from kitkat.rag.core.enums import DistanceMetric
-from kitkat.rag.core.models import Chunk
+if TYPE_CHECKING:
+    from kitkat.rag.core.enums import DistanceMetric
+    from kitkat.rag.core.models import Chunk
 
 
 class VectorStore(ABC):
