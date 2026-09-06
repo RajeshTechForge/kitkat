@@ -1,4 +1,3 @@
-# src/kitkat/rag/context/citation.py
 """Citation extraction from LLM responses."""
 
 from __future__ import annotations
@@ -18,8 +17,8 @@ class CitationExtractor:
     @staticmethod
     def extract(
         text: str,
-        sources: list["RetrievalResult"],
-    ) -> list["RetrievalResult"]:
+        sources: list[RetrievalResult],
+    ) -> list[RetrievalResult]:
         """Extract cited sources from LLM text.
 
         Args:

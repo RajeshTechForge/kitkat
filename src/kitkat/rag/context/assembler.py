@@ -1,13 +1,14 @@
-# src/kitkat/rag/context/assembler.py
 """Context assembly from retrieved chunks."""
 
 from __future__ import annotations
 
 import logging
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 from kitkat.rag._internal.tokenizers import count_tokens
-from kitkat.rag.core.models import RetrievalResult
+
+if TYPE_CHECKING:
+    from kitkat.rag.core.models import RetrievalResult
 
 logger = logging.getLogger(__name__)
 

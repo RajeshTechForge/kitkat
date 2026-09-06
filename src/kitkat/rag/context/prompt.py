@@ -1,4 +1,3 @@
-# src/kitkat/rag/context/prompt.py
 """RAG prompt construction."""
 
 from __future__ import annotations
@@ -26,7 +25,7 @@ Context:
         self,
         *,
         system_template: str | None = None,
-        context_assembler: "ContextAssembler | None" = None,
+        context_assembler: ContextAssembler | None = None,
         include_citation_instructions: bool = True,
     ) -> None:
         self._template = system_template or self.DEFAULT_SYSTEM_TEMPLATE
@@ -36,7 +35,7 @@ Context:
     def build_messages(
         self,
         query: str,
-        results: list["RetrievalResult"],
+        results: list[RetrievalResult],
     ) -> list[tuple[str, str]]:
         """Build (role, content) message pairs for the LLM.
 
