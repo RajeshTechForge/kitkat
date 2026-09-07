@@ -30,7 +30,7 @@ from google.genai import Client
 from google.genai import errors as genai_errors
 from google.genai import types as genai_types
 
-from ..abc.embedder import EmbeddingProvider, EmbeddingRequest, EmbeddingResult
+from ..abc.embedder import EmbeddingProvider
 from ..core.exceptions import (
     EmbeddingAuthError,
     EmbeddingProviderError,
@@ -38,7 +38,7 @@ from ..core.exceptions import (
     EmbeddingRateLimitError,
     EmbeddingTimeoutError,
 )
-from ..core.models import RetryPolicy
+from ..core.models import EmbeddingRequest, EmbeddingResult, RetryPolicy
 
 logger = logging.getLogger(__name__)
 

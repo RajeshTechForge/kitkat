@@ -29,7 +29,7 @@ from typing import Any
 import openai
 from openai import AsyncOpenAI
 
-from ..abc.embedder import EmbeddingProvider, EmbeddingRequest, EmbeddingResult
+from ..abc.embedder import EmbeddingProvider
 from ..core.exceptions import (
     EmbeddingAuthError,
     EmbeddingProviderError,
@@ -37,7 +37,7 @@ from ..core.exceptions import (
     EmbeddingRateLimitError,
     EmbeddingTimeoutError,
 )
-from ..core.models import RetryPolicy
+from ..core.models import EmbeddingRequest, EmbeddingResult, RetryPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,8 @@ class OpenAIEmbeddingConfig:
         """
         if not self.api_key.strip():
             raise EmbeddingProviderInitError(
-                "OpenAIEmbeddingConfig.api_key must be a non-empty string. Set OPENAI_API_KEY in your environment.",
+                "OpenAIEmbeddingConfig.api_key must be a non-empty string. Set OPENAI_API_KEY in "
+                "your environment.",
                 provider="openai",
             )
         if self.timeout_s <= 0:

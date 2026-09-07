@@ -33,9 +33,9 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from ..abc.embedder import EmbeddingProvider, EmbeddingRequest, EmbeddingResult
+from ..abc.embedder import EmbeddingProvider
 from ..core.exceptions import EmbeddingProviderInitError
-from ..core.models import RetryPolicy
+from ..core.models import EmbeddingRequest, EmbeddingResult, RetryPolicy
 
 logger = logging.getLogger(__name__)
 
