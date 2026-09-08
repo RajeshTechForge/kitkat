@@ -1,4 +1,3 @@
-# src/kitkat/rag/ingest/loaders/html.py
 """HTML file loader (requires rag-html extra)."""
 
 from __future__ import annotations
@@ -6,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+
+from bs4 import BeautifulSoup
 
 from kitkat.rag._check import require_rag_extra
 from kitkat.rag.core.exceptions import DocumentLoadError
@@ -22,7 +23,6 @@ class HTMLLoader(DocumentLoader):
 
     def __init__(self) -> None:
         require_rag_extra("rag-html")
-        from bs4 import BeautifulSoup  # type: ignore[import-not-found]
 
         self._bs = BeautifulSoup
 

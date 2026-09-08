@@ -1,10 +1,13 @@
-# src/kitkat/rag/ingest/transformers/metadata.py
 """Adds basic metadata to documents."""
 
 from __future__ import annotations
 
-from kitkat.rag.core.models import Document
+from typing import TYPE_CHECKING
+
 from kitkat.rag.ingest.transformers.base import DocumentTransformer
+
+if TYPE_CHECKING:
+    from kitkat.rag.core.models import Document
 
 
 class MetadataExtractor(DocumentTransformer):

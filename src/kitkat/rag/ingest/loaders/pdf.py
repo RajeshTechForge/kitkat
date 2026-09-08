@@ -6,6 +6,8 @@ import asyncio
 import logging
 import os
 
+from pypdf import PdfReader
+
 from kitkat.rag._check import require_rag_extra
 from kitkat.rag.core.exceptions import DocumentLoadError
 from kitkat.rag.core.models import Document
@@ -21,7 +23,6 @@ class PDFLoader(DocumentLoader):
 
     def __init__(self) -> None:
         require_rag_extra("rag-pdf")
-        from pypdf import PdfReader
 
         self._reader_cls = PdfReader
 

@@ -1,4 +1,3 @@
-# src/kitkat/rag/ingest/loaders/text.py
 """Plain text file loader."""
 
 from __future__ import annotations

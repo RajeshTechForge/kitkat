@@ -1,11 +1,12 @@
-# src/kitkat/rag/ingest/loaders/base.py
 """Abstract contract for document loaders."""
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
-from kitkat.rag.core.models import Document
+if TYPE_CHECKING:
+    from kitkat.rag.core.models import Document
 
 
 class DocumentLoader(ABC):

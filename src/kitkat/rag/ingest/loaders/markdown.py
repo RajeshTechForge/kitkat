@@ -1,10 +1,13 @@
-# src/kitkat/rag/ingest/loaders/markdown.py
 """Markdown file loader."""
 
 from __future__ import annotations
 
-from kitkat.rag.core.models import Document
+from typing import TYPE_CHECKING
+
 from kitkat.rag.ingest.loaders.text import TextLoader
+
+if TYPE_CHECKING:
+    from kitkat.rag.core.models import Document
 
 
 class MarkdownLoader(TextLoader):

@@ -1,13 +1,15 @@
-# src/kitkat/rag/ingest/transformers/dedup.py
 """Deduplicates documents by content hash."""
 
 from __future__ import annotations
 
 import hashlib
 import logging
+from typing import TYPE_CHECKING
 
-from kitkat.rag.core.models import Document
 from kitkat.rag.ingest.transformers.base import DocumentTransformer
+
+if TYPE_CHECKING:
+    from kitkat.rag.core.models import Document
 
 logger = logging.getLogger(__name__)
 

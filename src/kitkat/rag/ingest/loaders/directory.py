@@ -1,14 +1,17 @@
-# src/kitkat/rag/ingest/loaders/directory.py
 """Batch loader for directories."""
 
 from __future__ import annotations
 
 import logging
 import os
+from typing import TYPE_CHECKING
 
 from kitkat.rag.core.exceptions import DocumentLoadError
-from kitkat.rag.core.models import Document
 from kitkat.rag.ingest.loaders.base import DocumentLoader
+
+if TYPE_CHECKING:
+    from kitkat.rag.core.models import Document
+
 
 logger = logging.getLogger(__name__)
 
