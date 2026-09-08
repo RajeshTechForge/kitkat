@@ -1,4 +1,3 @@
-# src/kitkat/rag/retrieval/keyword.py
 """Sparse keyword retrieval using a pure-Python BM25 implementation."""
 
 from __future__ import annotations

@@ -1,10 +1,13 @@
-# src/kitkat/rag/stores/base.py
 """Shared helpers for vector store implementations."""
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from kitkat.rag.core.exceptions import EmbeddingDimensionError
-from kitkat.rag.core.models import Chunk
+
+if TYPE_CHECKING:
+    from kitkat.rag.core.models import Chunk
 
 
 def validate_embedding_dimensions(chunks: list[Chunk], expected_dim: int) -> None:

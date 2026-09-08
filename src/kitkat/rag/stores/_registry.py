@@ -1,4 +1,3 @@
-# src/kitkat/rag/stores/_registry.py
 """Registry for custom vector stores."""
 
 from __future__ import annotations

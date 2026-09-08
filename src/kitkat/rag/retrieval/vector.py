@@ -1,16 +1,19 @@
-# src/kitkat/rag/retrieval/vector.py
 """Dense vector retrieval strategy."""
 
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
-from kitkat.rag.abc.embedder import EmbeddingProvider
 from kitkat.rag.abc.retriever import Retriever
-from kitkat.rag.abc.vector_store import VectorStore
 from kitkat.rag.core.enums import DistanceMetric
 from kitkat.rag.core.exceptions import RetrievalError
 from kitkat.rag.core.models import RetrievalResult
+
+if TYPE_CHECKING:
+    from kitkat.rag.abc.embedder import EmbeddingProvider
+    from kitkat.rag.abc.vector_store import VectorStore
+
 
 logger = logging.getLogger(__name__)
 

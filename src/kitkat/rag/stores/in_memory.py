@@ -1,10 +1,10 @@
-# src/kitkat/rag/stores/in_memory.py
 """Zero-dependency in-process vector store."""
 
 from __future__ import annotations
 
 import asyncio
 import logging
+from typing import TYPE_CHECKING
 
 from kitkat.rag._internal.similarity import (
     cosine_similarity,
@@ -17,7 +17,9 @@ from kitkat.rag.core.exceptions import (
     EmbeddingDimensionError,
     VectorStoreOperationError,
 )
-from kitkat.rag.core.models import Chunk
+
+if TYPE_CHECKING:
+    from kitkat.rag.core.models import Chunk
 
 logger = logging.getLogger(__name__)
 

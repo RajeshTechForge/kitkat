@@ -1,4 +1,3 @@
-# src/kitkat/rag/retrieval/rerankers/llm.py
 """LLM-based reranker using kitkat's LLMService."""
 
 from __future__ import annotations
@@ -43,7 +42,7 @@ class LLMReranker(Reranker):
 
     def __init__(
         self,
-        llm_service: "LLMService | LLMRouter",
+        llm_service: LLMService | LLMRouter,
         *,
         model: str = "gpt-4o-mini",
         max_concurrency: int = 5,

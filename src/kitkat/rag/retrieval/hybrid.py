@@ -1,4 +1,3 @@
-# src/kitkat/rag/retrieval/hybrid.py
 """Hybrid retrieval combining vector and keyword search via Reciprocal Rank Fusion."""
 
 from __future__ import annotations
@@ -6,12 +5,15 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 from kitkat.rag.abc.retriever import Retriever
 from kitkat.rag.core.exceptions import RetrievalError
 from kitkat.rag.core.models import RetrievalResult
-from kitkat.rag.retrieval.keyword import KeywordRetriever
-from kitkat.rag.retrieval.vector import VectorRetriever
+
+if TYPE_CHECKING:
+    from kitkat.rag.retrieval.keyword import KeywordRetriever
+    from kitkat.rag.retrieval.vector import VectorRetriever
 
 logger = logging.getLogger(__name__)
 

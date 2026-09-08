@@ -1,4 +1,3 @@
-# src/kitkat/rag/retrieval/rerankers/cross_encoder.py
 """Cross-encoder reranker using sentence-transformers (requires rag-rerank extra)."""
 
 from __future__ import annotations

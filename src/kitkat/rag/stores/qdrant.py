@@ -1,11 +1,9 @@
-# src/kitkat/rag/stores/qdrant.py
 """Qdrant vector store backend (requires rag-qdrant extra)."""
 
 from __future__ import annotations
 
 import logging
 import uuid
-from typing import Any
 
 from kitkat.rag._check import require_rag_extra
 from kitkat.rag.abc.vector_store import VectorStore

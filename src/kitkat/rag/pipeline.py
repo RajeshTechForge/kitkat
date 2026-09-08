@@ -1,11 +1,9 @@
-# src/kitkat/rag/pipeline.py
 """The top-level RAG orchestrator."""
 
 from __future__ import annotations
 
 import logging
 import time
-from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -20,6 +18,8 @@ from kitkat.rag.ingest.loaders.text import TextLoader
 from kitkat.rag.ingest.pipeline import IngestionPipeline, IngestionResult
 
 if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
     from kitkat.rag.abc.chunker import Chunker
     from kitkat.rag.abc.embedder import EmbeddingProvider
     from kitkat.rag.abc.reranker import Reranker
@@ -57,7 +57,7 @@ class RAGResponse:
     """Complete response from RAGPipeline.ask()."""
 
     content: str
-    sources: list["RetrievalResult"]
+    sources: list[RetrievalResult]
     query: str
     context: str
     llm_response: LLMResponse
@@ -71,7 +71,7 @@ class RAGStreamChunk:
     """A single chunk from a streamed RAG response."""
 
     content_delta: str = ""
-    sources: list["RetrievalResult"] | None = None
+    sources: list[RetrievalResult] | None = None
     is_final: bool = False
     usage: Any | None = None
 
@@ -86,14 +86,14 @@ class RAGPipeline:
     def __init__(
         self,
         *,
-        embedder: "EmbeddingProvider",
-        store: "VectorStore",
-        chunker: "Chunker | None" = None,
-        retriever: "Retriever | None" = None,
-        reranker: "Reranker | None" = None,
+        embedder: EmbeddingProvider,
+        store: VectorStore,
+        chunker: Chunker | None = None,
+        retriever: Retriever | None = None,
+        reranker: Reranker | None = None,
         context_assembler: ContextAssembler | None = None,
         prompt_builder: RAGPromptBuilder | None = None,
-        llm_service: "LLMService | LLMRouter | None" = None,
+        llm_service: LLMService | LLMRouter | None = None,
         config: RAGConfig | None = None,
     ) -> None:
         self._embedder = embedder
@@ -153,7 +153,7 @@ class RAGPipeline:
 
         logger.info("RAGPipeline shut down.")
 
-    async def __aenter__(self) -> "RAGPipeline":
+    async def __aenter__(self) -> RAGPipeline:
         await self.initialize()
         return self
 
@@ -162,7 +162,7 @@ class RAGPipeline:
 
     async def ingest(
         self,
-        sources: list[str] | list["Document"],
+        sources: list[str] | list[Document],
         *,
         collection: str = "default",
     ) -> IngestionResult:
@@ -192,7 +192,7 @@ class RAGPipeline:
         rerank: bool | None = None,
         filter: dict[str, str | int | float | bool] | None = None,
         collection: str = "default",
-    ) -> list["RetrievalResult"]:
+    ) -> list[RetrievalResult]:
         """Retrieve and optionally rerank chunks for a query."""
         k = top_k or self._config.retrieval_top_k
         do_rerank = self._config.use_reranker if rerank is None else rerank
