@@ -30,7 +30,9 @@ dependencies = [
     "pydantic>=2.13",
     "pydantic-settings>=2.13.0",
     "tiktoken>=0.13.0",
-    "redis>=7.1.1"
+    "redis>=7.1.1",
+    "beautifulsoup4 >=4.15.0",
+    "pypdf >= 6.18.0",
 ]
 
 # ── Provider extras ────────────────────────────
@@ -43,6 +45,9 @@ all-providers = [
     "kitkat[openai]",
     "kitkat[google]",
 ]
+# ── RAG Vector store extras ────────────────────
+rag-qdrant = ["qdrant-client>=1.14.1"]
+rag-rerank = ["sentence_transformers>=4.1.0"]
 
 # ── Feature extras ────────────────────────────────────────────────────────
 agents        = ["pydantic-ai>=2.0"]
