@@ -8,7 +8,6 @@ import os
 
 from pypdf import PdfReader
 
-from kitkat.rag._check import require_rag_extra
 from kitkat.rag.core.exceptions import DocumentLoadError
 from kitkat.rag.core.models import Document
 from kitkat.rag.ingest.loaders.base import DocumentLoader
@@ -22,8 +21,6 @@ class PDFLoader(DocumentLoader):
     SUPPORTED_EXTENSIONS = frozenset({".pdf"})
 
     def __init__(self) -> None:
-        require_rag_extra("rag-pdf")
-
         self._reader_cls = PdfReader
 
     async def load(self, source: str) -> Document:

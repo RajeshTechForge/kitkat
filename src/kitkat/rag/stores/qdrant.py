@@ -25,6 +25,7 @@ from qdrant_client.models import (
     FieldCondition,
     Filter,
     MatchValue,
+    PointIdsList,
     PointStruct,
     VectorParams,
 )
@@ -228,8 +229,6 @@ class QdrantVectorStore(VectorStore):
                 uuid_ids.append(str(uuid.uuid5(uuid.NAMESPACE_DNS, cid)))
 
         try:
-            from qdrant_client.models import PointIdsList
-
             await self._client.delete(
                 collection_name=collection,
                 points_selector=PointIdsList(points=uuid_ids),

@@ -8,7 +8,6 @@ import os
 
 from bs4 import BeautifulSoup
 
-from kitkat.rag._check import require_rag_extra
 from kitkat.rag.core.exceptions import DocumentLoadError
 from kitkat.rag.core.models import Document
 from kitkat.rag.ingest.loaders.base import DocumentLoader
@@ -22,8 +21,6 @@ class HTMLLoader(DocumentLoader):
     SUPPORTED_EXTENSIONS = frozenset({".html", ".htm"})
 
     def __init__(self) -> None:
-        require_rag_extra("rag-html")
-
         self._bs = BeautifulSoup
 
     async def load(self, source: str) -> Document:
