@@ -8,13 +8,13 @@ import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from kitkat.rag.core.exceptions import DocumentLoadError, IngestionPipelineError
-from kitkat.rag.core.models import Document
+from kitkat.rag.core.exceptions import DocumentLoadError
 
 if TYPE_CHECKING:
     from kitkat.rag.abc.chunker import Chunker
     from kitkat.rag.abc.embedder import EmbeddingProvider
     from kitkat.rag.abc.vector_store import VectorStore
+    from kitkat.rag.core.models import Document
     from kitkat.rag.ingest.loaders.base import DocumentLoader
     from kitkat.rag.ingest.transformers.base import DocumentTransformer
 
@@ -42,11 +42,11 @@ class IngestionPipeline:
     def __init__(
         self,
         *,
-        loaders: list["DocumentLoader"],
-        transformers: list["DocumentTransformer"],
-        chunker: "Chunker",
-        embedder: "EmbeddingProvider",
-        store: "VectorStore",
+        loaders: list[DocumentLoader],
+        transformers: list[DocumentTransformer],
+        chunker: Chunker,
+        embedder: EmbeddingProvider,
+        store: VectorStore,
         batch_size: int = 100,
     ) -> None:
         self._loaders = {ext: loader for loader in loaders for ext in loader.SUPPORTED_EXTENSIONS}
