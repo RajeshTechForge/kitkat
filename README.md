@@ -1,5 +1,5 @@
-<p align="center"><img align="center" width="280" src="https://github.com/RajeshTechForge/kitkat/tree/main/.github/logo-dark.svg#gh-dark-mode-only"/></p>
-<p align="center"><img align="center" width="280" src="https://github.com/RajeshTechForge/kitkat/tree/main/.github/logo-light.svg#gh-light-mode-only"/></p>
+<p align="center"><img align="center" width="280" src="./.github/logo-dark.svg#gh-dark-mode-only"/></p>
+<p align="center"><img align="center" width="280" src="./.github/logo-light.svg#gh-light-mode-only"/></p>
 <h3 align="center">A modern & minimal Python library for talking to LLMs.</h3>
 
 <div align="center">
