@@ -9,6 +9,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0a1] - 2026-09-17
+
+### Added
+
+- **RAG Subsystem (`kitkat.rag`)**: Introduced a modular, asynchronous Retrieval-Augmented Generation (RAG) framework supporting document ingestion, chunking, vector/hybrid retrieval, reranking, context assembly, and end-to-end question answering.
+  - **Top-Level Orchestrator (`RAGPipeline`)**: End-to-end async pipeline orchestrating embedders, vector stores, retrievers, rerankers, prompt builders, and LLM services.
+    - `ask()`: Asynchronously retrieves relevant context, constructs citation-aware prompts, queries the LLM, extracts citations, and calculates latency metrics (`RAGResponse`).
+    - `ask_stream()`: Streams responses token-by-token while emitting retrieved source documents early in the stream (`RAGStreamChunk`).
+    - `ingest()` & `retrieve()`: Direct access to document ingestion and filtered semantic/hybrid retrieval.
+    - Lifecycle management via `initialize()`, `shutdown()`, and async context manager (`async with RAGPipeline(...)`).
+  - **Domain Models & Enums (`kitkat.rag.core`)**:
+    - `Document`: Base input unit with content, source attribution, MIME type, and arbitrary metadata.
+    - `Chunk`: Fine-grained text segment with character offsets, token counts, embeddings, and parent document linkage.
+    - `RetrievalResult`: Scored chunk retrieval item with provenance and rank tracking.
+    - `EmbeddingRequest` & `EmbeddingResult`: Strict, validated payloads for vector generation with dimensional consistency checks.
+    - Enums: `EmbeddingProviderType`, `ChunkingStrategy`, `RetrievalStrategy`, `VectorBackendType`, `DistanceMetric`, and `RerankerType`.
+    - Typed exception hierarchy rooted at `RAGError`, including `EmbeddingError`, `VectorStoreError`, `ChunkingError`, `RetrievalError`, `RerankingError`, and `IngestionError`.
+  - **Abstract Base Classes (`kitkat.rag.abc`)**:
+    - `EmbeddingProvider`: Unified contract for async embedding generation (`embed_query`, `embed_documents`, `embed`), health checks, and lifecycle management.
+    - `VectorStore`: Asynchronous vector store interface defining `add()`, `search()`, `delete()`, `get()`, and `count()`.
+    - `Chunker`: Contract for synchronous/asynchronous document chunking strategies.
+    - `Retriever`: Base contract for semantic, lexical, and hybrid search providers.
+    - `Reranker`: Contract for post-retrieval cross-encoder and LLM-based re-scoring.
+  - **Embedding Providers (`kitkat.rag.embedders`)**:
+    - `OpenAIEmbeddingProvider` (`kitkat.rag.embedders.OpenAIEmbeddingProvider`): Supports `text-embedding-3-small`, `text-embedding-3-large`, and `text-embedding-ada-002` with dimension adjustments and query/document task mapping.
+    - `GeminiEmbeddingProvider` (`kitkat.rag.embedders.GeminiEmbeddingProvider`): Native Google Gemini embeddings API (`text-embedding-004`) with task-specific optimization (`RETRIEVAL_QUERY`, `RETRIEVAL_DOCUMENT`).
+    - `FakeEmbeddingProvider` (`kitkat.rag.embedders.FakeEmbeddingProvider`): Deterministic pseudo-random vector generator for zero-network testing and offline development.
+  - **Chunking Strategies (`kitkat.rag.chunkers`)**:
+    - `RecursiveCharacterChunker`: Hierarchical text splitting respecting paragraph, sentence, and word boundaries.
+    - `SentenceChunker`: Splits text based on natural sentence boundaries.
+    - `TokenChunker`: Precise token-length splitting using `tiktoken`.
+    - `MarkdownChunker`: Header-aware structural splitting (`#`, `##`, `###`) preserving Markdown section context.
+  - **Vector Storage Backends (`kitkat.rag.stores`)**:
+    - `InMemoryVectorStore`: Asynchronous in-memory vector store supporting cosine, dot product, and euclidean similarity metrics.
+    - `QdrantVectorStore`: Enterprise vector storage backed by Qdrant with payload filtering, collection management, and distance metric mapping (`kitkat[rag-qdrant]`).
+  - **Retrieval & Reranking (`kitkat.rag.retrieval`, `kitkat.rag.rerankers`)**:
+    - `VectorRetriever`: Dense semantic vector search with top-k filtering.
+    - `KeywordRetriever`: In-memory BM25 / token matching for sparse lexical search.
+    - `HybridRetriever`: Combines dense and sparse retrievers using Reciprocal Rank Fusion (RRF) and custom scoring weights.
+    - `CrossEncoderReranker`: Deep learning reranking via `sentence-transformers` (`kitkat[rag-rerank]`).
+    - `LLMReranker`: Prompt-driven LLM scoring to reorder candidate chunks by relevance.
+  - **Document Ingestion Pipeline (`kitkat.rag.ingest`)**:
+    - Loaders (`kitkat.rag.ingest.loaders`): `TextLoader`, `MarkdownLoader`, `PDFLoader` (via `pypdf`), `HTMLLoader` (via `beautifulsoup4`), and `DirectoryLoader` for recursive multi-format batch loading.
+    - Transformers (`kitkat.rag.ingest.transformers`): `Deduplicator` (SHA-256 hash deduplication) and `MetadataExtractor` for document enrichment.
+    - `IngestionPipeline`: Orchestrates end-to-end document loading, deduplication, metadata extraction, chunking, embedding, and vector storage.
+  - **Context & Prompt Assembly (`kitkat.rag.context`)**:
+    - `ContextAssembler`: Formats retrieved chunks into token-budgeted prompt contexts supporting numbered, markdown, and XML templates.
+    - `CitationExtractor`: Extracts bracketed citation references (`[1]`, `[2]`, etc.) from model responses and maps them back to source chunks.
+    - `RAGPromptBuilder`: Prepares structured conversation messages with integrated context and citation guidelines.
+- **Package Dependencies & Extras**:
+  - Added `beautifulsoup4>=4.15.0` and `pypdf>=6.18.0` to core dependencies for document loading.
+  - Added `rag-qdrant = ["qdrant-client>=1.14.1"]` optional extra for Qdrant vector store support.
+  - Added `rag-rerank = ["sentence_transformers>=4.1.0"]` optional extra for cross-encoder reranking.
+
 ## [0.8.1] - 2026-08-26
 
 ### Fixed

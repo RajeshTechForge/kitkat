@@ -1,7 +1,6 @@
-<div align="center">
-  <h1><a href="https://kitkat.rajeshmondal.com">KitKat</a></h1>
-  <h3>A modern & minimal Python library for talking to LLMs.</h3>
-</div>
+<p align="center"><img align="center" width="280" src="https://github.com/RajeshTechForge/kitkat/tree/main/.github/logo-dark.svg#gh-dark-mode-only"/></p>
+<p align="center"><img align="center" width="280" src="https://github.com/RajeshTechForge/kitkat/tree/main/.github/logo-light.svg#gh-light-mode-only"/></p>
+<h3 align="center">A modern & minimal Python library for talking to LLMs.</h3>
 
 <div align="center">
 
@@ -10,15 +9,23 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-3b82f6.svg)](https://github.com/RajeshTechForge/kitkat/blob/main/LICENSE)
 [![Ruff](https://img.shields.io/badge/linting-ruff-3b82f6)](https://github.com/astral-sh/ruff)
 
-[Documentation](https://kitkat.rajeshmondal.com/docs/) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Development Setup](#-development-setup)
-
-### Development Status : 4 - Beta
-
 </div>
+
+<br>
 
 ---
 
-<br>
+## Docs
+
+- [What is Kitkat](#what-is-kitkat-?)
+- [Key Features](#key-features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Development Setup](#development-setup)
+- [Complete Documentation](https://kitkat.rajeshmondal.com/docs/)
+
+
+## What is Kitkat ?
 
 **Kitkat** is an async-first Python 3.11+ unification framework and infrastructure layer built for enterprise LLM applications, AI agents, and multi-tenant SaaS backends. 
 
